@@ -49,6 +49,7 @@ extern "C" {
 #include "MergeScannerRange.h"
 #include "MetadataNormal.h"
 #include "MetadataRoot.h"
+#include "MetaLogEntityTaskAcknowledgeRelinquish.h"
 #include "MetaLogEntityTaskRemoveTransferLog.h"
 #include "Range.h"
 
@@ -542,6 +543,10 @@ void Range::relinquish() {
   try {
     switch (m_metalog_entity->state.state) {
     case (RangeState::STEADY):
+      if (Global::immovable_range_set_contains(m_metalog_entity->table, m_metalog_entity->spec)) {
+        HT_WARNF("Aborting relinquish of %s becuase marked immovable.", m_name.c_str());
+        return;
+      }
       relinquish_install_log();
     case (RangeState::RELINQUISH_LOG_INSTALLED):
       relinquish_compact_and_finish();
@@ -698,22 +703,36 @@ void Range::relinquish_compact_and_finish() {
            m_metalog_entity->table.id, m_metalog_entity->spec.start_row,
            m_metalog_entity->spec.end_row);
 
-  m_master_client->move_range(&m_metalog_entity->table, m_metalog_entity->spec,
+  m_master_client->move_range(Global::location_initializer->get(),
+			      &m_metalog_entity->table, m_metalog_entity->spec,
                               m_metalog_entity->state.transfer_log,
                               m_metalog_entity->state.soft_limit, false);
 
-  MetaLog::EntityTaskPtr log_removal_task;
+  MetaLog::EntityTaskPtr log_removal_task, acknowledge_relinquish_task;
+  std::vector<MetaLog::Entity *> entities;
+
+  // Mark the Range entity for removal
+  m_metalog_entity->mark_for_removal();
+  entities.push_back(m_metalog_entity.get());
+
+  // Add log removal task
   maybe_create_log_removal_task(log_removal_task);
+  if (log_removal_task)
+    entities.push_back(log_removal_task.get());
+
+  // Add acknowledge relinquish task
+  acknowledge_relinquish_task = 
+    new MetaLog::EntityTaskAcknowledgeRelinquish(Global::location_initializer->get(),
+                                                 m_metalog_entity->table,
+                                                 m_metalog_entity->spec);
+  entities.push_back(acknowledge_relinquish_task.get());
 
   /**
    * Add the log removal task and remove range from RSML
    */
   for (int i=0; true; i++) {
     try {
-      if (log_removal_task)
-	Global::rsml_writer->record_state_and_removal(log_removal_task.get(), m_metalog_entity.get());
-      else
-	Global::rsml_writer->record_removal(m_metalog_entity.get());
+      Global::rsml_writer->record_state(entities);
       break;
     }
     catch (Exception &e) {
@@ -727,19 +746,12 @@ void Range::relinquish_compact_and_finish() {
     }
   }
 
-  // Add the log removal task to work queue
-  if (log_removal_task) {
+  // Add tasks to work queue
+  {
     ScopedLock lock(Global::mutex);
-    Global::work_queue.push_back(log_removal_task);
-  }
-
-  // Acknowledge RSML update
-  try {
-    m_master_client->relinquish_acknowledge(&m_metalog_entity->table,
-                                            m_metalog_entity->spec, (DispatchHandler *)0);
-  }
-  catch (Exception &e) {
-    HT_ERROR_OUT << "Master::relinquish_acknowledge() error - " << e << HT_END;
+    if (log_removal_task) 
+      Global::work_queue.push_back(log_removal_task);
+    Global::work_queue.push_back(acknowledge_relinquish_task);
   }
 
   // disables any further maintenance
@@ -1169,7 +1181,8 @@ void Range::split_notify_master() {
       soft_limit = Global::range_split_size;
   }
 
-  m_master_client->move_range(&m_metalog_entity->table, range,
+  m_master_client->move_range(Global::location_initializer->get(),
+			      &m_metalog_entity->table, range,
                               m_metalog_entity->state.transfer_log,
                               soft_limit, true);
 
@@ -1181,13 +1194,22 @@ void Range::split_notify_master() {
   HT_MAYBE_FAIL("split-3");
   HT_MAYBE_FAIL_X("metadata-split-3", m_metalog_entity->table.is_metadata());
 
-  MetaLog::EntityTaskPtr log_removal_task;
-  maybe_create_log_removal_task(log_removal_task);
-
+  MetaLog::EntityTaskPtr log_removal_task, acknowledge_relinquish_task;
   std::vector<MetaLog::Entity *> entities;
+
+  // Add Range entity with updated state
   entities.push_back(m_metalog_entity.get());
+
+  // Add log removal task
+  maybe_create_log_removal_task(log_removal_task);
   if (log_removal_task)
     entities.push_back(log_removal_task.get());
+
+  // Add acknowledge relinquish task
+  acknowledge_relinquish_task = 
+    new MetaLog::EntityTaskAcknowledgeRelinquish(Global::location_initializer->get(),
+                                                 m_metalog_entity->table, range);
+  entities.push_back(acknowledge_relinquish_task.get());
 
   /**
    * Persist STEADY Metalog state and log removal task
@@ -1214,19 +1236,12 @@ void Range::split_notify_master() {
     }
   }
 
-  // Add the log removal task to work queue
-  if (log_removal_task) {
+  // Add tasks to work queue
+  {
     ScopedLock lock(Global::mutex);
-    Global::work_queue.push_back(log_removal_task);
-  }
-
-  // Acknowledge RSML update
-  try {
-    m_master_client->relinquish_acknowledge(&m_metalog_entity->table, range,
-                                            (DispatchHandler *)0);
-  }
-  catch (Exception &e) {
-    HT_ERROR_OUT << "Master::relinquish_acknowledge() error - " << e << HT_END;
+    if (log_removal_task) 
+      Global::work_queue.push_back(log_removal_task);
+    Global::work_queue.push_back(acknowledge_relinquish_task);
   }
 
   HT_MAYBE_FAIL("split-4");

@@ -50,6 +50,9 @@ namespace Hypertable {
       virtual void encode(uint8_t **bufp) const { return; }
       virtual void decode(const uint8_t **bufp, size_t *remainp) { return; }
 
+      void mark_for_removal() { header.flags |= EntityHeader::FLAG_REMOVE; header.length = header.checksum = 0; }
+      bool marked_for_removal() { return (header.flags & EntityHeader::FLAG_REMOVE) != 0; }
+
       virtual const String name() = 0;
 
       /**

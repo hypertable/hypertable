@@ -234,10 +234,7 @@ void TableInfo::add_staged_range(RangePtr &range) {
 
   HT_ASSERT(iter != m_range_set.end());
   HT_ASSERT(!iter->get_range());
-  HT_INFOF("Adding range %s[%s..%s] to TableInfo",
-           range->get_name().c_str(),
-           iter->get_start_row().c_str(),
-           iter->get_end_row().c_str());
+  HT_INFOF("Adding range %s to TableInfo", range->get_name().c_str());
   range_info.set_range(range);
   m_range_set.erase(iter);
   RangeInfoSetInsRec ins = m_range_set.insert(range_info);
@@ -252,10 +249,7 @@ void TableInfo::add_range(RangePtr &range) {
   RangeInfoSet::iterator iter = m_range_set.find(range_info);
 
   HT_ASSERT(iter == m_range_set.end());
-  HT_INFOF("Adding range %s[%s..%s] to TableInfo",
-           range->get_name().c_str(),
-           range_info.get_start_row().c_str(),
-           range_info.get_end_row().c_str());
+  HT_INFOF("Adding range %s to TableInfo", range->get_name().c_str());
   RangeInfoSetInsRec ins = m_range_set.insert(range_info);
   HT_ASSERT(ins.second);
 }

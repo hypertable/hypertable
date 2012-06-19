@@ -48,7 +48,7 @@ extern "C" {
 #include "OperationSystemUpgrade.h"
 #include "OperationWaitForServers.h"
 #include "OperationBalance.h"
-#include "RemovalManager.h"
+#include "ReferenceManager.h"
 #include "ResponseManager.h"
 
 using namespace Hypertable;
@@ -166,7 +166,7 @@ int main(int argc, char **argv) {
     context->mml_writer = new MetaLog::Writer(context->dfs, context->mml_definition,
                                               log_dir, entities);
 
-    context->removal_manager = new RemovalManager(context->mml_writer);
+    context->reference_manager = new ReferenceManager();
 
     /** Response Manager */
     ResponseManagerContext *rmctx = new ResponseManagerContext(context->mml_writer);
@@ -188,7 +188,7 @@ int main(int argc, char **argv) {
       operation = dynamic_cast<Operation *>(entities[i].get());
       if (operation) {
         if (operation->remove_explicitly())
-          context->removal_manager->add_operation(operation);
+          context->reference_manager->add(operation);
         if (dynamic_cast<OperationBalance *>(operation.get())) {
           // there should be only one OPERATION_BALANCE
           HT_ASSERT(context->op_balance == NULL);
@@ -208,7 +208,7 @@ int main(int argc, char **argv) {
       OperationInitializePtr init_op = new OperationInitialize(context);
       if (context->namemap->exists_mapping("/sys/METADATA", 0))
         init_op->set_state(OperationState::CREATE_RS_METRICS);
-      context->removal_manager->add_operation(init_op.get());
+      context->reference_manager->add(init_op.get());
       operations.push_back( init_op );
     }
     else {
@@ -247,9 +247,6 @@ int main(int argc, char **argv) {
     response_manager_thread.join();
     delete rmctx;
     delete context->response_manager;
-
-    context->removal_manager->shutdown();
-    delete context->removal_manager;
 
     context = 0;
   }

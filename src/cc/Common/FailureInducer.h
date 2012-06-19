@@ -45,6 +45,7 @@ namespace Hypertable {
       uint32_t trigger_iteration;
       int failure_type;
       int error_code;
+      int pause_millis;
     };
     typedef hash_map<String, failure_inducer_state *> StateMap;
     Mutex m_mutex;

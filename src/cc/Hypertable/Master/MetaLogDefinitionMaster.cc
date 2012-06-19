@@ -49,29 +49,91 @@ const char *DefinitionMaster::name() {
 }
 
 Entity *DefinitionMaster::create(uint16_t log_version, const EntityHeader &header) {
+  Operation *operation = 0;
 
   if (header.type == EntityType::RANGE_SERVER_CONNECTION) {
     MetaLog::WriterPtr mml_writer = m_context ? m_context->mml_writer : 0;
     return new RangeServerConnection(mml_writer, header);
   }
-  else if (header.type == EntityType::OPERATION_INITIALIZE)
-    return new OperationInitialize(m_context, header);
-  else if (header.type == EntityType::OPERATION_ALTER_TABLE)
-    return new OperationAlterTable(m_context, header);
-  else if (header.type == EntityType::OPERATION_CREATE_NAMESPACE)
-    return new OperationCreateNamespace(m_context, header);
-  else if (header.type == EntityType::OPERATION_DROP_NAMESPACE)
-    return new OperationDropNamespace(m_context, header);
-  else if (header.type == EntityType::OPERATION_CREATE_TABLE)
-    return new OperationCreateTable(m_context, header);
-  else if (header.type == EntityType::OPERATION_DROP_TABLE)
-    return new OperationDropTable(m_context, header);
-  else if (header.type == EntityType::OPERATION_RENAME_TABLE)
-    return new OperationRenameTable(m_context, header);
-  else if (header.type == EntityType::OPERATION_MOVE_RANGE)
-    return new OperationMoveRange(m_context, header);
-  else if (header.type == EntityType::OPERATION_BALANCE)
-    return new OperationBalance(m_context, header);
+
+  if ((header.type & 0xF0000L) == 0x20000L) {
+
+    /*
+     * If old operation, then record the original type and convert
+     */
+
+    if (header.type == EntityType::OLD_OPERATION_INITIALIZE) {
+      ((EntityHeader *)&header)->type = EntityType::OPERATION_INITIALIZE;
+      operation = new OperationInitialize(m_context, header);
+      operation->set_original_type(EntityType::OLD_OPERATION_INITIALIZE);
+    }
+    else if (header.type == EntityType::OLD_OPERATION_ALTER_TABLE) {
+      ((EntityHeader *)&header)->type = EntityType::OPERATION_ALTER_TABLE;
+      operation = new OperationAlterTable(m_context, header);
+      operation->set_original_type(EntityType::OLD_OPERATION_ALTER_TABLE);
+    }
+    else if (header.type == EntityType::OLD_OPERATION_CREATE_NAMESPACE) {
+      ((EntityHeader *)&header)->type = EntityType::OPERATION_CREATE_NAMESPACE;
+      operation = new OperationCreateNamespace(m_context, header);
+      operation->set_original_type(EntityType::OLD_OPERATION_CREATE_NAMESPACE);
+    }
+    else if (header.type == EntityType::OLD_OPERATION_DROP_NAMESPACE) {
+      ((EntityHeader *)&header)->type = EntityType::OPERATION_DROP_NAMESPACE;
+      operation = new OperationDropNamespace(m_context, header);
+      operation->set_original_type(EntityType::OLD_OPERATION_DROP_NAMESPACE);
+    }
+    else if (header.type == EntityType::OLD_OPERATION_CREATE_TABLE) {
+      ((EntityHeader *)&header)->type = EntityType::OPERATION_CREATE_TABLE;
+      operation = new OperationCreateTable(m_context, header);
+      operation->set_original_type(EntityType::OLD_OPERATION_CREATE_TABLE);
+    }
+    else if (header.type == EntityType::OLD_OPERATION_DROP_TABLE) {
+      ((EntityHeader *)&header)->type = EntityType::OPERATION_DROP_TABLE;
+      operation = new OperationDropTable(m_context, header);
+      operation->set_original_type(EntityType::OLD_OPERATION_DROP_TABLE);
+    }
+    else if (header.type == EntityType::OLD_OPERATION_RENAME_TABLE) {
+      ((EntityHeader *)&header)->type = EntityType::OPERATION_RENAME_TABLE;
+      operation = new OperationRenameTable(m_context, header);
+      operation->set_original_type(EntityType::OLD_OPERATION_RENAME_TABLE);
+    }
+    else if (header.type == EntityType::OLD_OPERATION_MOVE_RANGE) {
+      // let OperationMoveRange handle the upgrade
+      operation = new OperationMoveRange(m_context, header);
+      operation->set_original_type(EntityType::OLD_OPERATION_MOVE_RANGE);
+    }
+    else if (header.type == EntityType::OLD_OPERATION_BALANCE) {
+      ((EntityHeader *)&header)->type = EntityType::OPERATION_BALANCE;
+      operation = new OperationBalance(m_context, header);
+      operation->set_original_type(EntityType::OLD_OPERATION_BALANCE);
+    }
+
+  }
+  else {
+
+    if (header.type == EntityType::OPERATION_INITIALIZE)
+      operation = new OperationInitialize(m_context, header);
+    else if (header.type == EntityType::OPERATION_ALTER_TABLE)
+      operation = new OperationAlterTable(m_context, header);
+    else if (header.type == EntityType::OPERATION_CREATE_NAMESPACE)
+      operation = new OperationCreateNamespace(m_context, header);
+    else if (header.type == EntityType::OPERATION_DROP_NAMESPACE)
+      operation = new OperationDropNamespace(m_context, header);
+    else if (header.type == EntityType::OPERATION_CREATE_TABLE)
+      operation = new OperationCreateTable(m_context, header);
+    else if (header.type == EntityType::OPERATION_DROP_TABLE)
+      operation = new OperationDropTable(m_context, header);
+    else if (header.type == EntityType::OPERATION_RENAME_TABLE)
+      operation = new OperationRenameTable(m_context, header);
+    else if (header.type == EntityType::OPERATION_MOVE_RANGE)
+      operation = new OperationMoveRange(m_context, header);
+    else if (header.type == EntityType::OPERATION_BALANCE)
+      operation = new OperationBalance(m_context, header);
+
+  }
+
+  if (operation)
+    return operation;
 
   HT_THROWF(Error::METALOG_ENTRY_BAD_TYPE,
             "Unrecognized type (%d) encountered in mml",

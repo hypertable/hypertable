@@ -46,7 +46,7 @@ bool Writer::skip_recover_entry = false;
 
 Writer::Writer(FilesystemPtr &fs, DefinitionPtr &definition, const String &path,
                std::vector<EntityPtr> &initial_entities) :
-  m_fs(fs), m_fd(-1), m_definition(definition), m_offset(0) {
+  m_fs(fs), m_definition(definition), m_fd(-1), m_offset(0) {
 
   HT_EXPECT(Config::properties, Error::FAILED_EXPECTATION);
 
@@ -168,42 +168,20 @@ void Writer::write_header() {
 }
 
 
-void Writer::record_state_and_removal(Entity *state_entity, Entity *removal_entity) {
-  ScopedLock lock(m_mutex);
-  StaticBuffer buf(EntityHeader::LENGTH + state_entity->encoded_length() + EntityHeader::LENGTH);
-  boost::shared_array<uint8_t> backup_buf( new uint8_t [EntityHeader::LENGTH + state_entity->encoded_length() + EntityHeader::LENGTH] );
-  uint8_t *ptr = buf.base;
-
-  if (m_fd == -1)
-    HT_THROWF(Error::CLOSED, "MetaLog '%s' has been closed", m_path.c_str());
-
-  state_entity->encode_entry( &ptr );
-
-  removal_entity->header.flags |= EntityHeader::FLAG_REMOVE;
-  removal_entity->header.length = 0;
-  removal_entity->header.checksum = 0;
-
-  removal_entity->header.encode( &ptr );
-
-  HT_ASSERT((ptr-buf.base) == (ptrdiff_t)buf.size);
-  memcpy(backup_buf.get(), buf.base, buf.size);
-
-  m_fs->append(m_fd, buf, Filesystem::O_FLUSH);
-  FileUtils::write(m_backup_fd, backup_buf.get(), buf.size);
-  m_offset += buf.size;
-}
-
-
 void Writer::record_state(Entity *entity) {
   ScopedLock lock(m_mutex);
-  StaticBuffer buf(EntityHeader::LENGTH + entity->encoded_length());
-  boost::shared_array<uint8_t> backup_buf( new uint8_t [EntityHeader::LENGTH + entity->encoded_length()] );
+  size_t length = EntityHeader::LENGTH + (entity->marked_for_removal() ? 0 : entity->encoded_length());
+  StaticBuffer buf(length);
+  boost::shared_array<uint8_t> backup_buf( new uint8_t [length] );
   uint8_t *ptr = buf.base;
 
   if (m_fd == -1)
     HT_THROWF(Error::CLOSED, "MetaLog '%s' has been closed", m_path.c_str());
-
-  entity->encode_entry( &ptr );
+  
+  if (entity->marked_for_removal())
+    entity->header.encode( &ptr );
+  else
+    entity->encode_entry( &ptr );
 
   HT_ASSERT((ptr-buf.base) == (ptrdiff_t)buf.size);
   memcpy(backup_buf.get(), buf.base, buf.size);
@@ -220,16 +198,20 @@ void Writer::record_state(std::vector<Entity *> &entities) {
   if (m_fd == -1)
     HT_THROWF(Error::CLOSED, "MetaLog '%s' has been closed", m_path.c_str());
 
-  for (size_t i=0; i<entities.size(); i++)
-    length += EntityHeader::LENGTH + entities[i]->encoded_length();
+  foreach (Entity *entity, entities)
+    length += EntityHeader::LENGTH + (entity->marked_for_removal() ? 0 : entity->encoded_length());
 
   {
     StaticBuffer buf(length);
     boost::shared_array<uint8_t> backup_buf( new uint8_t [length] );
     uint8_t *ptr = buf.base;
 
-    for (size_t i=0; i<entities.size(); i++)
-      entities[i]->encode_entry( &ptr );
+    foreach (Entity *entity, entities) {
+      if (entity->marked_for_removal())
+        entity->header.encode( &ptr );
+      else
+        entity->encode_entry( &ptr );
+    }
 
     HT_ASSERT((ptr-buf.base) == (ptrdiff_t)buf.size);
     memcpy(backup_buf.get(), buf.base, buf.size);

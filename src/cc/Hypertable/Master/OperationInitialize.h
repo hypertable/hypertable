@@ -44,7 +44,7 @@ namespace Hypertable {
     virtual void decode_result(const uint8_t **bufp, size_t *remainp);
 
     virtual bool remove_explicitly() { return true; }
-    virtual int remove_approvals_required() { return 2; }
+    virtual int32_t remove_approval_mask() { return 1; }
 
   private:
     String m_metadata_root_location;

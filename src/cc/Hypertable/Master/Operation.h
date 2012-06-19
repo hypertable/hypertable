@@ -116,7 +116,13 @@ namespace Hypertable {
     HiResTime expiration_time() { ScopedLock lock(m_mutex); return m_expiration_time; }
 
     virtual bool remove_explicitly() { return false; }
-    virtual int remove_approvals_required() { return 0; }
+    virtual int32_t remove_approval_mask() { return 0; }
+    bool remove_approval_add(int32_t approval) {
+      ScopedLock lock(m_mutex);
+      m_remove_approvals |= approval;
+      return m_remove_approvals == remove_approval_mask();
+    }
+    bool remove_ok() { ScopedLock lock(m_mutex); return m_remove_approvals == remove_approval_mask(); }
 
     void complete_error(int error, const String &msg);
     void complete_error_no_log(int error, const String &msg);
@@ -144,12 +150,17 @@ namespace Hypertable {
     bool is_blocked() { ScopedLock lock(m_mutex); return m_blocked; }
     bool is_complete() { ScopedLock lock(m_mutex); return m_state == OperationState::COMPLETE; }
 
+    int32_t get_original_type() { return m_original_type; }
+    void set_original_type(int32_t original_type) { m_original_type = original_type; }
+
   protected:
     Mutex m_mutex;
     ContextPtr m_context;
     EventPtr m_event;
     int32_t m_state;
     int32_t m_error;
+    int32_t m_remove_approvals;
+    int32_t m_original_type;
     bool m_blocked;
     String m_error_msg;
     HiResTime m_expiration_time;
@@ -164,27 +175,47 @@ namespace Hypertable {
   namespace MetaLog {
     namespace EntityType {
       enum {
-        OPERATION_TEST                   = 0x00020001,
-        OPERATION_STATUS                 = 0x00020002,
-        OPERATION_SYSTEM_UPGRADE         = 0x00020003,
-        OPERATION_INITIALIZE             = 0x00020004,
-        OPERATION_COLLECT_GARBAGE        = 0x00020005,
-        OPERATION_GATHER_STATISTICS      = 0x00020006,
-        OPERATION_WAIT_FOR_SERVERS       = 0x00020007,
-        OPERATION_REGISTER_SERVER        = 0x00020008,
-        OPERATION_RECOVER_SERVER         = 0x00020009,
-        OPERATION_CREATE_NAMESPACE       = 0x0002000A,
-        OPERATION_DROP_NAMESPACE         = 0x0002000B,
-        OPERATION_CREATE_TABLE           = 0x0002000C,
-        OPERATION_DROP_TABLE             = 0x0002000D,
-        OPERATION_ALTER_TABLE            = 0x0002000E,
-        OPERATION_RENAME_TABLE           = 0x0002000F,
-        OPERATION_GET_SCHEMA             = 0x00020010,
-        OPERATION_MOVE_RANGE             = 0x00020011,
-        OPERATION_RELINQUISH_ACKNOWLEDGE = 0x00020012,
-        OPERATION_BALANCE                = 0x00020013,
-        OPERATION_LOAD_BALANCER          = 0x00020014,
-        OPERATION_STOP                   = 0x00020015
+        OLD_OPERATION_TEST                   = 0x00020001,
+        OLD_OPERATION_STATUS                 = 0x00020002,
+        OLD_OPERATION_SYSTEM_UPGRADE         = 0x00020003,
+        OLD_OPERATION_INITIALIZE             = 0x00020004,
+        OLD_OPERATION_COLLECT_GARBAGE        = 0x00020005,
+        OLD_OPERATION_GATHER_STATISTICS      = 0x00020006,
+        OLD_OPERATION_WAIT_FOR_SERVERS       = 0x00020007,
+        OLD_OPERATION_REGISTER_SERVER        = 0x00020008,
+        OLD_OPERATION_RECOVER_SERVER         = 0x00020009,
+        OLD_OPERATION_CREATE_NAMESPACE       = 0x0002000A,
+        OLD_OPERATION_DROP_NAMESPACE         = 0x0002000B,
+        OLD_OPERATION_CREATE_TABLE           = 0x0002000C,
+        OLD_OPERATION_DROP_TABLE             = 0x0002000D,
+        OLD_OPERATION_ALTER_TABLE            = 0x0002000E,
+        OLD_OPERATION_RENAME_TABLE           = 0x0002000F,
+        OLD_OPERATION_GET_SCHEMA             = 0x00020010,
+        OLD_OPERATION_MOVE_RANGE             = 0x00020011,
+        OLD_OPERATION_RELINQUISH_ACKNOWLEDGE = 0x00020012,
+        OLD_OPERATION_BALANCE                = 0x00020013,
+        OLD_OPERATION_LOAD_BALANCER          = 0x00020014,
+        OPERATION_TEST                       = 0x00030001,
+        OPERATION_STATUS                     = 0x00030002,
+        OPERATION_SYSTEM_UPGRADE             = 0x00030003,
+        OPERATION_INITIALIZE                 = 0x00030004,
+        OPERATION_COLLECT_GARBAGE            = 0x00030005,
+        OPERATION_GATHER_STATISTICS          = 0x00030006,
+        OPERATION_WAIT_FOR_SERVERS           = 0x00030007,
+        OPERATION_REGISTER_SERVER            = 0x00030008,
+        OPERATION_RECOVER_SERVER             = 0x00030009,
+        OPERATION_CREATE_NAMESPACE           = 0x0003000A,
+        OPERATION_DROP_NAMESPACE             = 0x0003000B,
+        OPERATION_CREATE_TABLE               = 0x0003000C,
+        OPERATION_DROP_TABLE                 = 0x0003000D,
+        OPERATION_ALTER_TABLE                = 0x0003000E,
+        OPERATION_RENAME_TABLE               = 0x0003000F,
+        OPERATION_GET_SCHEMA                 = 0x00030010,
+        OPERATION_MOVE_RANGE                 = 0x00030011,
+        OPERATION_RELINQUISH_ACKNOWLEDGE     = 0x00030012,
+        OPERATION_BALANCE                    = 0x00030013,
+        OPERATION_LOAD_BALANCER              = 0x00030014,
+        OPERATION_STOP                       = 0x00030015
       };
     }
   }

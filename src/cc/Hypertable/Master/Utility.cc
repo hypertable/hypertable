@@ -323,13 +323,13 @@ void create_table_load_range(ContextPtr &context, const String &location, TableI
 
 }
 
-int64_t range_hash_code(const TableIdentifier &table, const RangeSpec &range, const char *qualifier) {
-  if (qualifier)
-    return md5_hash(qualifier) ^ md5_hash(table.id) ^ md5_hash(range.start_row) ^ md5_hash(range.end_row);
+int64_t range_hash_code(const TableIdentifier &table, const RangeSpec &range, const String &qualifier) {
+  if (!qualifier.empty())
+    return md5_hash(qualifier.c_str()) ^ md5_hash(table.id) ^ md5_hash(range.start_row) ^ md5_hash(range.end_row);
   return md5_hash(table.id) ^ md5_hash(range.start_row) ^ md5_hash(range.end_row);
 }
 
-String range_hash_string(const TableIdentifier &table, const RangeSpec &range, const char *qualifier) {
+String range_hash_string(const TableIdentifier &table, const RangeSpec &range, const String &qualifier) {
   return String("") + range_hash_code(table, range, qualifier);
 }
 

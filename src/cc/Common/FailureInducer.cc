@@ -26,6 +26,10 @@
 #include <boost/algorithm/string/predicate.hpp>
 #include <vector>
 
+extern "C" {
+#include <poll.h>
+}
+
 #include "FailureInducer.h"
 #include "Error.h"
 #include "Logger.h"
@@ -36,7 +40,8 @@ namespace {
   enum { 
     FAILURE_TYPE_EXIT, 
     FAILURE_TYPE_THROW,
-    FAILURE_TYPE_SIGNAL
+    FAILURE_TYPE_SIGNAL,
+    FAILURE_TYPE_PAUSE
   };
 }
 
@@ -64,6 +69,12 @@ void FailureInducer::maybe_fail(const String &label) {
                  format("induced failure code '%d' '%s' iteration=%u",
                         error_code, label.c_str(), iteration));
       }
+      else if ((*iter).second->failure_type == FAILURE_TYPE_PAUSE) {
+	HT_INFOF("Induced pause at '%s' iteration=%u for %u milliseconds",
+		 label.c_str(), (*iter).second->iteration,
+		 (*iter).second->pause_millis);
+	poll(0, 0, (*iter).second->pause_millis);
+      }
       else {
         HT_ERRORF("induced failure code '%d' '%s' iteration=%u",
                  (*iter).second->error_code, (*iter).first.c_str(), 
@@ -71,8 +82,7 @@ void FailureInducer::maybe_fail(const String &label) {
         _exit(1);
       }
     }
-    else
-      (*iter).second->iteration++;
+    (*iter).second->iteration++;
   }
 }
 
@@ -112,6 +122,13 @@ void FailureInducer::parse_option_single(String option) {
     statep->failure_type = FAILURE_TYPE_EXIT;
   else if (!strcmp(failure_type, "signal"))
     statep->failure_type = FAILURE_TYPE_SIGNAL;
+  else if (boost::algorithm::starts_with(failure_type, "pause")) {
+    statep->failure_type = FAILURE_TYPE_PAUSE;
+    if (failure_type_len > 5 && failure_type[5] == '(') {
+      const char *ptr = failure_type + 6;
+      statep->pause_millis = (int)strtol(ptr, NULL, 0);
+    }
+  }
   else if (boost::algorithm::starts_with(failure_type, "throw")) {
     statep->failure_type = FAILURE_TYPE_THROW;
     statep->error_code = Error::INDUCED_FAILURE;

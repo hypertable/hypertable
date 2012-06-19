@@ -37,6 +37,13 @@ namespace Hypertable {
     };
     typedef intrusive_ptr<EntityTask> EntityTaskPtr;
 
+    namespace EntityType {
+      enum {
+        TASK_REMOVE_TRANSFER_LOG    = 0x00010003,
+        TASK_ACKNOWLEDGE_RELINQUISH = 0x00010004
+      };
+    }
+
   } // namespace MetaLog
 } // namespace Hypertable
 

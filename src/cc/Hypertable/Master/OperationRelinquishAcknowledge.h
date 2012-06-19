@@ -43,6 +43,7 @@ namespace Hypertable {
     virtual void decode_request(const uint8_t **bufp, size_t *remainp);
 
   private:
+    String m_source;
     TableIdentifierManaged m_table;
     RangeSpecManaged m_range;
   };

@@ -303,6 +303,7 @@ RangeServer::RangeServer(PropertiesPtr &props, ConnectionManagerPtr &conn_mgr,
   m_master_connection_handler = new ConnectionHandler(m_comm, m_app_queue, this);
   Global::location_initializer = new LocationInitializer(m_props);
   m_master_client->initiate_connection(m_master_connection_handler, Global::location_initializer);
+  Global::master_client = m_master_client;
 
   Global::location_initializer->wait_until_assigned();
 

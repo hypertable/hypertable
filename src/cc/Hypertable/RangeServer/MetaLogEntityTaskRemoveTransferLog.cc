@@ -49,6 +49,7 @@ bool EntityTaskRemoveTransferLog::execute() {
   catch (Exception &e) {
     HT_ERRORF("Problem removing log directory '%s' (%s - %s)",
 	      transfer_log.c_str(), Error::get_text(e.code()), e.what());
+    return false;
   }
   return true;
 }

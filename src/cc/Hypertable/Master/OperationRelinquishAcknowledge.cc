@@ -24,13 +24,14 @@
 #include "Common/FailureInducer.h"
 #include "Common/ScopeGuard.h"
 #include "Common/Serialization.h"
+#include "Common/StringExt.h"
 #include "Common/System.h"
 #include "Common/md5.h"
 
 #include "OperationMoveRange.h"
 #include "OperationProcessor.h"
 #include "OperationRelinquishAcknowledge.h"
-#include "RemovalManager.h"
+#include "ReferenceManager.h"
 #include "Utility.h"
 
 using namespace Hypertable;
@@ -41,19 +42,30 @@ OperationRelinquishAcknowledge::OperationRelinquishAcknowledge(ContextPtr &conte
   size_t remaining = event->payload_len;
   decode_request(&ptr, &remaining);
   m_dependencies.insert(Dependency::INIT);
-  m_dependencies.insert(Utility::range_hash_string(m_table, m_range, "OperationMoveRange"));
 }
 
 void OperationRelinquishAcknowledge::execute() {
-  int64_t hash_code;
 
-  HT_INFOF("Entering RelinquishAcknowledge-%lld %s[%s..%s] state=%s",
+  HT_INFOF("Entering RelinquishAcknowledge-%lld %s[%s..%s] source=%s state=%s",
            (Lld)header.id, m_table.id, m_range.start_row, m_range.end_row,
-           OperationState::get_text(m_state));
+           m_source.c_str(), OperationState::get_text(m_state));
 
-  hash_code = Utility::range_hash_code(m_table, m_range, "OperationMoveRange");
+  HT_MAYBE_FAIL("relinquish-acknowledge-INITIAL-a");
+  HT_MAYBE_FAIL("relinquish-acknowledge-INITIAL-b");
 
-  m_context->removal_manager->approve_removal(hash_code);
+  int64_t hash_code = Utility::range_hash_code(m_table, m_range, String("OperationMoveRange-") + m_source);
+
+  OperationPtr move_op = m_context->reference_manager->get(hash_code);
+
+  if (move_op && move_op->remove_approval_add(0x01)) {
+    m_context->reference_manager->remove(hash_code);
+    m_context->mml_writer->record_removal(move_op.get());
+  }
+  else if (!move_op) {
+    HT_WARNF("Skipping relinquish_acknowledge(%s %s[%s..%s] because correspoing MoveRange does not exist",
+             m_source.c_str(), m_table.id, m_range.start_row, m_range.end_row);
+  }
+
   complete_ok_no_log();
   {
     ScopedLock lock(m_mutex);
@@ -61,20 +73,23 @@ void OperationRelinquishAcknowledge::execute() {
     m_state = OperationState::COMPLETE;
   }
 
-  HT_INFOF("Leaving RelinquishAcknowledge-%lld %s[%s..%s]",
-           (Lld)header.id, m_table.id, m_range.start_row, m_range.end_row);
+  HT_INFOF("Leaving RelinquishAcknowledge-%lld %s[%s..%s] from %s",
+           (Lld)header.id, m_table.id, m_range.start_row, m_range.end_row,
+	   m_source.c_str());
 }
 
 
 void OperationRelinquishAcknowledge::display_state(std::ostream &os) {
-  os << " " << m_table << " " << m_range << " ";
+  os << " " << m_table << " " << m_range << " source=" << m_source;
 }
 
 size_t OperationRelinquishAcknowledge::encoded_state_length() const {
-  return m_table.encoded_length() + m_range.encoded_length();
+  return Serialization::encoded_length_vstr(m_source) + 
+    m_table.encoded_length() + m_range.encoded_length();
 }
 
 void OperationRelinquishAcknowledge::encode_state(uint8_t **bufp) const {
+  Serialization::encode_vstr(bufp, m_source);
   m_table.encode(bufp);
   m_range.encode(bufp);
 }
@@ -84,6 +99,7 @@ void OperationRelinquishAcknowledge::decode_state(const uint8_t **bufp, size_t *
 }
 
 void OperationRelinquishAcknowledge::decode_request(const uint8_t **bufp, size_t *remainp) {
+  m_source = Serialization::decode_vstr(bufp, remainp);
   m_table.decode(bufp, remainp);
   m_range.decode(bufp, remainp);
 }

@@ -50,7 +50,7 @@
 #include "OperationLoadBalancer.h"
 #include "OperationStop.h"
 #include "RangeServerConnection.h"
-#include "RemovalManager.h"
+#include "ReferenceManager.h"
 
 
 using namespace Hypertable;
@@ -116,7 +116,7 @@ void ConnectionHandler::handle(EventPtr &event) {
         return;
       case MasterProtocol::COMMAND_MOVE_RANGE:
         operation = new OperationMoveRange(m_context, event);
-	if (!m_context->removal_manager->add_operation(operation)) {
+	if (!m_context->reference_manager->add(operation)) {
           HT_INFOF("Skipping %s because already in progress", operation->label().c_str());
           send_error_response(event, Error::MASTER_OPERATION_IN_PROGRESS, "");
           return;

@@ -28,9 +28,10 @@ namespace Hypertable {
 
   class OperationMoveRange : public Operation {
   public:
-    OperationMoveRange(ContextPtr &context, const TableIdentifier &table,
-                       const RangeSpec &range, const String &transfer_log,
-                       uint64_t soft_limit, bool is_split);
+    OperationMoveRange(ContextPtr &context, const String &source,
+		       const TableIdentifier &table, const RangeSpec &range,
+		       const String &transfer_log, uint64_t soft_limit,
+		       bool is_split);
     OperationMoveRange(ContextPtr &context, const MetaLog::EntityHeader &header_);
     OperationMoveRange(ContextPtr &context, EventPtr &event);
     virtual ~OperationMoveRange() { }
@@ -49,9 +50,9 @@ namespace Hypertable {
     virtual void decode_result(const uint8_t **bufp, size_t *remainp);
 
     virtual bool remove_explicitly() { return true; }
-    virtual int remove_approvals_required() { return 2; }
+    virtual int32_t remove_approval_mask() { return 3; }
 
-    String get_location() { return m_location; }
+    String get_location() { return m_destination; }
 
   private:
     TableIdentifierManaged m_table;
@@ -59,7 +60,8 @@ namespace Hypertable {
     String m_transfer_log;
     uint64_t m_soft_limit;
     bool m_is_split;
-    String m_location;
+    String m_source;
+    String m_destination;
     String m_range_name;
     bool m_in_progress;
   };

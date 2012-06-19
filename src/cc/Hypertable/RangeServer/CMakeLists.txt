@@ -81,6 +81,7 @@ MergeScanner.cc
 MergeScannerRange.cc
 MergeScannerAccessGroup.cc
 MetaLogEntityRange.cc
+MetaLogEntityTaskAcknowledgeRelinquish.cc
 MetaLogEntityTaskRemoveTransferLog.cc
 MetaLogDefinitionRangeServer.cc
 MetadataNormal.cc

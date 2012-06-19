@@ -58,7 +58,7 @@ namespace Hypertable {
   class OperationProcessor;
   class OperationBalance;
   class ResponseManager;
-  class RemovalManager;
+  class ReferenceManager;
 
   class Context : public ReferenceCount {
   public:
@@ -69,7 +69,7 @@ namespace Hypertable {
       master_file_handle = 0;
       balancer = 0;
       response_manager = 0;
-      removal_manager = 0;
+      reference_manager = 0;
       op = 0;
       op_balance = 0;
     }
@@ -90,7 +90,7 @@ namespace Hypertable {
     LoadBalancer *balancer;
     MonitoringPtr monitoring;
     ResponseManager *response_manager;
-    RemovalManager *removal_manager;
+    ReferenceManager *reference_manager;
     TablePtr metadata_table;
     TablePtr rs_metrics_table;
     uint64_t range_split_size;

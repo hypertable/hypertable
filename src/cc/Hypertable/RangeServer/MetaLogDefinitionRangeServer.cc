@@ -23,6 +23,7 @@
 #include "MetaLogDefinitionRangeServer.h"
 
 #include "MetaLogEntityRange.h"
+#include "MetaLogEntityTaskAcknowledgeRelinquish.h"
 #include "MetaLogEntityTaskRemoveTransferLog.h"
 
 using namespace Hypertable;
@@ -48,6 +49,8 @@ Entity *DefinitionRangeServer::create(uint16_t log_version, const EntityHeader &
     return new EntityRange(header);
   else if (header.type == EntityType::TASK_REMOVE_TRANSFER_LOG)
     return new EntityTaskRemoveTransferLog(header);
+  else if (header.type == EntityType::TASK_ACKNOWLEDGE_RELINQUISH)
+    return new EntityTaskAcknowledgeRelinquish(header);
 
   HT_THROWF(Error::METALOG_ENTRY_BAD_TYPE,
             "Unrecognized type (%d) encountered in rsml",

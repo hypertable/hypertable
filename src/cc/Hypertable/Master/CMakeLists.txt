@@ -52,7 +52,7 @@ OperationWaitForServers.cc
 OperationLoadBalancer.cc
 OperationStop.cc
 RangeServerConnection.cc
-RemovalManager.cc
+ReferenceManager.cc
 ResponseManager.cc
 Utility.cc
 ServerMetrics.cc

@@ -41,7 +41,6 @@ namespace Hypertable {
              std::vector<EntityPtr> &initial_entities);
       ~Writer();
       void close();
-      void record_state_and_removal(Entity *state_entity, Entity *removal_entity);
       void record_state(Entity *entity);
       void record_state(std::vector<Entity *> &entities);
       void record_removal(Entity *entity);

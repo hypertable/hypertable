@@ -30,8 +30,6 @@
 #include "OperationInitialize.h"
 #include "OperationProcessor.h"
 
-#include "RemovalManager.h"
-
 using namespace Hypertable;
 using namespace boost;
 
@@ -68,9 +66,7 @@ void OperationProcessor::add_operation(OperationPtr &operation) {
     m_context.current_iter = m_context.current.end();
     m_context.cond.notify_all();
   }
-  else if (operation->remove_explicitly())
-    m_context.master_context->removal_manager->approve_removal(operation);
-  else
+  else if (!operation->remove_explicitly())
     m_context.master_context->response_manager->add_operation(operation);
 
 }
@@ -87,9 +83,7 @@ void OperationProcessor::add_operations(std::vector<OperationPtr> &operations) {
       add_operation_internal(operations[i]);
       added = true;
     }
-    else if (operations[i]->remove_explicitly())
-      m_context.master_context->removal_manager->approve_removal(operations[i]);
-    else
+    else if (!operations[i]->remove_explicitly())
       m_context.master_context->response_manager->add_operation(operations[i]);
   }
 
@@ -512,9 +506,7 @@ void OperationProcessor::Worker::retire_operation(Vertex v, OperationPtr &operat
   if (operation->is_perpetual())
     m_context.perpetual_ops.insert(operation);
   else {
-    if (operation->remove_explicitly())
-      m_context.master_context->removal_manager->approve_removal(operation);
-    else
+    if (!operation->remove_explicitly())
       m_context.master_context->response_manager->add_operation(operation);
   }
 

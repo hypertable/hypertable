@@ -25,7 +25,7 @@
 #include "LoadBalancer.h"
 #include "Operation.h"
 #include "OperationBalance.h"
-#include "RemovalManager.h"
+#include "ReferenceManager.h"
 
 using namespace Hypertable;
 using namespace std;
@@ -36,6 +36,7 @@ Context::~Context() {
     master_file_handle = 0;
   }
   delete balancer;
+  delete reference_manager;
 }
 
 void Context::add_server(RangeServerConnectionPtr &rsc) {

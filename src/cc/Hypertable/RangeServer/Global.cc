@@ -36,6 +36,7 @@ namespace Hypertable {
   FilesystemPtr          Global::dfs;
   FilesystemPtr          Global::log_dfs;
   MaintenanceQueuePtr    Global::maintenance_queue;
+  MasterClientPtr        Global::master_client;
   RangeServerProtocol   *Global::protocol = 0;
   RangeLocatorPtr        Global::range_locator = 0;
   bool                   Global::verbose = false;
@@ -72,4 +73,26 @@ namespace Hypertable {
   bool                   Global::ignore_clock_skew_errors = false;
   ConnectionManagerPtr   Global::conn_manager;
   std::vector<MetaLog::EntityTaskPtr>  Global::work_queue;
+  StringSet              Global::immovable_range_set;
+
+  void Global::immovable_range_set_add(const TableIdentifier &table, const RangeSpec &spec) {
+    ScopedLock lock(Global::mutex);
+    String name = format("%s[%s..%s]", table.id, spec.start_row, spec.end_row);
+    HT_ASSERT(Global::immovable_range_set.count(name) == 0);
+    Global::immovable_range_set.insert(name);
+  }
+
+  void Global::immovable_range_set_remove(const TableIdentifier &table, const RangeSpec &spec) {
+    ScopedLock lock(Global::mutex);
+    String name = format("%s[%s..%s]", table.id, spec.start_row, spec.end_row);
+    HT_ASSERT(Global::immovable_range_set.count(name) == 1);
+    Global::immovable_range_set.erase(name);
+  }
+
+  bool Global::immovable_range_set_contains(const TableIdentifier &table, const RangeSpec &spec) {
+    ScopedLock lock(Global::mutex);
+    String name = format("%s[%s..%s]", table.id, spec.start_row, spec.end_row);
+    return Global::immovable_range_set.count(name) > 0;
+  }
+
 }
