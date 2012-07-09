@@ -101,6 +101,7 @@ namespace Hypertable {
       bool     needs_major_compaction;
       bool     needs_split;
       int64_t  log_hash;
+      bool     load_acknowledged;
     };
 
     typedef std::map<String, AccessGroup *> AccessGroupMap;

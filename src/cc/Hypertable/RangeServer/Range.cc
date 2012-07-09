@@ -526,6 +526,7 @@ Range::MaintenanceData *Range::get_maintenance_data(ByteArena &arena, time_t now
   mdata->busy = m_maintenance_guard.in_progress() || !m_metalog_entity->load_acknowledged;
 
   mdata->needs_major_compaction = m_metalog_entity->needs_compaction;
+  mdata->load_acknowledged = load_acknowledged();
 
   mdata->log_hash = m_log_hash;
 
@@ -1519,6 +1520,7 @@ std::ostream &Hypertable::operator<<(std::ostream &os, const Range::MaintenanceD
   os << "relinquish=" << (mdata.relinquish ? "true" : "false") << "\n";
   os << "needs_major_compaction=" << (mdata.needs_major_compaction ? "true" : "false") << "\n";
   os << "needs_split=" << (mdata.needs_split ? "true" : "false") << "\n";
+  os << "load_acknowledged=" << (mdata.load_acknowledged ? "true" : "false") << "\n";
   return os;
 }
 

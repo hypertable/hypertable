@@ -175,6 +175,7 @@ void MaintenanceScheduler::schedule() {
   int64_t bloom_filter_memory = 0;
   int64_t cell_cache_memory = 0;
   int64_t shadow_cache_memory = 0;
+  int64_t not_acknowledged = 0;
 
   /**
    * Purge commit log fragments
@@ -202,15 +203,18 @@ void MaintenanceScheduler::schedule() {
         continue;
       }
 
+      if (!range_data[i]->load_acknowledged)
+        not_acknowledged++;
+
       for (ag_data = range_data[i]->agdata; ag_data; ag_data = ag_data->next) {
 
-	// compute memory stats
-	cell_cache_memory += ag_data->mem_allocated;
-	for (cs_data = ag_data->csdata; cs_data; cs_data = cs_data->next) {
-	  shadow_cache_memory += cs_data->shadow_cache_size;
-	  block_index_memory += cs_data->index_stats.block_index_memory;
-	  bloom_filter_memory += cs_data->index_stats.bloom_filter_memory;
-	}
+        // compute memory stats
+        cell_cache_memory += ag_data->mem_allocated;
+        for (cs_data = ag_data->csdata; cs_data; cs_data = cs_data->next) {
+          shadow_cache_memory += cs_data->shadow_cache_size;
+          block_index_memory += cs_data->index_stats.block_index_memory;
+          bloom_filter_memory += cs_data->index_stats.bloom_filter_memory;
+        }
 
         if (ag_data->earliest_cached_revision != TIMESTAMP_MAX) {
           if (range_data[i]->range->is_root()) {
@@ -262,14 +266,14 @@ void MaintenanceScheduler::schedule() {
     double query_cache_pct = ((double)m_query_cache_memory / (double)total_memory) * 100.0;
 
     HT_INFOF("Memory Statistics (MB): VM=%.2f, RSS=%.2f, tracked=%.2f, computed=%.2f limit=%.2f",
-	     System::proc_stat().vm_size, System::proc_stat().vm_resident,
-	     (double)memory_state.balance/(double)Property::MiB, (double)total_memory/(double)Property::MiB,
+             System::proc_stat().vm_size, System::proc_stat().vm_resident,
+             (double)memory_state.balance/(double)Property::MiB, (double)total_memory/(double)Property::MiB,
              (double)Global::memory_limit/(double)Property::MiB);
     HT_INFOF("Memory Allocation: BlockCache=%.2f%% BlockIndex=%.2f%% "
-	     "BloomFilter=%.2f%% CellCache=%.2f%% ShadowCache=%.2f%% "
-	     "QueryCache=%.2f%%",
-	     block_cache_pct, block_index_pct, bloom_filter_pct,
-	     cell_cache_pct, shadow_cache_pct, query_cache_pct);
+             "BloomFilter=%.2f%% CellCache=%.2f%% ShadowCache=%.2f%% "
+             "QueryCache=%.2f%%",
+             block_cache_pct, block_index_pct, bloom_filter_pct,
+             cell_cache_pct, shadow_cache_pct, query_cache_pct);
   }
 
   String dummy_str;
@@ -280,6 +284,11 @@ void MaintenanceScheduler::schedule() {
   boost::xtime schedule_time;
   boost::xtime_get(&schedule_time, boost::TIME_UTC);
 
+  if (not_acknowledged) {
+    HT_INFO_OUT << "Found load_acknowledged=false in " << not_acknowledged
+        << " ranges" << HT_END;
+  }
+
   // if this is the first time around, just enqueue work that
   // was in progress
   if (!m_initialized) {
@@ -288,12 +297,12 @@ void MaintenanceScheduler::schedule() {
       if (range_data[i]->state == RangeState::SPLIT_LOG_INSTALLED ||
           range_data[i]->state == RangeState::SPLIT_SHRUNK) {
         RangePtr range(range_data[i]->range);
-	level = get_level(range);
+        level = get_level(range);
         Global::maintenance_queue->add(new MaintenanceTaskSplit(level, priority++, schedule_time, range));
       }
       else if (range_data[i]->state == RangeState::RELINQUISH_LOG_INSTALLED) {
         RangePtr range(range_data[i]->range);
-	level = get_level(range);
+        level = get_level(range);
         Global::maintenance_queue->add(new MaintenanceTaskRelinquish(level, priority++, schedule_time, range));
       }
     }
@@ -305,7 +314,7 @@ void MaintenanceScheduler::schedule() {
     range_data_prioritized.reserve( range_data.size() );
     for (size_t i=0; i<range_data.size(); i++) {
       if (range_data[i]->priority > 0)
-	range_data_prioritized.push_back(range_data[i]);
+        range_data_prioritized.push_back(range_data[i]);
     }
     struct RangeStatsAscending ordering;
     sort(range_data_prioritized.begin(), range_data_prioritized.end(), ordering);
@@ -316,19 +325,19 @@ void MaintenanceScheduler::schedule() {
     for (size_t i=0; i<range_data_prioritized.size(); i++) {
       if (range_data_prioritized[i]->maintenance_flags & MaintenanceFlag::SPLIT) {
         RangePtr range(range_data_prioritized[i]->range);
-	level = get_level(range);
+        level = get_level(range);
         Global::maintenance_queue->add(new MaintenanceTaskSplit(level, range_data_prioritized[i]->priority, schedule_time, range));
       }
       else if (range_data_prioritized[i]->maintenance_flags & MaintenanceFlag::RELINQUISH) {
         RangePtr range(range_data_prioritized[i]->range);
-	level = get_level(range);
+        level = get_level(range);
         Global::maintenance_queue->add(new MaintenanceTaskRelinquish(level, range_data_prioritized[i]->priority, schedule_time, range));
       }
       else if (range_data_prioritized[i]->maintenance_flags & MaintenanceFlag::COMPACT) {
-	MaintenanceTaskCompaction *task;
+        MaintenanceTaskCompaction *task;
         RangePtr range(range_data_prioritized[i]->range);
-	level = get_level(range);
-	task = new MaintenanceTaskCompaction(level, range_data_prioritized[i]->priority, schedule_time, range);
+        level = get_level(range);
+        task = new MaintenanceTaskCompaction(level, range_data_prioritized[i]->priority, schedule_time, range);
         if (!range_data_prioritized[i]->needs_major_compaction) {
           for (AccessGroup::MaintenanceData *ag_data=range_data_prioritized[i]->agdata; ag_data; ag_data=ag_data->next) {
             if (MaintenanceFlag::minor_compaction(ag_data->maintenance_flags) ||
@@ -346,19 +355,19 @@ void MaintenanceScheduler::schedule() {
         Global::maintenance_queue->add(task);
       }
       else if (range_data_prioritized[i]->maintenance_flags & MaintenanceFlag::MEMORY_PURGE) {
-	MaintenanceTaskMemoryPurge *task;
+        MaintenanceTaskMemoryPurge *task;
         RangePtr range(range_data_prioritized[i]->range);
-	level = get_level(range);
-	task = new MaintenanceTaskMemoryPurge(level, range_data_prioritized[i]->priority, schedule_time, range);
-	for (AccessGroup::MaintenanceData *ag_data=range_data_prioritized[i]->agdata; ag_data; ag_data=ag_data->next) {
-	  if (ag_data->maintenance_flags & MaintenanceFlag::MEMORY_PURGE) {
-	    task->add_subtask(ag_data->ag, ag_data->maintenance_flags);
-	    for (AccessGroup::CellStoreMaintenanceData *cs_data=ag_data->csdata; cs_data; cs_data=cs_data->next) {
-	      if (cs_data->maintenance_flags & MaintenanceFlag::MEMORY_PURGE)
-		task->add_subtask(cs_data->cs, cs_data->maintenance_flags);
-	    }
-	  }
-	}
+        level = get_level(range);
+        task = new MaintenanceTaskMemoryPurge(level, range_data_prioritized[i]->priority, schedule_time, range);
+        for (AccessGroup::MaintenanceData *ag_data=range_data_prioritized[i]->agdata; ag_data; ag_data=ag_data->next) {
+          if (ag_data->maintenance_flags & MaintenanceFlag::MEMORY_PURGE) {
+            task->add_subtask(ag_data->ag, ag_data->maintenance_flags);
+            for (AccessGroup::CellStoreMaintenanceData *cs_data=ag_data->csdata; cs_data; cs_data=cs_data->next) {
+              if (cs_data->maintenance_flags & MaintenanceFlag::MEMORY_PURGE)
+                task->add_subtask(cs_data->cs, cs_data->maintenance_flags);
+            }
+          }
+        }
         Global::maintenance_queue->add(task);
       }
     }
