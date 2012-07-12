@@ -1714,7 +1714,7 @@ RangeServer::load_range(ResponseCallback *cb, const TableIdentifier *table,
        */
       if (range_state->transfer_log && *range_state->transfer_log) {
         CommitLogReaderPtr commit_log_reader =
-          new CommitLogReader(Global::log_dfs, range_state->transfer_log, true);
+          new CommitLogReader(Global::log_dfs, range_state->transfer_log);
         if (!commit_log_reader->empty()) {
           CommitLog *log;
           if (is_root)
@@ -1731,9 +1731,6 @@ RangeServer::load_range(ResponseCallback *cb, const TableIdentifier *table,
           if ((error = log->link_log(commit_log_reader.get())) != Error::OK)
             HT_THROWF(error, "Unable to link transfer log (%s) into commit log(%s)",
                       range_state->transfer_log, log->get_log_dir().c_str());
-
-          // transfer the in-memory log fragments
-          log->stitch_in(commit_log_reader.get());
         }
       }
 

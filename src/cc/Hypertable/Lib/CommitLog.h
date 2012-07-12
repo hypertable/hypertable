@@ -173,7 +173,7 @@ namespace Hypertable {
       int64_t total = 0;
       for (LogFragmentQueue::iterator iter = m_fragment_queue.begin();
            iter != m_fragment_queue.end(); iter++)
-        total += (*iter).size;
+        total += (*iter)->size;
       return total;
     }
 
@@ -188,11 +188,13 @@ namespace Hypertable {
   private:
     void initialize(const String &log_dir,
                     PropertiesPtr &, CommitLogBase *init_log, bool is_meta);
-    int roll();
+    int roll(CommitLogFileInfo **clfip=0);
     int compress_and_write(DynamicBuffer &input, BlockCompressionHeader *header,
                            int64_t revision, bool sync);
+    void remove_file_info(CommitLogFileInfo *fi);
 
     FilesystemPtr           m_fs;
+    std::set<CommitLogFileInfo *> m_reap_set;
     BlockCompressionCodec  *m_compressor;
     String                  m_cur_fragment_fname;
     int64_t                 m_cur_fragment_length;

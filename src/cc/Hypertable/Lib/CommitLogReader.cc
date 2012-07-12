@@ -65,14 +65,14 @@ namespace {
 }
 
 
-CommitLogReader::CommitLogReader(FilesystemPtr &fs, const String &log_dir, bool mark_for_deletion)
+CommitLogReader::CommitLogReader(FilesystemPtr &fs, const String &log_dir)
   : CommitLogBase(log_dir), m_fs(fs), m_fragment_queue_offset(0),
     m_block_buffer(256), m_revision(TIMESTAMP_MIN), m_compressor(0) {
 
   if (get_bool("Hypertable.CommitLog.SkipErrors"))
     CommitLogBlockStream::ms_assert_on_error = false;
 
-  load_fragments(m_log_dir, mark_for_deletion);
+  load_fragments(m_log_dir, 0);
   reset();
 }
 
@@ -91,25 +91,22 @@ CommitLogReader::next_raw_block(CommitLogBlockInfo *infop,
   if (fragment_queue_iter == m_fragment_queue.end())
     return false;
 
-  if ((*fragment_queue_iter).block_stream == 0)
-    (*fragment_queue_iter).block_stream =
-      new CommitLogBlockStream(m_fs, (*fragment_queue_iter).log_dir,
-                               format("%u", (*fragment_queue_iter).num));
+  if ((*fragment_queue_iter)->block_stream == 0)
+    (*fragment_queue_iter)->block_stream =
+      new CommitLogBlockStream(m_fs, (*fragment_queue_iter)->log_dir,
+                               format("%u", (*fragment_queue_iter)->num));
 
-  HT_INFOF("Replaying commit log fragment %s/%u", (*fragment_queue_iter).log_dir.c_str(),
-	   (*fragment_queue_iter).num);
-
-  if (!(*fragment_queue_iter).block_stream->next(infop, header)) {
-    CommitLogFileInfo &info = *fragment_queue_iter;
-    delete info.block_stream;
-    info.block_stream = 0;
+  if (!(*fragment_queue_iter)->block_stream->next(infop, header)) {
+    CommitLogFileInfo *info = *fragment_queue_iter;
+    delete info->block_stream;
+    info->block_stream = 0;
     if (m_revision == TIMESTAMP_MIN) {
       HT_WARNF("Skipping log fragment '%s/%u' because unable to read any valid blocks",
-               info.log_dir.c_str(), info.num);
+               info->log_dir.c_str(), info->num);
       m_fragment_queue.erase(fragment_queue_iter);
     }
     else {
-      info.revision = m_revision;
+      info->revision = m_revision;
       m_fragment_queue_offset++;
     }
     m_revision = TIMESTAMP_MIN;
@@ -120,7 +117,7 @@ CommitLogReader::next_raw_block(CommitLogBlockInfo *infop,
     assert(header->get_compression_type() == BlockCompressionCodec::NONE);
     String log_dir = (const char *)(infop->block_ptr + header->length());
     boost::trim_right_if(log_dir, boost::is_any_of("/"));
-    load_fragments(log_dir, true);
+    load_fragments(log_dir, *fragment_queue_iter);
     m_linked_logs.insert(md5_hash(log_dir.c_str()));
     if (header->get_revision() > m_latest_revision)
       m_latest_revision = header->get_revision();
@@ -128,6 +125,9 @@ CommitLogReader::next_raw_block(CommitLogBlockInfo *infop,
       m_revision = header->get_revision();
     goto try_again;
   }
+
+  HT_INFOF("Replaying commit log fragment %s/%u", (*fragment_queue_iter)->log_dir.c_str(),
+	   (*fragment_queue_iter)->num);
 
   return true;
 }
@@ -155,7 +155,7 @@ CommitLogReader::next(const uint8_t **blockp, size_t *lenp,
         LogFragmentQueue::iterator iter = m_fragment_queue.begin() + m_fragment_queue_offset;
         HT_ERRORF("Inflate error in CommitLog fragment %s starting at "
                   "postion %lld (block len = %lld) - %s",
-                  (*iter).block_stream->get_fname().c_str(),
+                  (*iter)->block_stream->get_fname().c_str(),
                   (Lld)binfo.start_offset, (Lld)(binfo.end_offset
                   - binfo.start_offset), Error::get_text(e.code()));
         continue;
@@ -175,20 +175,21 @@ CommitLogReader::next(const uint8_t **blockp, size_t *lenp,
     LogFragmentQueue::iterator iter = m_fragment_queue.begin() + m_fragment_queue_offset;
     HT_WARNF("Corruption detected in CommitLog fragment %s starting at "
              "postion %lld for %lld bytes - %s",
-             (*iter).block_stream->get_fname().c_str(),
+             (*iter)->block_stream->get_fname().c_str(),
              (Lld)binfo.start_offset, (Lld)(binfo.end_offset
              - binfo.start_offset), Error::get_text(binfo.error));
   }
 
-  sort(m_fragment_queue.begin(), m_fragment_queue.end());
+  struct LtClfip swo;
+  sort(m_fragment_queue.begin(), m_fragment_queue.end(), swo);
 
   return false;
 }
 
 
-void CommitLogReader::load_fragments(String log_dir, bool mark_for_deletion) {
+void CommitLogReader::load_fragments(String log_dir, CommitLogFileInfo *parent) {
   vector<string> listing;
-  CommitLogFileInfo file_info;
+  CommitLogFileInfo *fi;
   bool added_fragments = false;
   int mark = -1;
 
@@ -226,22 +227,23 @@ void CommitLogReader::load_fragments(String log_dir, bool mark_for_deletion) {
                listing[i].c_str(), log_dir.c_str());
     }
     else {
-      file_info.num = (uint32_t)num;
-      file_info.log_dir = log_dir;
-      file_info.log_dir_hash = md5_hash(log_dir.c_str());
-      file_info.purge_log_dir = false;
-      file_info.revision = 0;
-      file_info.block_stream = 0;
-      file_info.size = m_fs->length(log_dir + "/" + listing[i]);
-      if (file_info.size > 0) {
-        m_fragment_queue.push_back(file_info);
+      fi = new CommitLogFileInfo();
+      fi->num = (uint32_t)num;
+      fi->log_dir = log_dir;
+      fi->log_dir_hash = md5_hash(log_dir.c_str());
+      fi->size = m_fs->length(log_dir + "/" + listing[i]);
+      fi->parent = parent;
+      if (parent)
+        parent->references++;
+      if (fi->size > 0) {
+        m_fragment_queue.push_back(fi);
         added_fragments = true;
       }
     }
   }
 
   if (mark != -1) {
-    if (m_fragment_queue.empty() || mark < (int)m_fragment_queue.front().num) {
+    if (m_fragment_queue.empty() || mark < (int)m_fragment_queue.front()->num) {
       String mark_filename;
       try {
 	mark_filename = log_dir + "/" + mark + ".mark";
@@ -255,18 +257,9 @@ void CommitLogReader::load_fragments(String log_dir, bool mark_for_deletion) {
       m_range_reference_required = false;
   }
 
-  // set the "purge log dir" bit on the most recent fragment
-  if (added_fragments) {
-    if (mark_for_deletion) {
-      HT_ASSERT(!boost::ends_with(m_fragment_queue.back().log_dir, "user"));
-      m_fragment_queue.back().purge_log_dir = true;
-    }
-  }
-  else if (mark_for_deletion) {
-    HT_INFOF("Removing commit log directory %s because it is empty",
-             log_dir.c_str());
-    m_fs->rmdir(log_dir);
-  }
+  // Add this log dir to the parent's purge_dirs set
+  if (parent)
+    parent->purge_dirs.insert(log_dir);
 
 }
 

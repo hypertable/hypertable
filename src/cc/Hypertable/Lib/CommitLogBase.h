@@ -27,32 +27,36 @@
 #include <boost/algorithm/string.hpp>
 
 #include "Common/Mutex.h"
+#include "Common/ReferenceCount.h"
 #include "Common/String.h"
+#include "Common/StringExt.h"
 
 #include "KeySpec.h"
 #include "CommitLogBlockStream.h"
 
 namespace Hypertable {
 
-  typedef struct {
+  class CommitLogFileInfo {
+  public:
+    CommitLogFileInfo() : num(0), size(0), revision(0), log_dir_hash(0), references(0), block_stream(0), parent(0) { }
     String     log_dir;
     uint32_t   num;
     uint64_t   size;
     int64_t    revision;
     int64_t    log_dir_hash;
-    bool       purge_log_dir;
+    size_t     references;
     CommitLogBlockStream *block_stream;
-  } CommitLogFileInfo;
+    CommitLogFileInfo *parent;
+    StringSet  purge_dirs;
+  };
 
-  /**
-   * Less than operator for LocationCacheKey
-   */
-  inline bool
-  operator<(const CommitLogFileInfo &x, const CommitLogFileInfo &y) {
-    return x.revision < y.revision;
-  }
+  struct LtClfip {
+    bool operator()(CommitLogFileInfo *x, CommitLogFileInfo *y) const {
+      return x->revision < y->revision;
+    }
+  };
 
-  typedef std::deque<CommitLogFileInfo> LogFragmentQueue;
+  typedef std::deque<CommitLogFileInfo *> LogFragmentQueue;
 
   /**
    */
@@ -89,6 +93,8 @@ namespace Hypertable {
     std::set<int64_t> &get_linked_log_set() { return m_linked_logs; }
 
     bool range_reference_required() { return m_range_reference_required; }
+
+    LogFragmentQueue &fragment_queue() { return m_fragment_queue; }
 
   protected:
     Mutex             m_mutex;

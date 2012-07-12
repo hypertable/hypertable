@@ -47,15 +47,6 @@ const char CommitLog::MAGIC_DATA[10] =
 const char CommitLog::MAGIC_LINK[10] =
     { 'C','O','M','M','I','T','L','I','N','K' };
 
-namespace {
-  struct forward_sort_clfi {
-    bool
-    operator()(const CommitLogFileInfo &x, const CommitLogFileInfo &y) const {
-      return x.num < y.num;
-    }
-  };
-}
-
 
 CommitLog::CommitLog(FilesystemPtr &fs, const String &log_dir, bool is_meta)
   : CommitLogBase(log_dir), m_fs(fs) {
@@ -99,9 +90,9 @@ CommitLog::initialize(const String &log_dir, PropertiesPtr &props,
     if (m_range_reference_required)
       m_range_reference_required = init_log->range_reference_required();
     stitch_in(init_log);
-    foreach (const CommitLogFileInfo &frag, m_fragment_queue) {
-      if (frag.num >= m_cur_fragment_num)
-        m_cur_fragment_num = frag.num + 1;
+    foreach (const CommitLogFileInfo *frag, m_fragment_queue) {
+      if (frag->num >= m_cur_fragment_num)
+        m_cur_fragment_num = frag->num + 1;
     }
   }
   else {  // chose one past the max one found in the directory
@@ -212,13 +203,17 @@ int CommitLog::link_log(CommitLogBase *log_base) {
       return error;
   }
 
-  HT_INFOF("clgc Linking log %s into fragment %d; link_rev=%lld latest_rev=%lld",
-           log_dir.c_str(), m_cur_fragment_num, (Lld)link_revision, (Lld)m_latest_revision);
+  {
+    ScopedLock lock(m_mutex);
 
-  HT_ASSERT(link_revision > 0);
+    HT_INFOF("clgc Linking log %s into fragment %d; link_rev=%lld latest_rev=%lld",
+             log_dir.c_str(), m_cur_fragment_num, (Lld)link_revision, (Lld)m_latest_revision);
 
-  if (link_revision > m_latest_revision)
-    m_latest_revision = link_revision;
+    HT_ASSERT(link_revision > 0);
+
+    if (link_revision > m_latest_revision)
+      m_latest_revision = link_revision;
+  }
 
   input.ensure(header.length());
 
@@ -235,6 +230,7 @@ int CommitLog::link_log(CommitLogBase *log_base) {
     ScopedLock lock(m_mutex);
     size_t amount = input.fill();
     StaticBuffer send_buf(input);
+    CommitLogFileInfo *file_info;
 
     if (m_fd == -1)
       return Error::CLOSED;
@@ -242,8 +238,19 @@ int CommitLog::link_log(CommitLogBase *log_base) {
     m_fs->append(m_fd, send_buf, false);
     m_cur_fragment_length += amount;
 
-    if ((error = roll()) != Error::OK)
+    if ((error = roll(&file_info)) != Error::OK)
       return error;
+
+    file_info->purge_dirs.insert(log_dir);
+
+    foreach (CommitLogFileInfo *fi, log_base->fragment_queue()) {
+      if (fi->parent == 0) {
+        fi->parent = file_info;
+        file_info->references++;
+      }
+      m_fragment_queue.push_back(fi);
+    }
+
   }
   catch (Hypertable::Exception &e) {
     HT_ERRORF("Problem linking external log into commit log - %s", e.what());
@@ -275,13 +282,20 @@ int CommitLog::close() {
   return Error::OK;
 }
 
+
 void CommitLog::remove_linked_log(const String &log_dir) {
   ScopedLock lock(m_mutex);
   int64_t log_dir_hash = md5_hash(log_dir.c_str());
   LogFragmentQueue::iterator iter = m_fragment_queue.begin();
   while (iter != m_fragment_queue.end()) {
-    if ((*iter).log_dir_hash == log_dir_hash)
+    if ((*iter)->log_dir_hash == log_dir_hash) {
+      // Decrement parent reference count
+      if ((*iter)->parent) {
+        HT_ASSERT((*iter)->parent->references > 0);
+        (*iter)->parent->references--;
+      }
       iter = m_fragment_queue.erase(iter);
+    }
     else
       iter++;
   }
@@ -298,8 +312,6 @@ void CommitLog::remove_linked_log(const String &log_dir) {
  */
 int CommitLog::purge(int64_t revision, std::set<int64_t> remove_ok) {
   ScopedLock lock(m_mutex);
-  CommitLogFileInfo file_info;
-  String fname;
 
   if (m_fd == -1)
     return Error::CLOSED;
@@ -307,53 +319,80 @@ int CommitLog::purge(int64_t revision, std::set<int64_t> remove_ok) {
   HT_DEBUG_OUT << "Purging commit log fragments with latest revision older than " << revision
               << HT_END;
 
+  // Process "reap" set
+  std::set<CommitLogFileInfo *>::iterator rm_iter, iter = m_reap_set.begin();
+  while (iter != m_reap_set.end()) {
+    if ((*iter)->references == 0) {
+      remove_file_info(*iter);
+      rm_iter = iter++;
+      m_reap_set.erase(rm_iter);
+    }
+    else
+      ++iter;
+  }
+
+  CommitLogFileInfo *fi;
   while (!m_fragment_queue.empty()) {
-    file_info = m_fragment_queue.front();
-    if (file_info.revision < revision &&
-	(!m_range_reference_required || remove_ok.count(file_info.log_dir_hash) > 0)) {
+    fi = m_fragment_queue.front();
+    if (fi->revision < revision &&
+	(!m_range_reference_required || remove_ok.count(fi->log_dir_hash) > 0)) {
 
-      fname = file_info.log_dir + "/" + file_info.num;
-
-      try {
-        m_fs->remove(fname);
-      }
-      catch (Exception &e) {
-        HT_ERRORF("Problem removing log fragment '%s' (%s - %s)",
-                  fname.c_str(), Error::get_text(e.code()), e.what());
-      }
+      if (fi->references == 0)
+        remove_file_info(fi);
+      else
+        m_reap_set.insert(fi);
 
       m_fragment_queue.pop_front();
-
-      HT_DEBUGF("clgc Removed log fragment file='%s' revision=%lld", fname.c_str(),
-               (Lld)file_info.revision);
-
-      if (file_info.purge_log_dir) {
-        HT_INFOF("Removing commit log directory %s", file_info.log_dir.c_str());
-        try {
-          m_fs->rmdir(file_info.log_dir);
-        }
-        catch (Exception &e) {
-          HT_ERRORF("Problem removing log directory '%s' (%s - %s)",
-                    file_info.log_dir.c_str(), Error::get_text(e.code()), e.what());
-        }
-      }
     }
     else {
-
       HT_DEBUGF("clgc LOG FRAGMENT PURGE breaking because %lld >= %lld",
-               (Lld)file_info.revision, (Lld)revision);
-
+               (Lld)fi->revision, (Lld)revision);
       break;
     }
   }
-
 
   return Error::OK;
 }
 
 
-int CommitLog::roll() {
-  CommitLogFileInfo file_info;
+void CommitLog::remove_file_info(CommitLogFileInfo *fi) {
+  String fname;
+
+  // Remove linked log directores
+  foreach (const String &logdir, fi->purge_dirs) {
+    try {
+      m_fs->rmdir(logdir);
+    }
+    catch (Exception &e) {
+      HT_ERRORF("Problem removing log directory '%s' (%s - %s)",
+                logdir.c_str(), Error::get_text(e.code()), e.what());
+    }
+  }
+
+  // Remove log fragment
+  try {
+    fname = fi->log_dir + "/" + fi->num;
+    m_fs->remove(fname);
+  }
+  catch (Exception &e) {
+    HT_ERRORF("Problem removing log fragment '%s' (%s - %s)",
+              fname.c_str(), Error::get_text(e.code()), e.what());
+  }
+
+  HT_DEBUGF("clgc Removed log fragment file='%s' revision=%lld", fname.c_str(),
+            (Lld)fi->revision);
+
+  // Decrement parent reference count
+  if (fi->parent) {
+    HT_ASSERT(fi->parent->references > 0);
+    fi->parent->references--;
+  }
+
+}
+
+
+int CommitLog::roll(CommitLogFileInfo **clfip) {
+  CommitLogFileInfo *file_info;
 
   if (m_fd == -1)
     return Error::CLOSED;
@@ -375,21 +414,23 @@ int CommitLog::roll() {
 
     m_fd = -1;
 
-    file_info.log_dir = m_log_dir;
-    file_info.log_dir_hash = md5_hash(m_log_dir.c_str());
-    file_info.num = m_cur_fragment_num;
-    file_info.size = m_cur_fragment_length;
+    file_info = new CommitLogFileInfo();
+    if (clfip)
+      *clfip = file_info;
+    file_info->log_dir = m_log_dir;
+    file_info->log_dir_hash = md5_hash(m_log_dir.c_str());
+    file_info->num = m_cur_fragment_num;
+    file_info->size = m_cur_fragment_length;
     assert(m_latest_revision != TIMESTAMP_MIN);
-    file_info.revision = m_latest_revision;
-    file_info.purge_log_dir = false;
-    file_info.block_stream = 0;
+    file_info->revision = m_latest_revision;
 
-    if (m_fragment_queue.empty() || m_fragment_queue.back().revision
-        < file_info.revision)
+    if (m_fragment_queue.empty() || m_fragment_queue.back()->revision
+        < file_info->revision)
       m_fragment_queue.push_back(file_info);
     else {
       m_fragment_queue.push_back(file_info);
-      sort(m_fragment_queue.begin(), m_fragment_queue.end());
+      struct LtClfip swo;
+      sort(m_fragment_queue.begin(), m_fragment_queue.end(), swo);
     }
 
     m_latest_revision = TIMESTAMP_MIN;
@@ -467,11 +508,11 @@ void CommitLog::load_cumulative_size_map(CumulativeSizeMap &cumulative_size_map)
     cumulative_size_map[m_latest_revision] = frag_data;
   }
 
-  for (std::deque<CommitLogFileInfo>::reverse_iterator iter
+  for (std::deque<CommitLogFileInfo *>::reverse_iterator iter
        = m_fragment_queue.rbegin(); iter != m_fragment_queue.rend(); ++iter) {
-    frag_data.size = (*iter).size;
-    frag_data.fragno = (*iter).num;
-    cumulative_size_map[(*iter).revision] = frag_data;
+    frag_data.size = (*iter)->size;
+    frag_data.fragno = (*iter)->num;
+    cumulative_size_map[(*iter)->revision] = frag_data;
   }
 
   for (CumulativeSizeMap::reverse_iterator riter = cumulative_size_map.rbegin();
@@ -491,10 +532,10 @@ void CommitLog::get_stats(const String &prefix, String &result) {
     HT_THROWF(Error::CLOSED, "Commit log '%s' has been closed", m_log_dir.c_str());
 
   try {
-    foreach (const CommitLogFileInfo &frag, m_fragment_queue) {
-      result += prefix + String("-log-fragment[") + frag.num + "]\tsize\t" + frag.size + "\n";
-      result += prefix + String("-log-fragment[") + frag.num + "]\trevision\t" + frag.revision + "\n";
-      result += prefix + String("-log-fragment[") + frag.num + "]\tdir\t" + frag.log_dir + "\n";
+    foreach (const CommitLogFileInfo *frag, m_fragment_queue) {
+      result += prefix + String("-log-fragment[") + frag->num + "]\tsize\t" + frag->size + "\n";
+      result += prefix + String("-log-fragment[") + frag->num + "]\trevision\t" + frag->revision + "\n";
+      result += prefix + String("-log-fragment[") + frag->num + "]\tdir\t" + frag->log_dir + "\n";
     }
     result += prefix + String("-log-fragment[") + m_cur_fragment_num + "]\tsize\t" + m_cur_fragment_length + "\n";
     result += prefix + String("-log-fragment]") + m_cur_fragment_num + "]\trevision\t" + m_latest_revision + "\n";

@@ -44,7 +44,7 @@ namespace Hypertable {
   class CommitLogReader : public CommitLogBase {
 
   public:
-    CommitLogReader(FilesystemPtr &fs, const String &log_dir, bool mark_for_deletion=false);
+    CommitLogReader(FilesystemPtr &fs, const String &log_dir);
     virtual ~CommitLogReader();
 
     bool next_raw_block(CommitLogBlockInfo *,
@@ -61,7 +61,7 @@ namespace Hypertable {
 
   private:
 
-    void load_fragments(String log_dir, bool mark_for_deletion);
+    void load_fragments(String log_dir, CommitLogFileInfo *parent);
     void load_compressor(uint16_t ztype);
 
     FilesystemPtr     m_fs;

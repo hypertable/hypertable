@@ -1397,6 +1397,9 @@ void Range::unlock() {
 }
 
 
+/**
+ * Called before range has been flipped live so no locking needed
+ */
 void Range::replay_transfer_log(CommitLogReader *commit_log_reader) {
   BlockCompressionHeaderCommitLog header;
   const uint8_t *base, *ptr, *end;
@@ -1438,13 +1441,10 @@ void Range::replay_transfer_log(CommitLogReader *commit_log_reader) {
     if (m_revision > m_latest_revision)
       m_latest_revision = m_revision;
 
-    {
-      ScopedLock lock(m_mutex);
-      HT_INFOF("Replayed %d updates (%d blocks) from split log '%s' into "
-               "%s[%s..%s]", (int)count, (int)nblocks,
-               commit_log_reader->get_log_dir().c_str(),
-               m_metalog_entity->table.id, m_metalog_entity->spec.start_row, m_metalog_entity->spec.end_row);
-    }
+    HT_INFOF("Replayed %d updates (%d blocks) from transfer log '%s' into "
+             "%s[%s..%s]", (int)count, (int)nblocks,
+             commit_log_reader->get_log_dir().c_str(),
+             m_metalog_entity->table.id, m_metalog_entity->spec.start_row, m_metalog_entity->spec.end_row);
 
     m_added_inserts = 0;
     memset(m_added_deletes, 0, 3*sizeof(int64_t));
