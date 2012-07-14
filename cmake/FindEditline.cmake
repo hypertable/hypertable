@@ -39,6 +39,7 @@ find_library(EDITLINE_LIBRARY NAMES edit PATHS
 find_library(NCURSES_LIBRARY NAMES ncurses PATHS
     /opt/local/lib
     /usr/local/lib
+    /usr/lib
     )
 
 if (EDITLINE_LIBRARY AND EDITLINE_INCLUDE_DIR AND NCURSES_LIBRARY)

@@ -544,7 +544,7 @@ namespace {
 
     char *endptr;
     long num = strtol(listing2.back().c_str(), &endptr, 10);
-    String mark_filename = logdir + "/" + num + ".mark";
+    String mark_filename = logdir + "/" + (int64_t)num + ".mark";
 
     try {
       int fd = Global::log_dfs->create(mark_filename, 0, -1, -1, -1);
