@@ -15,6 +15,10 @@
 # limitations under the License.
 #
 
+if [ -e /proc/sys/vm/swappiness ] ; then 
+  echo "/proc/sys/vm/swappiness = `cat /proc/sys/vm/swappiness`"
+fi
+
 # The installation directory
 export HYPERTABLE_HOME=$(cd `dirname "$0"`/.. && pwd)
 . $HYPERTABLE_HOME/bin/ht-env.sh
