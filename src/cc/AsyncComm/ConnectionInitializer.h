@@ -34,6 +34,7 @@ namespace Hypertable {
   public:
     virtual CommBuf *create_initialization_request() = 0;
     virtual bool process_initialization_response(Event *event) = 0;
+    virtual uint64_t initialization_command() = 0;
   };
   typedef boost::intrusive_ptr<ConnectionInitializer> ConnectionInitializerPtr;
 

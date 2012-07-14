@@ -84,6 +84,7 @@ namespace Hypertable {
       CHECKSUM_MISMATCH                  = 49,
       CLOSED                             = 50,
       RANGESERVER_NOT_FOUND              = 51,
+      CONNECTION_NOT_INITIALIZED         = 52,
 
       CONFIG_BAD_ARGUMENT               = 1001,
       CONFIG_BAD_CFG_FILE               = 1002,

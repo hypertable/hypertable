@@ -60,7 +60,8 @@ namespace Hypertable {
     static const uint64_t COMMAND_RELINQUISH_RANGE     = 21;
     static const uint64_t COMMAND_HEAPCHECK            = 22;
     static const uint64_t COMMAND_METADATA_SYNC        = 23;
-    static const uint64_t COMMAND_MAX                  = 24;
+    static const uint64_t COMMAND_INITIALIZE           = 24;
+    static const uint64_t COMMAND_MAX                  = 25;
 
     static const char *m_command_strings[];
 

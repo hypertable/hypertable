@@ -34,6 +34,7 @@ extern "C" {
 
 #include "Common/Error.h"
 #include "Common/Logger.h"
+#include "Common/Serialization.h"
 #include "Common/System.h"
 #include "Common/Time.h"
 
@@ -372,6 +373,16 @@ ConnectionManager::handle(EventPtr &event_ptr) {
     }
     else if (event_ptr->type == Event::MESSAGE) {
       if (conn_state->initializer && !conn_state->initialized) {
+        if (event_ptr->header.command != conn_state->initializer->initialization_command()) {
+          String err_msg = "Connection initialization not yet complete";
+          CommHeader header;
+          header.initialize_from_request_header(event_ptr->header);
+          CommBufPtr cbuf( new CommBuf(header, 4 + Serialization::encoded_length_str16(err_msg)) );
+          cbuf->append_i32(Error::CONNECTION_NOT_INITIALIZED);
+          cbuf->append_str16(err_msg);
+          m_impl->comm->send_response(event_ptr->addr, cbuf);
+          return;
+        }
         if (!conn_state->initializer->process_initialization_response(event_ptr.get()))
           HT_FATALF("Unable to initialize connection to %s, exiting ...",
                     conn_state->service_name.c_str());

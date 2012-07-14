@@ -25,6 +25,8 @@
 #include "Common/String.h"
 #include "Common/Mutex.h"
 
+#include "Hypertable/Lib/RangeServerProtocol.h"
+
 #include "AsyncComm/ConnectionInitializer.h"
 
 #include <boost/thread/condition.hpp>
@@ -37,6 +39,7 @@ namespace Hypertable {
     LocationInitializer(PropertiesPtr &props);
     virtual CommBuf *create_initialization_request();
     virtual bool process_initialization_response(Event *event);
+    virtual uint64_t initialization_command() { return RangeServerProtocol::COMMAND_INITIALIZE; }
     String get();
     void wait_until_assigned();
 

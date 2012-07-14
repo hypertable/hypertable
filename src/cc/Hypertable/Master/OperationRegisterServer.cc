@@ -91,6 +91,7 @@ void OperationRegisterServer::execute() {
     // clock skew detected by master
     CommHeader header;
     header.initialize_from_request_header(m_event->header);
+    header.command = RangeServerProtocol::COMMAND_INITIALIZE;
     CommBufPtr cbp(new CommBuf(header, encoded_result_length()));
 
     encode_result(cbp->get_data_ptr_address());
@@ -109,6 +110,7 @@ void OperationRegisterServer::execute() {
     {
       CommHeader header;
       header.initialize_from_request_header(m_event->header);
+      header.command = RangeServerProtocol::COMMAND_INITIALIZE;
       CommBufPtr cbp(new CommBuf(header, encoded_result_length()));
       encode_result(cbp->get_data_ptr_address());
       int error = m_context->comm->send_response(m_event->addr, cbp);

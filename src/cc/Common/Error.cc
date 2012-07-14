@@ -105,6 +105,7 @@ namespace {
     { Error::CHECKSUM_MISMATCH,             "HYPERTABLE checksum mismatch" },
     { Error::CLOSED,                        "HYPERTABLE closed" },
     { Error::RANGESERVER_NOT_FOUND,         "HYPERTABLE RangeServer not found" },
+    { Error::CONNECTION_NOT_INITIALIZED,    "HYPERTABLE connection not initialized" },
     { Error::CONFIG_BAD_ARGUMENT,         "CONFIG bad argument(s)"},
     { Error::CONFIG_BAD_CFG_FILE,         "CONFIG bad cfg file"},
     { Error::CONFIG_GET_ERROR,            "CONFIG failed to get config value"},
