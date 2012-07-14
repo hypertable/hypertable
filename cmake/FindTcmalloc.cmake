@@ -41,9 +41,14 @@ find_library(Tcmalloc_LIBRARY NO_DEFAULT_PATH
   PATHS ${HT_DEPENDENCY_LIB_DIR} /lib /usr/lib /usr/local/lib /opt/local/lib
 )
 
+find_library(Unwind_LIBRARY NO_DEFAULT_PATH
+  NAMES unwind
+  PATHS ${HT_DEPENDENCY_LIB_DIR} /lib /usr/lib /usr/local/lib /opt/local/lib
+)
+
 if (Tcmalloc_INCLUDE_DIR AND Tcmalloc_LIBRARY)
   set(Tcmalloc_FOUND TRUE)
-  set( Tcmalloc_LIBRARIES ${Tcmalloc_LIBRARY} )
+  set( Tcmalloc_LIBRARIES ${Tcmalloc_LIBRARY} ${Unwind_LIBRARY} )
 else ()
   set(Tcmalloc_FOUND FALSE)
   set( Tcmalloc_LIBRARIES )
