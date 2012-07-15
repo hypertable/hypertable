@@ -45,6 +45,7 @@ void DispatchHandlerOperation::start(StringSet &locations) {
   m_outstanding = 0;
   m_error_count = 0;
   m_locations = locations;
+  m_events.reserve(locations.size());
 
   for (StringSet::iterator iter = m_locations.begin(); iter != m_locations.end(); ++iter) {
     {
@@ -69,42 +70,48 @@ void DispatchHandlerOperation::start(StringSet &locations) {
 }
 
 
-
 /**
  *
  */
 void DispatchHandlerOperation::handle(EventPtr &event) {
   ScopedLock lock(m_mutex);
-  Result result;
-  RangeServerConnectionPtr rsc;
 
   HT_ASSERT(m_outstanding > 0);
-
-  if (m_context->find_server_by_local_addr(event->addr, rsc)) {
-    result.location = rsc->location();
-    if (event->type == Event::MESSAGE) {
-      if ((result.error = Protocol::response_code(event)) != Error::OK) {
-        m_error_count++;
-        result.msg = Protocol::string_format_message(event);
-        m_results.push_back(result);
-      }
-    }
-    else {
-      m_error_count++;
-      result.error = event->error;
-      result.msg = "";
-      m_results.push_back(result);
-    }
-  }
-  else
-    HT_WARNF("Couldn't locate connection object for %s",
-             InetAddr(event->addr).format().c_str());
-
-  result_callback(event);
-
+  m_events.push_back(event);
   m_outstanding--;
   if (m_outstanding == 0)
     m_cond.notify_all();
+}
+
+
+void DispatchHandlerOperation::process_events() {
+  Result result;
+  RangeServerConnectionPtr rsc;
+
+  foreach (EventPtr &event, m_events) {
+
+    if (m_context->find_server_by_local_addr(event->addr, rsc)) {
+      result.location = rsc->location();
+      if (event->type == Event::MESSAGE) {
+        if ((result.error = Protocol::response_code(event)) != Error::OK) {
+          m_error_count++;
+          result.msg = Protocol::string_format_message(event);
+          m_results.push_back(result);
+        }
+      }
+      else {
+        m_error_count++;
+        result.error = event->error;
+        result.msg = "";
+        m_results.push_back(result);
+      }
+    }
+    else
+      HT_WARNF("Couldn't locate connection object for %s",
+               InetAddr(event->addr).format().c_str());
+
+    result_callback(event);
+  }
 }
 
 
@@ -115,6 +122,7 @@ bool DispatchHandlerOperation::wait_for_completion() {
   ScopedLock lock(m_mutex);
   while (m_outstanding > 0)
     m_cond.wait(lock);
+  process_events();
   return m_error_count == 0;
 }
 
