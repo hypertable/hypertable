@@ -210,58 +210,6 @@ void Range::split_install_log_rollback_metadata() {
 /**
  *
  */
-void Range::update_schema(SchemaPtr &schema) {
-  ScopedLock lock(m_schema_mutex);
-
-  vector<Schema::AccessGroup*> new_access_groups;
-  AccessGroup *ag;
-  AccessGroupMap::iterator ag_iter;
-  size_t max_column_family_id = schema->get_max_column_family_id();
-
-  // only update schema if there is more recent version
-  if(schema->get_generation() <= m_schema->get_generation())
-    return;
-
-  // resize column family vector if needed
-  if (max_column_family_id > m_column_family_vector.size()-1)
-    m_column_family_vector.resize(max_column_family_id+1);
-
-  // update all existing access groups & create new ones as needed
-  foreach(Schema::AccessGroup *s_ag, schema->get_access_groups()) {
-    if( (ag_iter = m_access_group_map.find(s_ag->name)) !=
-        m_access_group_map.end()) {
-      ag_iter->second->update_schema(schema, s_ag);
-      foreach(Schema::ColumnFamily *s_cf, s_ag->columns) {
-        if (s_cf->deleted == false)
-          m_column_family_vector[s_cf->id] = ag_iter->second;
-      }
-    }
-    else {
-      new_access_groups.push_back(s_ag);
-    }
-  }
-
-  // create new access groups
-  m_metalog_entity->table.generation = schema->get_generation();
-  foreach(Schema::AccessGroup *s_ag, new_access_groups) {
-    ag = new AccessGroup(&m_metalog_entity->table, schema, s_ag, &m_metalog_entity->spec);
-    m_access_group_map[s_ag->name] = ag;
-    m_access_group_vector.push_back(ag);
-
-    foreach(Schema::ColumnFamily *s_cf, s_ag->columns) {
-      if (s_cf->deleted == false)
-        m_column_family_vector[s_cf->id] = ag;
-    }
-  }
-
-  // TODO: remove deleted access groups
-  m_schema = schema;
-  return;
-}
-
-/**
- *
- */
 void Range::load_cell_stores(Metadata *metadata) {
   AccessGroup *ag;
   CellStorePtr cellstore;
@@ -346,6 +294,62 @@ void Range::load_cell_stores(Metadata *metadata) {
 
 
 /**
+ *
+ */
+void Range::update_schema(SchemaPtr &schema) {
+  ScopedLock lock(m_schema_mutex);
+
+  vector<Schema::AccessGroup*> new_access_groups;
+  AccessGroup *ag;
+  AccessGroupMap::iterator ag_iter;
+  size_t max_column_family_id = schema->get_max_column_family_id();
+
+  // only update schema if there is more recent version
+  if(schema->get_generation() <= m_schema->get_generation())
+    return;
+
+  // resize column family vector if needed
+  if (max_column_family_id > m_column_family_vector.size()-1)
+    m_column_family_vector.resize(max_column_family_id+1);
+
+  // update all existing access groups & create new ones as needed
+  foreach(Schema::AccessGroup *s_ag, schema->get_access_groups()) {
+    if( (ag_iter = m_access_group_map.find(s_ag->name)) !=
+        m_access_group_map.end()) {
+      ag_iter->second->update_schema(schema, s_ag);
+      foreach(Schema::ColumnFamily *s_cf, s_ag->columns) {
+        if (s_cf->deleted == false)
+          m_column_family_vector[s_cf->id] = ag_iter->second;
+      }
+    }
+    else {
+      new_access_groups.push_back(s_ag);
+    }
+  }
+
+  // create new access groups
+  {
+    ScopedLock lock(m_mutex);
+    m_metalog_entity->table.generation = schema->get_generation();
+    foreach(Schema::AccessGroup *s_ag, new_access_groups) {
+      ag = new AccessGroup(&m_metalog_entity->table, schema, s_ag, &m_metalog_entity->spec);
+      m_access_group_map[s_ag->name] = ag;
+      m_access_group_vector.push_back(ag);
+
+      foreach(Schema::ColumnFamily *s_cf, s_ag->columns) {
+        if (s_cf->deleted == false)
+          m_column_family_vector[s_cf->id] = ag;
+      }
+    }
+  }
+
+  // TODO: remove deleted access groups
+  m_schema = schema;
+  return;
+}
+
+
+/**
  * This method must not fail.  The caller assumes that it will succeed.
  */
 void Range::add(const Key &key, const ByteString value) {
@@ -421,8 +425,11 @@ bool Range::need_maintenance() {
   ScopedLock lock(m_schema_mutex);
   bool needed = false;
   int64_t mem, disk, disk_total = 0;
-  if (!m_metalog_entity->load_acknowledged)
-    return false;
+  {
+    ScopedLock lock(m_mutex);
+    if (!m_metalog_entity->load_acknowledged)
+      return false;
+  }
   for (size_t i=0; i<m_access_group_vector.size(); ++i) {
     m_access_group_vector[i]->space_usage(&mem, &disk);
     disk_total += disk;
@@ -457,13 +464,9 @@ Range::MaintenanceData *Range::get_maintenance_data(ByteArena &arena, time_t now
     mdata->load_factors.updates = m_updates;
     mdata->load_factors.bytes_written = m_bytes_written;
     mdata->load_factors.cells_written = m_cells_written;
-    mdata->schema_generation = m_metalog_entity->table.generation;
   }
 
   mdata->range = this;
-  mdata->table_id = m_metalog_entity->table.id;
-  mdata->is_metadata = m_metalog_entity->table.is_metadata();
-  mdata->is_system = m_metalog_entity->table.is_system();
   mdata->relinquish = m_relinquish;
 
   // record starting maintenance generation
@@ -475,8 +478,14 @@ Range::MaintenanceData *Range::get_maintenance_data(ByteArena &arena, time_t now
     mdata->load_factors.bytes_scanned = m_bytes_scanned;
     mdata->bytes_returned = m_bytes_returned;
     mdata->load_factors.disk_bytes_read = m_disk_bytes_read;
+    mdata->table_id = m_metalog_entity->table.id;
+    mdata->is_metadata = m_metalog_entity->table.is_metadata();
+    mdata->is_system = m_metalog_entity->table.is_system();
+    mdata->schema_generation = m_metalog_entity->table.generation;
     mdata->state = m_metalog_entity->state.state;
     mdata->soft_limit = m_metalog_entity->state.soft_limit;
+    mdata->busy = m_maintenance_guard.in_progress() || !m_metalog_entity->load_acknowledged;
+    mdata->needs_major_compaction = m_metalog_entity->needs_compaction;
   }
 
   for (size_t i=0; i<ag_vector.size(); i++) {
@@ -523,9 +532,6 @@ Range::MaintenanceData *Range::get_maintenance_data(ByteArena &arena, time_t now
       m_capacity_exceeded_throttle = true;
   }
 
-  mdata->busy = m_maintenance_guard.in_progress() || !m_metalog_entity->load_acknowledged;
-
-  mdata->needs_major_compaction = m_metalog_entity->needs_compaction;
   mdata->load_acknowledged = load_acknowledged();
 
   mdata->log_hash = m_log_hash;
@@ -540,6 +546,10 @@ Range::MaintenanceData *Range::get_maintenance_data(ByteArena &arena, time_t now
 
 void Range::relinquish() {
   RangeMaintenanceGuard::Activator activator(m_maintenance_guard);
+
+  // NOTE: We're not locking m_mutex when referencing m_metalog_entity
+  // below because the state and range spec only change by maintenance
+  // that is protected by m_maintenance_guard (which we're holding)
 
   try {
     switch (m_metalog_entity->state.state) {
@@ -575,9 +585,6 @@ void Range::relinquish_install_log() {
   time_t now = 0;
   AccessGroupVector  ag_vector(0);
 
-  if (m_metalog_entity->state.transfer_log)
-    m_metalog_entity->original_transfer_log = m_metalog_entity->state.transfer_log;
-
   {
     ScopedLock lock(m_schema_mutex);
     ag_vector = m_access_group_vector;
@@ -586,43 +593,47 @@ void Range::relinquish_install_log() {
   if (cancel_maintenance())
     HT_THROW(Error::CANCELLED, "");
 
-  /**
-   * Create transfer log
-   */
-  md5_trunc_modified_base64(m_metalog_entity->spec.end_row, md5DigestStr);
-  md5DigestStr[16] = 0;
-
-  do {
-    if (now != 0)
-      poll(0, 0, 1200);
-    now = time(0);
-    m_metalog_entity->state.set_transfer_log(Global::log_dir + "/" + m_metalog_entity->table.id + "/" + md5DigestStr + "-" + (int)now);
-  }
-  while (Global::log_dfs->exists(m_metalog_entity->state.transfer_log));
-
-  Global::log_dfs->mkdirs(m_metalog_entity->state.transfer_log);
-
-  /**
-   * Persist RELINQUISH_LOG_INSTALLED Metalog state
-   */
   {
     ScopedLock lock(m_mutex);
-    m_metalog_entity->state.state = RangeState::RELINQUISH_LOG_INSTALLED;
-  }
-  for (int i=0; true; i++) {
-    try {
-      Global::rsml_writer->record_state(m_metalog_entity.get());
-      break;
+    if (m_metalog_entity->state.transfer_log)
+      m_metalog_entity->original_transfer_log = m_metalog_entity->state.transfer_log;
+
+    /**
+     * Create transfer log
+     */
+    md5_trunc_modified_base64(m_metalog_entity->spec.end_row, md5DigestStr);
+    md5DigestStr[16] = 0;
+
+    do {
+      if (now != 0)
+        poll(0, 0, 1200);
+      now = time(0);
+      m_metalog_entity->state.set_transfer_log(Global::log_dir + "/" + m_metalog_entity->table.id + "/" + md5DigestStr + "-" + (int)now);
     }
-    catch (Exception &e) {
-      if (i<3) {
-        HT_WARNF("%s - %s", Error::get_text(e.code()), e.what());
-        poll(0, 0, 5000);
-        continue;
+    while (Global::log_dfs->exists(m_metalog_entity->state.transfer_log));
+
+    Global::log_dfs->mkdirs(m_metalog_entity->state.transfer_log);
+
+    /**
+     * Persist RELINQUISH_LOG_INSTALLED Metalog state
+     */
+    m_metalog_entity->state.state = RangeState::RELINQUISH_LOG_INSTALLED;
+
+    for (int i=0; true; i++) {
+      try {
+        Global::rsml_writer->record_state(m_metalog_entity.get());
+        break;
       }
-      HT_ERRORF("Problem updating meta log entry with RELINQUISH_LOG_INSTALLED state for %s",
-                m_name.c_str());
-      HT_FATAL_OUT << e << HT_END;
+      catch (Exception &e) {
+        if (i<3) {
+          HT_WARNF("%s - %s", Error::get_text(e.code()), e.what());
+          poll(0, 0, 5000);
+          continue;
+        }
+        HT_ERRORF("Problem updating meta log entry with RELINQUISH_LOG_INSTALLED state for %s",
+                  m_name.c_str());
+        HT_FATAL_OUT << e << HT_END;
+      }
     }
   }
 
@@ -642,6 +653,7 @@ void Range::relinquish_install_log() {
 
 
 void Range::relinquish_compact_and_finish() {
+  TableIdentifierManaged table_frozen;
 
   if (!m_removed_from_working_set) {
     AccessGroupVector ag_vector(0);
@@ -660,11 +672,11 @@ void Range::relinquish_compact_and_finish() {
     for (size_t i=0; i<ag_vector.size(); i++)
       ag_vector[i]->run_compaction(MaintenanceFlag::COMPACT_MINOR);
 
-    // VERIFY
-    // update the latest generation, this should probably be protected
     {
       ScopedLock lock(m_schema_mutex);
+      ScopedLock lock2(m_mutex);
       m_metalog_entity->table.generation = m_schema->get_generation();
+      table_frozen = m_metalog_entity->table;
     }
 
     // Record "move" in sys/RS_METRICS
@@ -705,45 +717,49 @@ void Range::relinquish_compact_and_finish() {
            m_metalog_entity->spec.end_row);
 
   m_master_client->move_range(Global::location_initializer->get(),
-			      &m_metalog_entity->table, m_metalog_entity->spec,
+			      &table_frozen, m_metalog_entity->spec,
                               m_metalog_entity->state.transfer_log,
                               m_metalog_entity->state.soft_limit, false);
 
   MetaLog::EntityTaskPtr log_removal_task, acknowledge_relinquish_task;
   std::vector<MetaLog::Entity *> entities;
 
-  // Mark the Range entity for removal
-  m_metalog_entity->mark_for_removal();
-  entities.push_back(m_metalog_entity.get());
+  {
+    ScopedLock lock(m_mutex);
 
-  // Add log removal task
-  maybe_create_log_removal_task(log_removal_task);
-  if (log_removal_task)
-    entities.push_back(log_removal_task.get());
+    // Mark the Range entity for removal
+    m_metalog_entity->mark_for_removal();
+    entities.push_back(m_metalog_entity.get());
 
-  // Add acknowledge relinquish task
-  acknowledge_relinquish_task = 
-    new MetaLog::EntityTaskAcknowledgeRelinquish(Global::location_initializer->get(),
-                                                 m_metalog_entity->table,
-                                                 m_metalog_entity->spec);
-  entities.push_back(acknowledge_relinquish_task.get());
+    // Add log removal task
+    maybe_create_log_removal_task(log_removal_task);
+    if (log_removal_task)
+      entities.push_back(log_removal_task.get());
 
-  /**
-   * Add the log removal task and remove range from RSML
-   */
-  for (int i=0; true; i++) {
-    try {
-      Global::rsml_writer->record_state(entities);
-      break;
-    }
-    catch (Exception &e) {
-      if (i<6) {
-        HT_ERRORF("%s - %s", Error::get_text(e.code()), e.what());
-        poll(0, 0, 5000);
-        continue;
+    // Add acknowledge relinquish task
+    acknowledge_relinquish_task = 
+      new MetaLog::EntityTaskAcknowledgeRelinquish(Global::location_initializer->get(),
+                                                   m_metalog_entity->table,
+                                                   m_metalog_entity->spec);
+    entities.push_back(acknowledge_relinquish_task.get());
+
+    /**
+     * Add the log removal task and remove range from RSML
+     */
+    for (int i=0; true; i++) {
+      try {
+        Global::rsml_writer->record_state(entities);
+        break;
       }
-      HT_ERRORF("Problem recording removal for range %s", m_name.c_str());
-      HT_FATAL_OUT << e << HT_END;
+      catch (Exception &e) {
+        if (i<6) {
+          HT_ERRORF("%s - %s", Error::get_text(e.code()), e.what());
+          poll(0, 0, 5000);
+          continue;
+        }
+        HT_ERRORF("Problem recording removal for range %s", m_name.c_str());
+        HT_FATAL_OUT << e << HT_END;
+      }
     }
   }
 
@@ -808,8 +824,11 @@ void Range::split_install_log() {
   char md5DigestStr[33];
   AccessGroupVector  ag_vector(0);
 
-  if (m_metalog_entity->state.transfer_log)
-    m_metalog_entity->original_transfer_log = m_metalog_entity->state.transfer_log;
+  {
+    ScopedLock lock(m_mutex);
+    if (m_metalog_entity->state.transfer_log)
+      m_metalog_entity->original_transfer_log = m_metalog_entity->state.transfer_log;
+  }
 
   {
     ScopedLock lock(m_schema_mutex);
@@ -866,52 +885,52 @@ void Range::split_install_log() {
     }
   }
 
-  m_metalog_entity->state.set_split_point(m_split_row);
-
-  /**
-   * Create split (transfer) log
-   */
-  md5_trunc_modified_base64(m_metalog_entity->state.split_point, md5DigestStr);
-  md5DigestStr[16] = 0;
-  time_t now = 0;
-
-  do {
-    if (now != 0)
-      poll(0, 0, 1200);
-    now = time(0);
-    m_metalog_entity->state.set_transfer_log(Global::log_dir + "/" + m_metalog_entity->table.id + "/" + md5DigestStr + "-" + (int)now);
-  }
-  while (Global::log_dfs->exists(m_metalog_entity->state.transfer_log));
-
-  // Create transfer log dir
-  Global::log_dfs->mkdirs(m_metalog_entity->state.transfer_log);
-
-  if (m_split_off_high)
-    m_metalog_entity->state.set_old_boundary_row(m_metalog_entity->spec.end_row);
-  else
-    m_metalog_entity->state.set_old_boundary_row(m_metalog_entity->spec.start_row);
-
-  /**
-   * Persist SPLIT_LOG_INSTALLED Metalog state
-   */
   {
     ScopedLock lock(m_mutex);
-    m_metalog_entity->state.state = RangeState::SPLIT_LOG_INSTALLED;
-  }
-  for (int i=0; true; i++) {
-    try {
-      Global::rsml_writer->record_state(m_metalog_entity.get());
-      break;
+    m_metalog_entity->state.set_split_point(m_split_row);
+
+    /**
+     * Create split (transfer) log
+     */
+    md5_trunc_modified_base64(m_metalog_entity->state.split_point, md5DigestStr);
+    md5DigestStr[16] = 0;
+    time_t now = 0;
+
+    do {
+      if (now != 0)
+        poll(0, 0, 1200);
+      now = time(0);
+      m_metalog_entity->state.set_transfer_log(Global::log_dir + "/" + m_metalog_entity->table.id + "/" + md5DigestStr + "-" + (int)now);
     }
-    catch (Exception &e) {
-      if (i<3) {
-        HT_WARNF("%s - %s", Error::get_text(e.code()), e.what());
-        poll(0, 0, 5000);
-        continue;
+    while (Global::log_dfs->exists(m_metalog_entity->state.transfer_log));
+
+    // Create transfer log dir
+    Global::log_dfs->mkdirs(m_metalog_entity->state.transfer_log);
+
+    if (m_split_off_high)
+      m_metalog_entity->state.set_old_boundary_row(m_metalog_entity->spec.end_row);
+    else
+      m_metalog_entity->state.set_old_boundary_row(m_metalog_entity->spec.start_row);
+
+    /**
+     * Persist SPLIT_LOG_INSTALLED Metalog state
+     */
+    m_metalog_entity->state.state = RangeState::SPLIT_LOG_INSTALLED;
+    for (int i=0; true; i++) {
+      try {
+        Global::rsml_writer->record_state(m_metalog_entity.get());
+        break;
       }
-      HT_ERRORF("Problem updating meta log with SPLIT_LOG_INSTALLED state for %s "
-                "split-point='%s'", m_name.c_str(), m_metalog_entity->state.split_point);
-      HT_FATAL_OUT << e << HT_END;
+      catch (Exception &e) {
+        if (i<3) {
+          HT_WARNF("%s - %s", Error::get_text(e.code()), e.what());
+          poll(0, 0, 5000);
+          continue;
+        }
+        HT_ERRORF("Problem updating meta log with SPLIT_LOG_INSTALLED state for %s "
+                  "split-point='%s'", m_name.c_str(), m_metalog_entity->state.split_point);
+        HT_FATAL_OUT << e << HT_END;
+      }
     }
   }
 
@@ -1056,6 +1075,9 @@ void Range::split_compact_and_shrink() {
   {
     Barrier::ScopedActivator block_updates(m_update_barrier);
     Barrier::ScopedActivator block_scans(m_scan_barrier);
+    ScopedLock lock(m_mutex);
+
+    // drj
 
     // Shrink access groups
     if (m_split_off_high) {
@@ -1072,30 +1094,28 @@ void Range::split_compact_and_shrink() {
         HT_ABORT;
       }
     }
-    {
-      ScopedLock lock(m_mutex);
-      String split_row = m_metalog_entity->state.split_point;
 
-      // Shrink access groups
-      if (m_split_off_high)
-        m_metalog_entity->spec.set_end_row(m_metalog_entity->state.split_point);
-      else
-        m_metalog_entity->spec.set_start_row(m_metalog_entity->state.split_point);
+    String split_row = m_metalog_entity->state.split_point;
 
-      m_load_metrics.change_rows(m_metalog_entity->spec.start_row, m_metalog_entity->spec.end_row);
+    // Shrink access groups
+    if (m_split_off_high)
+      m_metalog_entity->spec.set_end_row(m_metalog_entity->state.split_point);
+    else
+      m_metalog_entity->spec.set_start_row(m_metalog_entity->state.split_point);
 
-      m_name = String(m_metalog_entity->table.id)+"["+m_metalog_entity->spec.start_row+".."+m_metalog_entity->spec.end_row+"]";
-      m_split_row = "";
-      for (size_t i=0; i<ag_vector.size(); i++)
-        ag_vector[i]->shrink(split_row, m_split_off_high);
+    m_load_metrics.change_rows(m_metalog_entity->spec.start_row, m_metalog_entity->spec.end_row);
 
-      // Close and uninstall split log
-      if ((error = m_transfer_log->close()) != Error::OK) {
-        HT_ERRORF("Problem closing split log '%s' - %s",
-                  m_transfer_log->get_log_dir().c_str(), Error::get_text(error));
-      }
-      m_transfer_log = 0;
+    m_name = String(m_metalog_entity->table.id)+"["+m_metalog_entity->spec.start_row+".."+m_metalog_entity->spec.end_row+"]";
+    m_split_row = "";
+    for (size_t i=0; i<ag_vector.size(); i++)
+      ag_vector[i]->shrink(split_row, m_split_off_high);
+
+    // Close and uninstall split log
+    if ((error = m_transfer_log->close()) != Error::OK) {
+      HT_ERRORF("Problem closing split log '%s' - %s",
+                m_transfer_log->get_log_dir().c_str(), Error::get_text(error));
     }
+    m_transfer_log = 0;
   }
 
   if (m_split_off_high) {
@@ -1126,21 +1146,21 @@ void Range::split_compact_and_shrink() {
   {
     ScopedLock lock(m_mutex);
     m_metalog_entity->state.state = RangeState::SPLIT_SHRUNK;
-  }
-  for (int i=0; true; i++) {
-    try {
-      Global::rsml_writer->record_state(m_metalog_entity.get());
-      break;
-    }
-    catch (Exception &e) {
-      if (i<3) {
-        HT_ERRORF("%s - %s", Error::get_text(e.code()), e.what());
-        poll(0, 0, 5000);
-        continue;
+    for (int i=0; true; i++) {
+      try {
+        Global::rsml_writer->record_state(m_metalog_entity.get());
+        break;
       }
-      HT_ERRORF("Problem updating meta log entry with SPLIT_SHRUNK state %s "
-                "split-point='%s'", m_name.c_str(), m_metalog_entity->state.split_point);
-      HT_FATAL_OUT << e << HT_END;
+      catch (Exception &e) {
+        if (i<3) {
+          HT_ERRORF("%s - %s", Error::get_text(e.code()), e.what());
+          poll(0, 0, 5000);
+          continue;
+        }
+        HT_ERRORF("Problem updating meta log entry with SPLIT_SHRUNK state %s "
+                  "split-point='%s'", m_name.c_str(), m_metalog_entity->state.split_point);
+        HT_FATAL_OUT << e << HT_END;
+      }
     }
   }
 
@@ -1152,6 +1172,7 @@ void Range::split_compact_and_shrink() {
 
 void Range::split_notify_master() {
   RangeSpecManaged range;
+  TableIdentifierManaged table_frozen;
   int64_t soft_limit;
 
   if (cancel_maintenance())
@@ -1170,6 +1191,7 @@ void Range::split_notify_master() {
   {
     ScopedLock lock(m_schema_mutex);
     m_metalog_entity->table.generation = m_schema->get_generation();
+    table_frozen = m_metalog_entity->table;
     soft_limit = (int64_t)m_metalog_entity->state.soft_limit;
   }
 
@@ -1183,7 +1205,7 @@ void Range::split_notify_master() {
   }
 
   m_master_client->move_range(Global::location_initializer->get(),
-			      &m_metalog_entity->table, range,
+			      &table_frozen, range,
                               m_metalog_entity->state.transfer_log,
                               soft_limit, true);
 
@@ -1198,42 +1220,44 @@ void Range::split_notify_master() {
   MetaLog::EntityTaskPtr log_removal_task, acknowledge_relinquish_task;
   std::vector<MetaLog::Entity *> entities;
 
-  // Add Range entity with updated state
-  entities.push_back(m_metalog_entity.get());
-
-  // Add log removal task
-  maybe_create_log_removal_task(log_removal_task);
-  if (log_removal_task)
-    entities.push_back(log_removal_task.get());
-
-  // Add acknowledge relinquish task
-  acknowledge_relinquish_task = 
-    new MetaLog::EntityTaskAcknowledgeRelinquish(Global::location_initializer->get(),
-                                                 m_metalog_entity->table, range);
-  entities.push_back(acknowledge_relinquish_task.get());
-
-  /**
-   * Persist STEADY Metalog state and log removal task
-   */
   {
     ScopedLock lock(m_mutex);
+
+    // Add Range entity with updated state
+    entities.push_back(m_metalog_entity.get());
+
+    // Add log removal task
+    maybe_create_log_removal_task(log_removal_task);
+    if (log_removal_task)
+      entities.push_back(log_removal_task.get());
+
+    // Add acknowledge relinquish task
+    acknowledge_relinquish_task = 
+      new MetaLog::EntityTaskAcknowledgeRelinquish(Global::location_initializer->get(),
+                                                   m_metalog_entity->table, range);
+    entities.push_back(acknowledge_relinquish_task.get());
+
+    /**
+     * Persist STEADY Metalog state and log removal task
+     */
     m_metalog_entity->state.clear();
     m_metalog_entity->state.soft_limit = soft_limit;
-  }
-  for (int i=0; true; i++) {
-    try {
-      Global::rsml_writer->record_state(entities);
-      break;
-    }
-    catch (Exception &e) {
-      if (i<2) {
-        HT_ERRORF("%s - %s", Error::get_text(e.code()), e.what());
-        poll(0, 0, 5000);
-        continue;
+
+    for (int i=0; true; i++) {
+      try {
+        Global::rsml_writer->record_state(entities);
+        break;
       }
-      HT_ERRORF("Problem updating meta log with STEADY state for %s",
-                m_name.c_str());
-      HT_FATAL_OUT << e << HT_END;
+      catch (Exception &e) {
+        if (i<2) {
+          HT_ERRORF("%s - %s", Error::get_text(e.code()), e.what());
+          poll(0, 0, 5000);
+          continue;
+        }
+        HT_ERRORF("Problem updating meta log with STEADY state for %s",
+                  m_name.c_str());
+        HT_FATAL_OUT << e << HT_END;
+      }
     }
   }
 
@@ -1300,12 +1324,12 @@ void Range::compact(MaintenanceFlag::Map &subtask_map) {
 
   if (m_metalog_entity->needs_compaction) {
     try {
-      m_metalog_entity->needs_compaction = false;
+      ScopedLock lock(m_mutex);
       Global::rsml_writer->record_state(m_metalog_entity.get());
+      m_metalog_entity->needs_compaction = false;
     }
     catch (Exception &e) {
       HT_ERRORF("Problem updating meta log entry for %s", m_name.c_str());
-      m_metalog_entity->needs_compaction = true;
     }
   }
 
@@ -1479,6 +1503,42 @@ int64_t Range::get_scan_revision() {
   ScopedLock lock(m_mutex);
   return m_latest_revision;
 }
+
+void Range::acknowledge_load() {
+  ScopedLock lock(m_mutex);
+  m_metalog_entity->load_acknowledged = true;
+
+  if (Global::rsml_writer == 0)
+    HT_THROW(Error::SERVER_SHUTTING_DOWN, "Pointer to RSML Writer is NULL");
+
+  try {
+    Global::rsml_writer->record_state(m_metalog_entity.get());
+  }
+  catch (Exception &e) {
+    m_metalog_entity->load_acknowledged = false;
+    throw;
+  }
+}
+
+void Range::record_state_rsml() {
+  ScopedLock lock(m_mutex);
+
+  if (Global::rsml_writer == 0)
+    HT_THROW(Error::SERVER_SHUTTING_DOWN, "Pointer to RSML Writer is NULL");
+
+  Global::rsml_writer->record_state(m_metalog_entity.get());
+}
+
+void Range::record_removal_rsml() {
+  ScopedLock lock(m_mutex);
+
+  if (Global::rsml_writer == 0)
+    HT_THROW(Error::SERVER_SHUTTING_DOWN, "Pointer to RSML Writer is NULL");
+
+  Global::rsml_writer->record_removal(m_metalog_entity.get());
+}
+
+
 
 std::ostream &Hypertable::operator<<(std::ostream &os, const Range::MaintenanceData &mdata) {
   os << "RANGE " << mdata.range->get_name() << "\n";
