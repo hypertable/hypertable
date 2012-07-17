@@ -29,6 +29,7 @@ set(VERSION_PATCH "6")
 # cmake behavior compatibility
 cmake_minimum_required(VERSION 2.6.0)
 mark_as_advanced(CMAKE_BACKWARDS_COMPATIBILITY)
+set(CMAKE_EXE_LINKER_FLAGS "-Wl,--no-as-needed")
 
 # saner control structure syntax
 set(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS true)
