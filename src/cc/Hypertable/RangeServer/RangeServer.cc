@@ -1792,13 +1792,9 @@ RangeServer::load_range(ResponseCallback *cb, const TableIdentifier *table,
         table_info->unstage_range(range_spec);
         return;
       }
-
-      if (Global::rsml_writer)
-        Global::rsml_writer->record_state( range->metalog_entity() );
-      else {
-        cb->error(Error::SERVER_SHUTTING_DOWN, Global::location_initializer->get());
-        return;
-      }
+      
+      // Record range in RSML
+      range->record_state_rsml();
 
       // make sure that we don't have a clock skew
       // poll() timeout is in milliseconds, revision and now is in nanoseconds
@@ -1879,15 +1875,13 @@ void RangeServer::acknowledge_load(ResponseCallback *cb, const TableIdentifier *
       return;
     }
 
-    range->acknowledge_load();
-
-    if (Global::rsml_writer)
-      Global::rsml_writer->record_state( range->metalog_entity() );
-    else {
-      cb->error(Error::SERVER_SHUTTING_DOWN, Global::location_initializer->get());
+    try {
+      range->acknowledge_load();
+    }
+    catch(Exception &e) {
+      cb->error(e.code(), Global::location_initializer->get());
       return;
     }
-
   }
 
   cb->response_ok();
@@ -2944,12 +2938,11 @@ RangeServer::drop_table(ResponseCallback *cb, const TableIdentifier *table) {
    */
   for (size_t i=0; i<range_vector.size(); i++) {
     range_vector[i]->wait_for_maintenance_to_complete();
-    if (Global::rsml_writer) {
-      ScopedLock lock(m_drop_table_mutex);
-      Global::rsml_writer->record_removal( range_vector[i]->metalog_entity() );
+    try {
+      range_vector[i]->record_removal_rsml();
     }
-    else {
-      cb->error(Error::SERVER_SHUTTING_DOWN, Global::location_initializer->get());
+    catch (Exception &e) {
+      cb->error(e.code(), Global::location_initializer->get());
       return;
     }
   }
@@ -3706,8 +3699,9 @@ RangeServer::replay_load_range(ResponseCallback *cb,
 
     table_info->add_range(range);
 
-    if (write_rsml)
-      Global::rsml_writer->record_state( range->metalog_entity() );
+    //if (write_rsml)
+    //Global::rsml_writer->record_state( range->metalog_entity() );
+    HT_ASSERT(!write_rsml);
 
     if (cb && (error = cb->response_ok()) != Error::OK) {
       HT_ERRORF("Problem sending OK response - %s", Error::get_text(error));

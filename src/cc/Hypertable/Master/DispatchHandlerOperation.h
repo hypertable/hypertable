@@ -62,6 +62,8 @@ namespace Hypertable {
 
     void get_results(std::vector<Result> &results);
 
+    void process_events();
+
   protected:
     ContextPtr m_context;
     RangeServerClient m_rsclient;
@@ -69,6 +71,7 @@ namespace Hypertable {
   private:
     Mutex m_mutex;
     boost::condition m_cond;
+    std::vector<EventPtr> m_events;
     int m_outstanding;
     int m_error_count;
     StringSet m_locations;

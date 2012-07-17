@@ -61,8 +61,9 @@ namespace {
         "Dumps the contents of the CellStore contained in the DFS <filename>."
         "\n\nOptions").add_options()
         ("all,a", "Dump everything, including key/value pairs")
+        ("compact,c", "Only prints the cellstore name and a status ('ok' or 'corrupt')")
         ("count,c", "Count the number of key/value pairs")
-	("column-id-map", str(), "Column family id to name map, format = <id>=<name>[,<id>=<name>...]")
+        ("column-id-map", str(), "Column family id to name map, format = <id>=<name>[,<id>=<name>...]")
         ("end-key", str(), "Ignore keys that are greater than <arg>")
         ("start-key", str(), "Ignore keys that are less than or equal to <arg>")
         ("tsv-format", "Output data in TSV format")
@@ -91,6 +92,7 @@ int main(int argc, char **argv) {
   try {
     init_with_policies<Policies>(argc, argv);
 
+    bool dump_compact = has("compact");
     bool dump_all = has("all");
     bool count_keys = has("count");
     String start_key = get("start-key", String());
@@ -101,36 +103,6 @@ int main(int argc, char **argv) {
     String fname = get_str("filename");
     bool tsv_format = has("tsv-format");
     char *column_id_map[256];
-
-    memset(column_id_map, 0, 256*sizeof(char *));
-
-    if (has("column-id-map")) {
-      char *key, *value;
-      int id;
-      String str = get_str("column-id-map");
-      key = strtok((char *)str.c_str(), ",=");
-      if (key) {
-	value = strtok(0, ",=");
-	id = atoi(key);
-	column_id_map[id] = value;
-      }
-      while (key) {
-	key = strtok(0, ",=");
-	if (key) {
-	  value = strtok(0, ",=");
-	  id = atoi(key);
-	  column_id_map[id] = value;
-	}
-      }
-    }
-
-    /***
-    for (size_t i=0; i<256; i++) {
-      if (column_id_map[i])
-	cout << i << " = " << column_id_map[i] << endl;
-    }
-    _exit(0);
-    **/
 
     ConnectionManagerPtr conn_mgr = new ConnectionManager();
 
@@ -144,6 +116,48 @@ int main(int argc, char **argv) {
     Global::dfs = dfs;
 
     Global::memory_tracker = new MemoryTracker(0, 0);
+
+    if (dump_compact) {
+      try {
+        CellStorePtr cellstore = CellStoreFactory::open(fname, 0, 0);
+        std::cout << fname << ": ok" << std::endl;
+      }
+      catch (Exception &ex) {
+        std::cout << fname << ": corrupt" << std::endl;
+        _exit(-1);
+      }
+      _exit(0);
+    }
+
+    memset(column_id_map, 0, 256*sizeof(char *));
+
+    if (has("column-id-map")) {
+      char *key, *value;
+      int id;
+      String str = get_str("column-id-map");
+      key = strtok((char *)str.c_str(), ",=");
+      if (key) {
+        value = strtok(0, ",=");
+        id = atoi(key);
+        column_id_map[id] = value;
+      }
+      while (key) {
+        key = strtok(0, ",=");
+        if (key) {
+          value = strtok(0, ",=");
+          id = atoi(key);
+          column_id_map[id] = value;
+        }
+      }
+    }
+
+    /***
+    for (size_t i=0; i<256; i++) {
+      if (column_id_map[i])
+        cout << i << " = " << column_id_map[i] << endl;
+    }
+    _exit(0);
+    **/
 
     /**
      * Open cellStore
@@ -173,7 +187,7 @@ int main(int argc, char **argv) {
       size_t unescaped_len, row_unescaped_len;
 
       if (tsv_format)
-	cout << "#timestamp\trow\tcolumn\tvalue\n";
+        cout << "#timestamp\trow\tcolumn\tvalue\n";
 
       scanner = cellstore->create_scanner(scan_ctx);
       while (scanner->get(key_comps, value)) {
@@ -190,32 +204,32 @@ int main(int argc, char **argv) {
         if (count_keys)
           key_count++;
         else {
-	  if (tsv_format) {
-	    row_escaper.escape(key_comps.row, key_comps.row_len,
-			       &row_unescaped_buf, &row_unescaped_len);
-	    if (column_id_map[key_comps.column_family_code])
-	      cout << key_comps.timestamp << "\t" << row_unescaped_buf << "\t" << column_id_map[key_comps.column_family_code];
-	    else
-	      cout << key_comps.timestamp << "\t" << row_unescaped_buf << "\t" << (unsigned int)key_comps.column_family_code;
-	    if (key_comps.column_qualifier && *key_comps.column_qualifier) {
-	      escaper.escape(key_comps.column_qualifier, key_comps.column_qualifier_len,
-			     &unescaped_buf, &unescaped_len);
-	      cout << ":" << unescaped_buf;
-	    }
-	    bslen = value.decode_length((const uint8_t **)&bsptr);
-	    if (bslen >= buf_len) {
-	      delete [] buf;
-	      buf_len = bslen + 256;
-	      buf = new char [ buf_len ];
-	    }
-	    memcpy(buf, bsptr, bslen);
-	    buf[bslen] = 0;
-	    escaper.escape(buf, bslen, &unescaped_buf, &unescaped_len);
-	    cout << "\t" << (char *)unescaped_buf << "\n";
-	  }
-	  else
-	    cout << key_comps << endl;
-	}
+          if (tsv_format) {
+            row_escaper.escape(key_comps.row, key_comps.row_len,
+                               &row_unescaped_buf, &row_unescaped_len);
+            if (column_id_map[key_comps.column_family_code])
+              cout << key_comps.timestamp << "\t" << row_unescaped_buf << "\t" << column_id_map[key_comps.column_family_code];
+            else
+              cout << key_comps.timestamp << "\t" << row_unescaped_buf << "\t" << (unsigned int)key_comps.column_family_code;
+            if (key_comps.column_qualifier && *key_comps.column_qualifier) {
+              escaper.escape(key_comps.column_qualifier, key_comps.column_qualifier_len,
+                             &unescaped_buf, &unescaped_len);
+              cout << ":" << unescaped_buf;
+            }
+            bslen = value.decode_length((const uint8_t **)&bsptr);
+            if (bslen >= buf_len) {
+              delete [] buf;
+              buf_len = bslen + 256;
+              buf = new char [ buf_len ];
+            }
+            memcpy(buf, bsptr, bslen);
+            buf[bslen] = 0;
+            escaper.escape(buf, bslen, &unescaped_buf, &unescaped_len);
+            cout << "\t" << (char *)unescaped_buf << "\n";
+          }
+          else
+            cout << key_comps << endl;
+        }
         scanner->forward();
       }
       delete scanner;
