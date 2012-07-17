@@ -11,8 +11,18 @@ else
   exit 1
 fi
 
+# intall keys for ceph release
+wget -q -O- https://raw.github.com/ceph/ceph/master/keys/autobuild.asc \ | sudo apt-key add -
+
+# add the ceph repo 
+echo deb http://gitbuilder.ceph.com/ceph-deb-$(lsb_release -sc)-$($arch)-basic/ref/master $(lsb_release -sc) main | sudo tee /etc/apt/sources.list.d/ceph.list
+
+
 apt-get -y update
 apt-get -y --allow-unauthenticated install zip g++ cmake liblog4cpp5-dev libbz2-dev git-core cronolog zlib1g-dev libexpat1-dev libncurses-dev libreadline5-dev rrdtool librrd2-dev libart-2.0-2 libart-2.0-dev
+
+# no install ceph and the new lib and dev headers - posibly dont need ceph just to build but is needed for testing
+apt-get -y install ceph libcephfs
 
 # Boost
 cd ~
@@ -23,7 +33,7 @@ cd boost_1_44_0
 ./bjam install
 cd ~; /bin/rm -rf ~/boost_1_44_0*
 
-# Cronolog
+# Cronolog - NEADED?? as added to apt-get above
 cd ~
 wget http://cronolog.org/download/cronolog-1.6.2.tar.gz
 tar xzvf cronolog-1.6.2.tar.gz 
@@ -33,7 +43,7 @@ cd ~; /bin/rm -rf cronolog-1.6.2*
 
 # SIGAR
 cd ~
-wget http://www.hypertable.org/pub/hyperic-sigar-1.6.4.zip
+wget http://www.hypertable.com/uploads/hyperic-sigar-1.6.4.zip
 unzip hyperic-sigar-1.6.4.zip
 cp hyperic-sigar-1.6.4/sigar-bin/include/*.h /usr/local/include
 if [ $ARCH -eq 32 ]; then
@@ -43,9 +53,12 @@ else
 fi
 /bin/rm -rf ~/hyperic-sigar-1.6.4*
 
+# important to tell the lib sistem to index this
+ldconfig
+
 # BerkeleyDB
 cd ~
-wget http://www.hypertable.org/pub/db-4.8.26.tar.gz
+wget http://www.hypertable.com/uploads/db-4.8.26.tar.gz
 tar -xzvf db-4.8.26.tar.gz
 cd db-4.8.26/build_unix/
 ../dist/configure --enable-cxx
@@ -56,9 +69,12 @@ cd ~; /bin/rm -rf ~/db-4.8.26*
 
 # Google RE2
 cd ~
-wget http://hypertable.org/pub/re2.tgz
+wget http://www.hypertable.com/uploads/re2.tgz
 tar -zxvf re2.tgz
 cd re2
+# insert the missing include (manifests as a missing "ptrdiff_t does not name a type" message)
+sed 's:<string.h>:<string.h>\
+#include <cstddef>:' re2/stringpiece.h > sp.bak && mv sp.bak re2/stringpiece.h
 make
 make install
 /bin/rm -rf ~/re2*
@@ -66,14 +82,14 @@ make install
 # libunwind
 if [ $ARCH -eq 64 ]; then
   cd ~
-  wget http://download.savannah.gnu.org/releases/libunwind/libunwind-0.99-beta.tar.gz
-  tar xzvf libunwind-0.99-beta.tar.gz
-  cd libunwind-0.99-beta
-  ./configure
+  wget http://download.savannah.gnu.org/releases/libunwind/libunwind-1.0.1.tar.gz
+  tar xzvf libunwind-1.0.1.tar.gz 
+  cd libunwind-1.0.1/
+  ./configure CFLAGS=-U_FORTIFY_SOURCE
   make
   make install
   cd ~
-  /bin/rm -rf ~/libunwind-0.99-beta*
+  /bin/rm -rf ~/libunwind-1.0.1*
 fi
 
 # Google Perftools
@@ -87,7 +103,6 @@ make install
 cd ~
 /bin/rm -rf ~/google-perftools-1.8.3*
 
-exit 0
 
 # Google Snappy
 cd ~
@@ -100,8 +115,8 @@ make install
 cd ~
 /bin/rm -rf ~/snappy-1.0.4*
 
-apt-get -y --allow-unauthenticated install sun-java6-jdk
-update-java-alternatives --set java-6-sun
+apt-get -y --allow-unauthenticated install openjdk-6-jdk
+
 
 apt-get -y --allow-unauthenticated install ant autoconf automake libtool bison flex pkg-config php5 php5-dev php5-cli ruby-dev python-dev ruby1.8-dev libhttp-access2-ruby libbit-vector-perl libclass-accessor-chained-perl
 
@@ -117,7 +132,7 @@ cd ~; rm -rf libevent-1.4.14b-stable*
 
 # Thrift
 cd /usr/src
-wget http://www.hypertable.org/pub/thrift-0.7.0.tar.gz
+wget http://apache.mirror.anlx.net/thrift/0.8.0/thrift-0.8.0.tar.gz
 tar xzvf thrift-0.7.0.tar.gz
 rm -f thrift
 ln -s thrift-0.7.0 thrift
@@ -127,16 +142,9 @@ chmod 755 ./configure ./lib/php/src/ext/thrift_protocol/build/shtool
 make
 make install
 
-apt-get -y --allow-unauthenticated install dstat doxygen rrdtool graphviz gdb emacs rdoc
-
-wget http://rubyforge.org/frs/download.php/69365/rubygems-1.3.6.tgz
-tar xzvf rubygems-1.3.6.tgz
-cd rubygems-1.3.6
-ruby setup.rb
-cd ~
-rm -rf rubygems-1.3.6*
-hash -r
+apt-get -y --allow-unauthenticated install dstat doxygen rrdtool graphviz gdb emacs rdoc rubygems
 
 gem install capistrano sinatra rack thin json titleize
 
 /sbin/ldconfig
+

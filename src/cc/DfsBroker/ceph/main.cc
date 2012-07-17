@@ -58,7 +58,7 @@ struct AppPolicy : Config::Policy {
     alias("port", "CephBroker.Port");
 
     if (has("ceph-version")) {
-      cout <<"  Ceph: "<< ceph_version(NULL, NULL, NULL) << endl;
+      cout <<"  Ceph: Can't determine version " << endl;
       _exit(0);
     }
   }
@@ -94,3 +94,4 @@ int main (int argc, char **argv) {
   }
   return 0;
 }
+

@@ -250,7 +250,6 @@ int CommitLog::link_log(CommitLogBase *log_base) {
       }
       m_fragment_queue.push_back(fi);
     }
-    log_base->fragment_queue().clear();
 
   }
   catch (Hypertable::Exception &e) {
@@ -325,7 +324,6 @@ int CommitLog::purge(int64_t revision, std::set<int64_t> remove_ok) {
   while (iter != m_reap_set.end()) {
     if ((*iter)->references == 0) {
       remove_file_info(*iter);
-      delete *iter;
       rm_iter = iter++;
       m_reap_set.erase(rm_iter);
     }
@@ -339,10 +337,8 @@ int CommitLog::purge(int64_t revision, std::set<int64_t> remove_ok) {
     if (fi->revision < revision &&
 	(!m_range_reference_required || remove_ok.count(fi->log_dir_hash) > 0)) {
 
-      if (fi->references == 0) {
+      if (fi->references == 0)
         remove_file_info(fi);
-        delete fi;
-      }
       else
         m_reap_set.insert(fi);
 
