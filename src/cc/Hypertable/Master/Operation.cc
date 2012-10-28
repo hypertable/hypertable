@@ -37,7 +37,6 @@ const char *Dependency::METADATA = "METADATA";
 const char *Dependency::SYSTEM = "SYSTEM";
 
 
-const char *OperationState::get_text(int32_t state);
 
 Operation::Operation(ContextPtr &context, int32_t type)
   : MetaLog::Entity(type), m_context(context), m_state(OperationState::INITIAL),

@@ -59,11 +59,11 @@ public:
   }
 
   InsRet insert(const Blob &blob) {
-    return insert_blob(blob.size(), Base::insert(blob));
+    return insert_blob(blob.size, Base::insert(blob));
   }
 
   InsRet insert_noresize(const Blob &blob) {
-    return insert_blob(blob.size(), Base::insert_noresize(blob));
+    return insert_blob(blob.size, Base::insert_noresize(blob));
   }
 
   // hides all find methods in base class

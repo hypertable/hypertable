@@ -39,16 +39,16 @@ struct PageArenaAllocator : public ArenaAllocatorBase<T, ArenaT> {
 
   template <typename U>
   PageArenaAllocator(const PageArenaAllocator<U, ArenaT> &copy) {
-    set_arena(copy.arena());
+    Base::set_arena(copy.arena());
   }
 
   pointer allocate(size_type sz) {
-    check_allocate_size(sz);
+    Base::check_allocate_size(sz);
 
     if (HT_LIKELY(Base::arena() != NULL))
       return (pointer)(Base::arena()->alloc(sz * sizeof(T)));
 
-    return default_allocate(sz);
+    return Base::default_allocate(sz);
   }
 };
 
@@ -66,16 +66,16 @@ struct PageArenaDownAllocator : public ArenaAllocatorBase<T, ArenaT> {
 
   template <typename U>
   PageArenaDownAllocator(const PageArenaDownAllocator<U, ArenaT> &copy) {
-    set_arena(copy.arena());
+    Base::set_arena(copy.arena());
   }
 
   pointer allocate(size_type sz) {
-    check_allocate_size(sz);
+    Base::check_allocate_size(sz);
 
     if (HT_LIKELY(Base::arena() != NULL))
       return (pointer)(Base::arena()->alloc_down(sz * sizeof(T)));
 
-    return default_allocate(sz);
+    return Base::default_allocate(sz);
   }
 };
 
