@@ -44,6 +44,7 @@ typedef std::set<const char *, LtCstr>  CstrSet;
 
 typedef std::map<const char *, int32_t, LtCstr>  CstrToInt32Map;
 
+namespace std {
 inline std::string operator+(const std::string& s1, short sval) {
   char cbuf[8];
   sprintf(cbuf, "%d", sval);
@@ -73,6 +74,6 @@ inline std::string operator+(const std::string& s1, uint64_t llval) {
   sprintf(cbuf, "%llu", (long long unsigned int)llval);
   return s1 + cbuf;
 }
-
+}
 
 #endif // HYPERTABLE_STRINGEXT_H

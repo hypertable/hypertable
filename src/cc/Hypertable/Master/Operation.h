@@ -60,7 +60,7 @@ namespace Hypertable {
       CREATE_INDEX = 18,
       CREATE_QUALIFIER_INDEX = 19
     };
-    const char *get_text(int state);
+    const char *get_text(int32_t state);
   }
 
   namespace Dependency {
