@@ -1,4 +1,4 @@
-# Copyright (C) 2007-2012 Hypertable, Inc.
+# Copyright (C) 2007-2013 Hypertable, Inc.
 #
 # This file is part of Hypertable.
 #
@@ -16,7 +16,7 @@
 # along with Hypertable. If not, see <http://www.gnu.org/licenses/>
 #
 
-# - Find Cronolog 
+# - Find Cronolog
 # Check if the cronolog binary is installed
 #
 #  CRONOLOG_DIR        - Directory where cronolog is located
@@ -24,6 +24,7 @@
 
 find_path(CRONOLOG_DIR cronolog
     /usr/bin
+    /usr/sbin
     /usr/local/bin
     /usr/local/sbin
     )

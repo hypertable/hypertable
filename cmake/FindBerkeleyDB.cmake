@@ -1,4 +1,4 @@
-# Copyright (C) 2007-2012 Hypertable, Inc.
+# Copyright (C) 2007-2013 Hypertable, Inc.
 #
 # This file is part of Hypertable.
 #
@@ -34,6 +34,7 @@ find_path(BDB_INCLUDE_DIR db_cxx.h NO_DEFAULT_PATH PATHS
     /usr/local/include/db48
     /opt/local/include/db48
     /usr/local/include
+    /usr/include/db4.8
     /usr/include/db4
     /usr/include
     )
