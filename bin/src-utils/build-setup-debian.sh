@@ -133,10 +133,10 @@ cd ~; rm -rf libevent-1.4.14b-stable*
 # Thrift
 cd /usr/src
 wget http://apache.mirror.anlx.net/thrift/0.8.0/thrift-0.8.0.tar.gz
-tar xzvf thrift-0.7.0.tar.gz
+tar xzvf thrift-0.8.0.tar.gz
 rm -f thrift
-ln -s thrift-0.7.0 thrift
-cd thrift-0.7.0
+ln -s thrift-0.8.0 thrift
+cd thrift-0.8.0
 chmod 755 ./configure ./lib/php/src/ext/thrift_protocol/build/shtool
 ./configure
 make
