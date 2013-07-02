@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 arch=`uname -m`
+codename=`lsb_release -sc`
 
 if [ $arch == "i386" ] || [ $arch == "i586" ] || [ $arch == "i686" ] ; then
   ARCH=32
@@ -15,14 +16,14 @@ fi
 wget -q -O- https://raw.github.com/ceph/ceph/master/keys/autobuild.asc \ | sudo apt-key add -
 
 # add the ceph repo 
-echo deb http://gitbuilder.ceph.com/ceph-deb-$(lsb_release -sc)-$($arch)-basic/ref/master $(lsb_release -sc) main | sudo tee /etc/apt/sources.list.d/ceph.list
+echo "deb http://gitbuilder.ceph.com/ceph-deb-${codename}-${arch}-basic/ref/master ${codename} main" | sudo tee /etc/apt/sources.list.d/ceph.list
 
 
 apt-get -y update
-apt-get -y --allow-unauthenticated install zip g++ cmake liblog4cpp5-dev libbz2-dev git-core cronolog zlib1g-dev libexpat1-dev libncurses-dev libreadline5-dev rrdtool librrd2-dev libart-2.0-2 libart-2.0-dev
+apt-get -y --allow-unauthenticated install zip g++ cmake liblog4cpp5-dev libbz2-dev git-core cronolog zlib1g-dev libexpat1-dev libncurses-dev libreadline-dev rrdtool librrd2-dev libart-2.0-2 libart-2.0-dev zip libbz2-dev libncurses-dev libicu-dev libboost-dev libboost-thread-dev libedit-dev
 
 # no install ceph and the new lib and dev headers - posibly dont need ceph just to build but is needed for testing
-apt-get -y install ceph libcephfs
+apt-get -y install ceph libcephfs libcephfs-dev
 
 # Boost
 cd ~
