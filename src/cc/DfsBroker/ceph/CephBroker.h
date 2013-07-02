@@ -1,11 +1,11 @@
 /** -*- C++ -*-
- * Copyright (C) 2007-2012 Hypertable, Inc.
+ * Copyright (C) 2009-2011 New Dream Network
  *
  * This file is part of Hypertable.
  *
  * Hypertable is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 3
+ * as published by the Free Software Foundation; either version 2
  * of the License, or any later version.
  *
  * Hypertable is distributed in the hope that it will be useful,
@@ -15,6 +15,10 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with Hypertable. If not, see <http://www.gnu.org/licenses/>
+ *
+ * Authors:
+ * Gregory Farnum <gfarnum@gmail.com>
+ * Colin McCabe <cmccabe@alumni.cmu.edu>
  */
 
 #ifndef HYPERTABLE_CEPHBROKER_H
@@ -24,13 +28,13 @@ extern "C" {
 #include <unistd.h>
 }
 
-#include <ceph/libceph.h>
-
 #include "Common/String.h"
 #include "Common/atomic.h"
 #include "Common/Properties.h"
 
 #include "DfsBroker/Lib/Broker.h"
+
+#include <cephfs/libcephfs.h>
 
 namespace Hypertable {
   using namespace DfsBroker;
@@ -39,9 +43,10 @@ namespace Hypertable {
    */
   class OpenFileDataCeph : public OpenFileData {
   public:
-    OpenFileDataCeph(const String& fname, int _fd, int _flags) :
-      fd(_fd), flags(_flags), filename(fname) {}
-    virtual ~OpenFileDataCeph() { ceph_close(fd); }
+    OpenFileDataCeph(struct ceph_mount_info *cmount_, const String& fname,
+		     int _fd, int _flags);
+    virtual ~OpenFileDataCeph();
+    struct ceph_mount_info *cmount;
     int fd;
     int flags;
     String filename;
@@ -54,7 +59,7 @@ namespace Hypertable {
   public:
     OpenFileDataCephPtr() : OpenFileDataPtr() { }
     OpenFileDataCephPtr(OpenFileDataCeph *ofdl) : OpenFileDataPtr(ofdl, true) { }
-    OpenFileDataCeph *operator->() const { return (OpenFileDataCeph *)get(); }
+    OpenFileDataCeph *operator->() const { return static_cast<OpenFileDataCeph *>(get()); }
   };
 
   /**
@@ -76,10 +81,9 @@ namespace Hypertable {
                         uint32_t amount, const void *data, bool sync);
     virtual void seek(ResponseCallback *cb, uint32_t fd, uint64_t offset);
     virtual void remove(ResponseCallback *cb, const char *fname);
-    virtual void length(ResponseCallbackLength *cb, const char *fname,
-                        bool accurate = true);
+    virtual void length(ResponseCallbackLength *cb, const char *fname, bool);
     virtual void pread(ResponseCallbackRead *cb, uint32_t fd, uint64_t offset,
-                       uint32_t amount, bool verify_checksum);
+                       uint32_t amount, bool);
     virtual void mkdirs(ResponseCallback *cb, const char *dname);
     virtual void rmdir(ResponseCallback *cb, const char *dname);
     virtual void flush(ResponseCallback *cb, uint32_t fd);
@@ -92,6 +96,7 @@ namespace Hypertable {
                        StaticBuffer &serialized_parameters);
 
   private:
+    struct ceph_mount_info *cmount;
     static atomic_t ms_next_fd;
 
     virtual void report_error(ResponseCallback *cb, int error);
