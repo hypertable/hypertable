@@ -27,6 +27,7 @@ extern "C" {
 #include <sys/types.h>
 #include <unistd.h>
 }
+#include <cephfs/libcephfs.h>
 
 #include "Common/FileUtils.h"
 #include "Common/Init.h"
@@ -79,7 +80,7 @@ int main (int argc, char **argv) {
     Comm *comm = Comm::instance();
     ApplicationQueuePtr app_queue = new ApplicationQueue(worker_count);
     HT_INFOF("attemping to create new CephBroker with address %s", properties->get_str("CephBroker.MonAddr").c_str());
-    BrokerPtr broker = new CephBroker(properties);
+    BrokerPtr broker = new Hypertable::CephBroker(properties);
     HT_INFO("Created CephBroker!");
     ConnectionHandlerFactoryPtr chfp =
       new DfsBroker::ConnectionHandlerFactory(comm, app_queue, broker);
