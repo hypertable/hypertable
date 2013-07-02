@@ -21,6 +21,7 @@ echo "deb http://gitbuilder.ceph.com/ceph-deb-${codename}-${arch}-basic/ref/mast
 
 apt-get -y update
 apt-get -y --allow-unauthenticated install zip g++ cmake liblog4cpp5-dev libbz2-dev git-core cronolog zlib1g-dev libexpat1-dev libncurses-dev libreadline-dev rrdtool librrd2-dev libart-2.0-2 libart-2.0-dev libicu-dev libedit-dev
+apt-get -y --allow-unauthenticated install libboost-chrono-dev libboost-thread-dev libboost-python-dev libboost-dev
 
 # no install ceph and the new lib and dev headers - posibly dont need ceph just to build but is needed for testing
 apt-get -y install ceph libcephfs libcephfs-dev
