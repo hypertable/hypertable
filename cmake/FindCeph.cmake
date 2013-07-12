@@ -29,14 +29,14 @@ if (Ceph_INCLUDE)
   set(Ceph_FIND_QUIETLY TRUE)
 endif ()
 
-find_path(Ceph_INCLUDE ceph/libceph.h
+find_path(Ceph_INCLUDE cephfs/libcephfs.h
   /usr/local/include
   $ENV{HOME}/ceph/src/client
 )
 mark_as_advanced(Ceph_INCLUDE)
 
 find_library(Ceph_LIB
-	NAMES ceph
+	NAMES cephfs
 	PATHS /usr/local/lib
 	      $ENV{HOME}/ceph/src/.libs)
 mark_as_advanced(Ceph_LIB)
