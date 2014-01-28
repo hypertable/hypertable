@@ -214,7 +214,7 @@ void CephBroker::read(ResponseCallbackRead *cb, uint32_t fd, uint32_t amount) {
     return;
   }
 
-  if ((nread = ceph_read(cmount, fdata->fd, (char *)buf.base, amount, 0)) < 0 ) {
+  if ((nread = ceph_read(cmount, fdata->fd, (char *)buf.base, amount, -1)) < 0 ) {
     HT_ERRORF("read failed: fd=%d ceph_fd=%d amount=%d", fd, fdata->fd, amount);
     report_error(cb, -nread);
     return;
@@ -249,7 +249,7 @@ void CephBroker::append(ResponseCallbackAppend *cb, uint32_t fd,
     return;
   }
 
-  if ((nwritten = ceph_write(cmount, fdata->fd, (const char *)data, amount, 0)) < 0) {
+  if ((nwritten = ceph_write(cmount, fdata->fd, (const char *)data, amount, -1)) < 0) {
     std::string errs(cpp_strerror(nwritten));
     HT_ERRORF("write failed: fd=%d ceph_fd=%d amount=%d - %s",
 	      fd, fdata->fd, amount, errs.c_str());
@@ -451,8 +451,12 @@ void CephBroker::readdir(ResponseCallbackReaddir *cb, const char *dname) {
   make_abs_path(dname, absdir);
 
   struct ceph_dir_result *dirp;
-  ceph_opendir(cmount, absdir.c_str(), &dirp);
   int r;
+  if ((r = ceph_opendir(cmount, absdir.c_str(), &dirp)) != 0) {
+      HT_ERRORF("failed to open dir %s, got error %d", absdir.c_str(), r);
+      report_error(cb, -r);
+      return;
+  }
   int buflen = 100; //good default?
   char *buf = new char[buflen];
   String *ent;
@@ -501,7 +505,7 @@ void CephBroker::rename(ResponseCallback *cb, const char *src, const char *dst) 
 
   make_abs_path(src, src_abs);
   make_abs_path(dst, dest_abs);
-  if ((r = ceph_rename(cmount, src_abs.c_str(), dest_abs.c_str())) <0 ) {
+  if ((r = ceph_rename(cmount, src_abs.c_str(), dest_abs.c_str())) < 0) {
     report_error(cb, r);
     return;
   }

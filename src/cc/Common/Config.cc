@@ -193,6 +193,10 @@ void DefaultPolicy::init_options() {
         "Number of Ceph broker worker threads created, maybe")
     ("CephBroker.MonAddr", str(),
         "Ceph monitor address to connect to")
+    ("CephBroker.Id", str(),
+        "Ceph client identifier")
+    ("CephBroker.RootDir", str(),
+        "Ceph filesystem root")
     ("HdfsBroker.Port", i16(),
         "Port number on which to listen (read by HdfsBroker only)")
     ("HdfsBroker.Hadoop.ConfDir", str(), "Hadoop configuration directory "
