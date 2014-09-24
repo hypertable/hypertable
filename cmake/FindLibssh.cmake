@@ -33,7 +33,7 @@ find_path(Libssh_INCLUDE_DIR libssh/libssh.h NO_DEFAULT_PATH PATHS
 
 find_library(Libssh_LIBRARY NO_DEFAULT_PATH
   NAMES ssh
-  PATHS ${HT_DEPENDENCY_LIB_DIR} /lib /usr/lib /usr/local/lib /opt/local/lib
+  PATHS ${HT_DEPENDENCY_LIB_DIR} /lib /usr/lib /usr/local/lib /opt/local/lib /usr/lib/x86_64-linux-gnu
 )
 
 message(STATUS "Libssh include: ${Libssh_INCLUDE_DIR}")
