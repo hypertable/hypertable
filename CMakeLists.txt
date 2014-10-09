@@ -293,6 +293,12 @@ install(FILES ${JARS} DESTINATION lib/java/cdh4)
 install(FILES ${HYPERTABLE_BINARY_DIR}/java/cdh4/hypertable-${VERSION}.jar
           DESTINATION lib/java/cdh4 OPTIONAL)
 
+# cdh5 jars
+file(GLOB JARS lib/cdh5/*.jar)
+install(FILES ${JARS} DESTINATION lib/java/cdh5)
+install(FILES ${HYPERTABLE_BINARY_DIR}/java/cdh5/hypertable-${VERSION}.jar
+          DESTINATION lib/java/cdh5 OPTIONAL)
+
 install(PROGRAMS bin/jrun DESTINATION bin)
 
 # Copy Thrift files
@@ -319,6 +325,8 @@ if (NOT HT_COMPONENT_INSTALL)
           DESTINATION lib/java/cdh3 OPTIONAL)
   install(FILES ${HYPERTABLE_BINARY_DIR}/java/cdh4/hypertable-${VERSION}-examples.jar
           DESTINATION lib/java/cdh4 OPTIONAL)
+  install(FILES ${HYPERTABLE_BINARY_DIR}/java/cdh5/hypertable-${VERSION}-examples.jar
+          DESTINATION lib/java/cdh5 OPTIONAL)
   file(GLOB SCRIPTS bin/*.sh)
   install(PROGRAMS ${SCRIPTS} DESTINATION bin)
   install(DIRECTORY examples/apache_log DESTINATION examples

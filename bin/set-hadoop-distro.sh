@@ -2,7 +2,7 @@
 
 export HT_HOME=$(cd `dirname "$0"`/.. && pwd)
 
-declare -a Distros=('cdh3' 'cdh4');
+declare -a Distros=('cdh3' 'cdh4' 'cdh5');
 
 usage() {
   echo ""
