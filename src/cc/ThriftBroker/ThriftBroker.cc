@@ -2982,7 +2982,7 @@ private:
   String m_remote_peer;
   Context &m_context;
   Mutex m_mutex;
-  multimap<::int64_t, ClientObjectPtr> m_reference_map;
+  multimap< ::int64_t, ClientObjectPtr> m_reference_map;
   ObjectMap m_object_map;
   ObjectMap m_cached_object_map;
   std::unordered_map< ::int64_t, ScannerInfoPtr> m_scanner_info_map;
