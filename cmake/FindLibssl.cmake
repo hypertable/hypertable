@@ -34,7 +34,7 @@ find_path(Libssl_INCLUDE_DIR openssl/ssl.h NO_DEFAULT_PATH PATHS
 
 find_library(Libssl_LIBRARY NO_DEFAULT_PATH
   NAMES ssl
-  PATHS ${HT_DEPENDENCY_LIB_DIR} /usr/local/ssl/lib /lib /lib64 /usr/lib /usr/lib64 /usr/local/lib /usrlocal/lib64 /opt/local/lib
+  PATHS ${HT_DEPENDENCY_LIB_DIR} /usr/local/ssl/lib /lib /usr/lib/x86_64-linux-gnu/ /lib64 /usr/lib /usr/lib64 /usr/local/lib /usrlocal/lib64 /opt/local/lib
 )
 
 find_library(Libcrypto_LIBRARY NO_DEFAULT_PATH
