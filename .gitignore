@@ -134,3 +134,5 @@ run/monitoring/*stats.txt
 /src/rb/Monitoring/test.log
 /src/cc/Hypertable/Master/#RangeServerStatistics.h#
 /src/rb/Monitoring/Monitoring
+/src/py/ThriftClient/dist/
+/src/py/ThriftClient/hypertable.egg-info/
