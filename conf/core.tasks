@@ -514,3 +514,16 @@ task: restart_ganglia {
   stop_ganglia
   start_ganglia
 }
+
+# Display top 50 largest rows in a table.  Runs the \"dump pseudo table\" command
+# for the .cellstore.index pseudo table of the table given as the first argument
+task: monster_rows roles: slave {
+  \rm -f /tmp/*.monster-rows-rollup.txt
+  ssh: {
+    echo "dump pseudo table '$1'^.cellstore.index into file '/tmp/\`hostname\`.cellstore.index.txt';" | ${INSTALL_DIR}/bin/ht rangeserver --batch ${CONFIG}
+    fgrep "	Size:" /tmp/\`hostname\`.cellstore.index.txt | cut -f1,3 -d'	' --output-delimiter=' ' | awk -f ${INSTALL_DIR}/bin/ht-monster-rows-rollup.awk > /tmp/\`hostname\`.monster-rows-rollup.txt
+    ${RSYNC} /tmp/\`hostname\`.monster-rows-rollup.txt ${ROLE_source}:/tmp
+  }
+  echo "===== Top 50 largest rows in $1 ====="
+  cat /tmp/*.monster-rows-rollup.txt | sort -n -r 2> /dev/null | head -50
+}

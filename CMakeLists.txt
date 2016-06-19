@@ -309,6 +309,8 @@ install(DIRECTORY ${Thrift_INCLUDE_DIR} DESTINATION include USE_SOURCE_PERMISSIO
 if (NOT HT_COMPONENT_INSTALL)
   file(GLOB SCRIPTS bin/*.sh)
   install(PROGRAMS ${SCRIPTS} DESTINATION bin)
+  file(GLOB AWKSCRIPTS bin/*.awk)
+  install(PROGRAMS ${AWKSCRIPTS} DESTINATION bin)
   install(DIRECTORY examples/apache_log DESTINATION examples
           USE_SOURCE_PERMISSIONS)
   install(DIRECTORY examples/hql_tutorial DESTINATION examples
