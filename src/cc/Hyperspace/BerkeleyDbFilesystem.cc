@@ -389,6 +389,13 @@ void BerkeleyDbFilesystem::db_msg_callback(const DbEnv *dbenv, const char *msg)
   HT_DEBUG_OUT << "BDB MESSAGE:" << msg << HT_END;
 }
 
+void BerkeleyDbFilesystem::db_msg_callback(const DbEnv *dbenv, const char *msgpfx, 
+                                           const char *msg)
+{
+  HT_DEBUG_OUT << "BDB MESSAGE:" << msg << HT_END;
+}
+
+
 void BerkeleyDbFilesystem::db_err_callback(const DbEnv *dbenv, const char *errpfx,
                                            const char *msg)
 {
