@@ -16,11 +16,6 @@
 # along with Hypertable. If not, see <http://www.gnu.org/licenses/>
 #
 
-set(APACHE1_VERSION "1.2.1")
-set(APACHE2_VERSION "2.4.1")
-set(CDH3_VERSION "0.20.2-cdh3u5")
-set(CDH4_VERSION "2.0.0-cdh4.2.1")
-
 # Copy Maven source tree to build directory
 file(COPY java DESTINATION ${HYPERTABLE_BINARY_DIR} PATTERN pom.xml.in EXCLUDE)
 
@@ -35,21 +30,48 @@ configure_file(${HYPERTABLE_SOURCE_DIR}/java/runtime-dependencies/pom.xml.in
 configure_file(${HYPERTABLE_SOURCE_DIR}/java/runtime-dependencies/common/pom.xml.in
          ${HYPERTABLE_BINARY_DIR}/java/runtime-dependencies/common/pom.xml @ONLY)
 
-# runtime-dependencies/apache1/pom.xml
-configure_file(${HYPERTABLE_SOURCE_DIR}/java/runtime-dependencies/apache1/pom.xml.in
-         ${HYPERTABLE_BINARY_DIR}/java/runtime-dependencies/apache1/pom.xml @ONLY)
+#add_custom_target(CleanHadoopBuild ALL rm -rf ${HYPERTABLE_BINARY_DIR}/java/hypertable-common/target/classes
+#      COMMAND rm -rf ${HYPERTABLE_BINARY_DIR}/java/hypertable-examples/target/classes
+#     )
+if (HDFS_DIST MATCHES "^apache")
 
-# runtime-dependencies/apache2/pom.xml
-configure_file(${HYPERTABLE_SOURCE_DIR}/java/runtime-dependencies/apache2/pom.xml.in
-         ${HYPERTABLE_BINARY_DIR}/java/runtime-dependencies/apache2/pom.xml @ONLY)
+	#set(APACHE1_VERSION "1.2.1")
+	#set(APACHE2_VERSION "2.4.1")
+	
+	# runtime-dependencies/${HDFS_DIST}/pom.xml
+	configure_file(${HYPERTABLE_SOURCE_DIR}/java/runtime-dependencies/${HDFS_DIST}/pom.xml.in
+		${HYPERTABLE_BINARY_DIR}/java/runtime-dependencies/${HDFS_DIST}/pom.xml @ONLY)
+			
+	# hypertable-${HDFS_DIST}/pom.xml
+	configure_file(${HYPERTABLE_SOURCE_DIR}/java/hypertable-${HDFS_DIST}/pom.xml.in
+		${HYPERTABLE_BINARY_DIR}/java/hypertable-${HDFS_DIST}/pom.xml @ONLY)
 
-# runtime-dependencies/cdh3/pom.xml
-configure_file(${HYPERTABLE_SOURCE_DIR}/java/runtime-dependencies/cdh3/pom.xml.in
-         ${HYPERTABLE_BINARY_DIR}/java/runtime-dependencies/cdh3/pom.xml @ONLY)
+    if (HDFS_VERSION MATCHES "^1.")
+	elseif (HDFS_VERSION MATCHES "^2.")
+	endif ()
+ 
+elseif (HDFS_DIST MATCHES "cdh")    
 
-# runtime-dependencies/cdh4/pom.xml
-configure_file(${HYPERTABLE_SOURCE_DIR}/java/runtime-dependencies/cdh4/pom.xml.in
-         ${HYPERTABLE_BINARY_DIR}/java/runtime-dependencies/cdh4/pom.xml @ONLY)
+	if (HDFS_VERSION MATCHES "^0.2")
+		set(CDH3_VERSION "0.20.2-cdh3u5")
+		# runtime-dependencies/cdh3/pom.xml
+		configure_file(${HYPERTABLE_SOURCE_DIR}/java/runtime-dependencies/cdh3/pom.xml.in
+			${HYPERTABLE_BINARY_DIR}/java/runtime-dependencies/cdh3/pom.xml @ONLY)
+		# hypertable-cdh3/pom.xml
+		configure_file(${HYPERTABLE_SOURCE_DIR}/java/hypertable-cdh3/pom.xml.in
+			${HYPERTABLE_BINARY_DIR}/java/hypertable-cdh3/pom.xml @ONLY)
+
+	elseif (HDFS_VERSION MATCHES "^2.")
+		set(CDH4_VERSION "2.0.0-cdh4.2.1")
+
+		# runtime-dependencies/cdh4/pom.xml
+		configure_file(${HYPERTABLE_SOURCE_DIR}/java/runtime-dependencies/cdh4/pom.xml.in
+			${HYPERTABLE_BINARY_DIR}/java/runtime-dependencies/cdh4/pom.xml @ONLY				  
+                  DEPENDS RuntimeDependencies)
+
+	endif ()
+
+endif ()
 
 # hypertable-common/pom.xml
 configure_file(${HYPERTABLE_SOURCE_DIR}/java/hypertable-common/pom.xml.in
@@ -59,23 +81,12 @@ configure_file(${HYPERTABLE_SOURCE_DIR}/java/hypertable-common/pom.xml.in
 configure_file(${HYPERTABLE_SOURCE_DIR}/java/hypertable/pom.xml.in
          ${HYPERTABLE_BINARY_DIR}/java/hypertable/pom.xml @ONLY)
 
-# hypertable-cdh3/pom.xml
-configure_file(${HYPERTABLE_SOURCE_DIR}/java/hypertable-cdh3/pom.xml.in
-         ${HYPERTABLE_BINARY_DIR}/java/hypertable-cdh3/pom.xml @ONLY)
-
-# hypertable-apache1/pom.xml
-configure_file(${HYPERTABLE_SOURCE_DIR}/java/hypertable-apache1/pom.xml.in
-         ${HYPERTABLE_BINARY_DIR}/java/hypertable-apache1/pom.xml @ONLY)
-
-# hypertable-apache2/pom.xml
-configure_file(${HYPERTABLE_SOURCE_DIR}/java/hypertable-apache2/pom.xml.in
-         ${HYPERTABLE_BINARY_DIR}/java/hypertable-apache2/pom.xml @ONLY)
-
 # hypertable-examples/pom.xml
 configure_file(${HYPERTABLE_SOURCE_DIR}/java/hypertable-examples/pom.xml.in
          ${HYPERTABLE_BINARY_DIR}/java/hypertable-examples/pom.xml @ONLY)
 
-
+		 
+		 
 if (Thrift_FOUND)
 
   set(ThriftGenJava_DIR ${HYPERTABLE_BINARY_DIR}/java/hypertable-common/src/main/java/org/hypertable/thriftgen)
@@ -121,32 +132,49 @@ if (Thrift_FOUND)
 endif ()
 
 
-add_custom_target(HypertableHadoopCDH3 ALL mvn -f java/pom.xml -Dmaven.test.skip=true -Pcdh3 package
+if (HDFS_DIST MATCHES "^apache")
+
+	add_custom_target(HypertableHadoop ALL mvn -f java/pom.xml -Dmaven.test.skip=true -P ${HDFS_DIST} package
+            DEPENDS ${ThriftGenJava_SRCS})
+
+ 
+elseif (HDFS_DIST MATCHES "cdh")    
+
+	if (HDFS_VERSION MATCHES "^0.2")
+		set(CDH3_VERSION "0.20.2-cdh3u5")
+
+		add_custom_target(HypertableHadoop ALL mvn -f java/pom.xml -Dmaven.test.skip=true -P ${HDFS_DIST}3 package
                   DEPENDS ${ThriftGenJava_SRCS})
+
+	elseif (HDFS_VERSION MATCHES "^2.")
+		set(CDH4_VERSION "2.0.0-cdh4.2.1")
+
+		# runtime-dependencies/cdh4/pom.xml
+		configure_file(${HYPERTABLE_SOURCE_DIR}/java/runtime-dependencies/cdh4/pom.xml.in
+			${HYPERTABLE_BINARY_DIR}/java/runtime-dependencies/cdh4/pom.xml @ONLY				  
+                  DEPENDS RuntimeDependencies)
+			
+
+	endif ()
+endif ()
 
 add_custom_target(CleanBuild0 ALL rm -rf ${HYPERTABLE_BINARY_DIR}/java/hypertable-common/target/classes
                   COMMAND rm -rf ${HYPERTABLE_BINARY_DIR}/java/hypertable-examples/target/classes
-                  DEPENDS HypertableHadoopCDH3)
-
-add_custom_target(HypertableHadoopApache1 ALL mvn -f java/pom.xml -Dmaven.test.skip=true -Papache1 package
-                  DEPENDS CleanBuild0)
-
-add_custom_target(CleanBuild1 ALL rm -rf ${HYPERTABLE_BINARY_DIR}/java/hypertable-common/target/classes
-                  COMMAND rm -rf ${HYPERTABLE_BINARY_DIR}/java/hypertable-examples/target/classes
-                  DEPENDS HypertableHadoopApache1)
-
-add_custom_target(HypertableHadoopApache2 ALL mvn -f java/pom.xml -Dmaven.test.skip=true -Papache2 package
-                  DEPENDS CleanBuild1)
+                  DEPENDS HypertableHadoop)
 
 add_custom_target(RuntimeDependencies ALL mvn -f java/runtime-dependencies/pom.xml -Dmaven.test.skip=true package
-                  DEPENDS HypertableHadoopApache2)
-
+                  DEPENDS HypertableHadoop)
+				  
 add_custom_target(java)
 add_dependencies(java RuntimeDependencies)
 
 
+
+
+
+
 # Common jars
-install(FILES ${MAVEN_REPOSITORY}/org/apache/thrift/libthrift/0.9.2/libthrift-0.9.2.jar
+install(FILES ${MAVEN_REPOSITORY}/org/apache/thrift/libthrift/${Thrift_VERSION}/libthrift-${Thrift_VERSION}.jar
               DESTINATION lib/java/common)
 install(FILES ${MAVEN_REPOSITORY}/commons-cli/commons-cli/1.2/commons-cli-1.2.jar
               DESTINATION lib/java/common)
@@ -177,48 +205,67 @@ install(FILES ${MAVEN_REPOSITORY}/com/google/protobuf/protobuf-java/2.5.0/protob
 install(FILES ${MAVEN_REPOSITORY}/com/google/guava/guava/11.0.2/guava-11.0.2.jar
               DESTINATION lib/java/specific)
 
-# Apache Hadoop 1 jars
-install(FILES ${MAVEN_REPOSITORY}/org/apache/hadoop/hadoop-core/${APACHE1_VERSION}/hadoop-core-${APACHE1_VERSION}.jar
+
+if (HDFS_DIST MATCHES "^apache")
+
+	#set(APACHE1_VERSION "1.2.1")
+	#set(APACHE2_VERSION "2.4.1")
+	
+    if (HDFS_VERSION MATCHES "^1.")
+		# Apache Hadoop 1 jars
+		install(FILES ${MAVEN_REPOSITORY}/org/apache/hadoop/hadoop-core/${HDFS_VERSION}/hadoop-core-${HDFS_VERSION}.jar
               DESTINATION lib/java/apache1)
-install(FILES ${HYPERTABLE_BINARY_DIR}/java/hypertable/target/hypertable-${VERSION}-apache1.jar
+		install(FILES ${HYPERTABLE_BINARY_DIR}/java/hypertable/target/hypertable-${VERSION}-apache1.jar
               DESTINATION lib/java/apache1)
-install(FILES ${HYPERTABLE_BINARY_DIR}/java/hypertable-examples/target/hypertable-examples-${VERSION}-apache1.jar
+		install(FILES ${HYPERTABLE_BINARY_DIR}/java/hypertable-examples/target/hypertable-examples-${VERSION}-apache1.jar
               DESTINATION lib/java/apache1)
 
-# Apache Hadoop 2 jars
-install(FILES ${MAVEN_REPOSITORY}/org/apache/hadoop/hadoop-annotations/${APACHE2_VERSION}/hadoop-annotations-${APACHE2_VERSION}.jar
+	elseif (HDFS_VERSION MATCHES "^2.")
+		# Apache Hadoop 2 jars
+		install(FILES ${MAVEN_REPOSITORY}/org/apache/hadoop/hadoop-annotations/${HDFS_VERSION}/hadoop-annotations-${HDFS_VERSION}.jar
               DESTINATION lib/java/apache2)
-install(FILES ${MAVEN_REPOSITORY}/org/apache/hadoop/hadoop-auth/${APACHE2_VERSION}/hadoop-auth-${APACHE2_VERSION}.jar
+		install(FILES ${MAVEN_REPOSITORY}/org/apache/hadoop/hadoop-auth/${HDFS_VERSION}/hadoop-auth-${HDFS_VERSION}.jar
               DESTINATION lib/java/apache2)
-install(FILES ${MAVEN_REPOSITORY}/org/apache/hadoop/hadoop-common/${APACHE2_VERSION}/hadoop-common-${APACHE2_VERSION}.jar
+		install(FILES ${MAVEN_REPOSITORY}/org/apache/hadoop/hadoop-common/${HDFS_VERSION}/hadoop-common-${HDFS_VERSION}.jar
               DESTINATION lib/java/apache2)
-install(FILES ${MAVEN_REPOSITORY}/org/apache/hadoop/hadoop-hdfs/${APACHE2_VERSION}/hadoop-hdfs-${APACHE2_VERSION}.jar
+		install(FILES ${MAVEN_REPOSITORY}/org/apache/hadoop/hadoop-hdfs/${HDFS_VERSION}/hadoop-hdfs-${HDFS_VERSION}.jar
               DESTINATION lib/java/apache2)
-install(FILES ${MAVEN_REPOSITORY}/org/apache/hadoop/hadoop-mapreduce-client-core/${APACHE2_VERSION}/hadoop-mapreduce-client-core-${APACHE2_VERSION}.jar
+		install(FILES ${MAVEN_REPOSITORY}/org/apache/hadoop/hadoop-mapreduce-client-core/${HDFS_VERSION}/hadoop-mapreduce-client-core-${HDFS_VERSION}.jar
               DESTINATION lib/java/apache2)
-install(FILES ${HYPERTABLE_BINARY_DIR}/java/hypertable/target/hypertable-${VERSION}-apache2.jar
+		install(FILES ${HYPERTABLE_BINARY_DIR}/java/hypertable/target/hypertable-${VERSION}-apache2.jar
               DESTINATION lib/java/apache2)
-install(FILES ${HYPERTABLE_BINARY_DIR}/java/hypertable-examples/target/hypertable-examples-${VERSION}-apache2.jar
+		install(FILES ${HYPERTABLE_BINARY_DIR}/java/hypertable-examples/target/hypertable-examples-${VERSION}-apache2.jar
               DESTINATION lib/java/apache2)
 
-# CDH3 jars
-install(FILES ${MAVEN_REPOSITORY}/org/apache/hadoop/hadoop-core/${CDH3_VERSION}/hadoop-core-${CDH3_VERSION}.jar
+	endif ()
+ 
+elseif (HDFS_DIST MATCHES "cdh")    
+
+	if (HDFS_VERSION MATCHES "^0.2")
+		set(CDH3_VERSION "0.20.2-cdh3u5")
+		# CDH3 jars
+		install(FILES ${MAVEN_REPOSITORY}/org/apache/hadoop/hadoop-core/${CDH3_VERSION}/hadoop-core-${CDH3_VERSION}.jar
               DESTINATION lib/java/cdh3)
-install(FILES ${HYPERTABLE_BINARY_DIR}/java/hypertable/target/hypertable-${VERSION}-cdh3.jar
+		install(FILES ${HYPERTABLE_BINARY_DIR}/java/hypertable/target/hypertable-${VERSION}-cdh3.jar
               DESTINATION lib/java/cdh3)
-install(FILES ${HYPERTABLE_BINARY_DIR}/java/hypertable-examples/target/hypertable-examples-${VERSION}-cdh3.jar
+		install(FILES ${HYPERTABLE_BINARY_DIR}/java/hypertable-examples/target/hypertable-examples-${VERSION}-cdh3.jar
               DESTINATION lib/java/cdh3)
-install(FILES ${MAVEN_REPOSITORY}/org/apache/hadoop/thirdparty/guava/guava/r09-jarjar/guava-r09-jarjar.jar
+		install(FILES ${MAVEN_REPOSITORY}/org/apache/hadoop/thirdparty/guava/guava/r09-jarjar/guava-r09-jarjar.jar
               DESTINATION lib/java/cdh3)
 
-# CDH4 jars
-install(FILES ${MAVEN_REPOSITORY}/org/apache/hadoop/hadoop-annotations/${CDH4_VERSION}/hadoop-annotations-${CDH4_VERSION}.jar
+	elseif (HDFS_VERSION MATCHES "^2.")
+		set(CDH4_VERSION "2.0.0-cdh4.2.1")
+		# CDH4 jars
+		install(FILES ${MAVEN_REPOSITORY}/org/apache/hadoop/hadoop-annotations/${CDH4_VERSION}/hadoop-annotations-${CDH4_VERSION}.jar
               DESTINATION lib/java/cdh4)
-install(FILES ${MAVEN_REPOSITORY}/org/apache/hadoop/hadoop-auth/${CDH4_VERSION}/hadoop-auth-${CDH4_VERSION}.jar
+		install(FILES ${MAVEN_REPOSITORY}/org/apache/hadoop/hadoop-auth/${CDH4_VERSION}/hadoop-auth-${CDH4_VERSION}.jar
               DESTINATION lib/java/cdh4)
-install(FILES ${MAVEN_REPOSITORY}/org/apache/hadoop/hadoop-common/${CDH4_VERSION}/hadoop-common-${CDH4_VERSION}.jar
+		install(FILES ${MAVEN_REPOSITORY}/org/apache/hadoop/hadoop-common/${CDH4_VERSION}/hadoop-common-${CDH4_VERSION}.jar
               DESTINATION lib/java/cdh4)
-install(FILES ${MAVEN_REPOSITORY}/org/apache/hadoop/hadoop-hdfs/${CDH4_VERSION}/hadoop-hdfs-${CDH4_VERSION}.jar
+		install(FILES ${MAVEN_REPOSITORY}/org/apache/hadoop/hadoop-hdfs/${CDH4_VERSION}/hadoop-hdfs-${CDH4_VERSION}.jar
              DESTINATION lib/java/cdh4)
-install(FILES ${MAVEN_REPOSITORY}/org/apache/hadoop/hadoop-mapreduce-client-core/${CDH4_VERSION}/hadoop-mapreduce-client-core-${CDH4_VERSION}.jar
+		install(FILES ${MAVEN_REPOSITORY}/org/apache/hadoop/hadoop-mapreduce-client-core/${CDH4_VERSION}/hadoop-mapreduce-client-core-${CDH4_VERSION}.jar
               DESTINATION lib/java/cdh4)
+
+	endif ()
+endif ()
