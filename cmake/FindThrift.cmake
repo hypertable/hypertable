@@ -94,6 +94,10 @@ if (Thrift_FOUND)
     message(STATUS "Found thrift: ${Thrift_LIBS}")
     message(STATUS "    compiler: ${Thrift_VERSION}")
   endif ()
+  string(REPLACE "\n" " " Thrift_VERSION ${Thrift_VERSION})
+  string(REPLACE " " ";" Thrift_VERSION ${Thrift_VERSION})
+  list(GET Thrift_VERSION -1 Thrift_VERSION)
+  
 else ()
   message(STATUS "Thrift compiler/libraries NOT found. "
           "Thrift support will be disabled (${Thrift_RETURN}, "
