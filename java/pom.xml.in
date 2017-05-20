@@ -6,7 +6,6 @@
   <artifactId>hypertable-uber</artifactId>
   <version>@VERSION@</version>
   <packaging>pom</packaging>
-
   <name>Umbrella project for Hypertable</name>
   <url>http://www.hypertable.com</url>
 
@@ -27,7 +26,7 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
-
+  
   <profiles>
     <profile>
       <id>cdh3</id>
@@ -66,11 +65,12 @@
         <dependency>
           <groupId>org.apache.hadoop</groupId>
           <artifactId>hadoop-core</artifactId>
-          <version>1.2.1</version>
+          <version>@HDFS_VERSION@</version>
           <scope>provided</scope>
         </dependency>
       </dependencies>
     </profile>
+	
     <profile>
       <id>apache2</id>
       <properties>
@@ -84,31 +84,31 @@
         <dependency>
           <groupId>org.apache.hadoop</groupId>
           <artifactId>hadoop-common</artifactId>
-          <version>2.4.1</version>
+          <version>@HDFS_VERSION@</version>
           <scope>provided</scope>
         </dependency>
         <dependency>
           <groupId>org.apache.hadoop</groupId>
           <artifactId>hadoop-auth</artifactId>
-          <version>2.4.1</version>
+          <version>@HDFS_VERSION@</version>
           <scope>provided</scope>
         </dependency>
         <dependency>
           <groupId>org.apache.hadoop</groupId>
           <artifactId>hadoop-mapreduce-client-core</artifactId>
-          <version>2.4.1</version>
+          <version>@HDFS_VERSION@</version>
           <scope>provided</scope>
         </dependency>
         <dependency>
           <groupId>org.apache.hadoop</groupId>
           <artifactId>hadoop-hdfs</artifactId>
-          <version>2.4.1</version>
+          <version>@HDFS_VERSION@</version>
           <scope>provided</scope>
         </dependency>
         <dependency>
           <groupId>org.apache.hadoop</groupId>
           <artifactId>hadoop-annotations</artifactId>
-          <version>2.4.1</version>
+          <version>@HDFS_VERSION@</version>
           <scope>provided</scope>
         </dependency>
       </dependencies>
@@ -120,7 +120,7 @@
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-javadoc-plugin</artifactId>
-        <version>2.10.3</version>
+        <version>2.10.4</version>
         <configuration>
         </configuration>
       </plugin>
