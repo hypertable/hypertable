@@ -1,30 +1,20 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
+  
+  <groupId>org.hypertable</groupId>
+  <artifactId>runtime-dependencies-apache1</artifactId>
+  <version>@VERSION@</version>
 
-  <parent>
-    <groupId>org.hypertable</groupId>
-    <artifactId>hypertable-uber</artifactId>
-    <version>@VERSION@</version>
-  </parent>
+  <name>Apache Hadoop 1 Runtime Dependencies</name>
+  <url>http://www.hypertable.com</url>
 
-  <artifactId>hypertable-apache1</artifactId>
-  <packaging>jar</packaging>
-
-  <name>Hypertable Apache Hadoop 1</name>
-
-  <profiles>
-    <profile>
-      <id>apache1</id>
-      <dependencies>
-        <dependency>
-          <groupId>org.hypertable</groupId>
-          <artifactId>hypertable-common</artifactId>
-          <version>@VERSION@</version>
-          <classifier>apache1</classifier>
-        </dependency>
-      </dependencies>
-    </profile>
-  </profiles>
+  <dependencies>
+    <dependency>
+      <groupId>org.apache.hadoop</groupId>
+      <artifactId>hadoop-core</artifactId>
+      <version>@APACHE1_VERSION@</version>
+    </dependency>
+  </dependencies>
 
 </project>
