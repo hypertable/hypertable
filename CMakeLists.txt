@@ -229,7 +229,7 @@ endif ()
 
 # include directories
 include_directories(src/cc ${HYPERTABLE_BINARY_DIR}/src/cc
-    ${ZLIB_INCLUDE_DIR} ${Boost_INCLUDE_DIRS}
+    ${ZLIB_INCLUDE_DIR} ${Boost_INCLUDE_DIRS} ${Libssl_INCLUDE_DIR}
     ${EXPAT_INCLUDE_DIRS} ${BDB_INCLUDE_DIR} ${EDITLINE_INCLUDE_DIR}
     ${SIGAR_INCLUDE_DIR})
 
