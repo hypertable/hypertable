@@ -2,45 +2,29 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <groupId>org.hypertable</groupId>
-  <artifactId>runtime-dependencies-apache2</artifactId>
-  <version>@VERSION@</version>
+  <parent>
+    <groupId>org.hypertable</groupId>
+    <artifactId>hypertable-uber</artifactId>
+    <version>@VERSION@</version>
+  </parent>
 
-  <name>Apache Hadoop 2 Runtime Dependencies</name>
-  <url>http://www.hypertable.com</url>
+  <artifactId>hypertable-apache2</artifactId>
+  <packaging>jar</packaging>
 
-  <dependencies>
-    <dependency>
-      <groupId>org.apache.hadoop</groupId>
-      <artifactId>hadoop-annotations</artifactId>
-      <version>@HDFS_VERSION@</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.hadoop</groupId>
-      <artifactId>hadoop-auth</artifactId>
-      <version>@HDFS_VERSION@</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.hadoop</groupId>
-      <artifactId>hadoop-common</artifactId>
-      <version>@HDFS_VERSION@</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.hadoop</groupId>
-      <artifactId>hadoop-hdfs</artifactId>
-      <version>@HDFS_VERSION@</version>
-    </dependency>
-    <dependency>
-      <groupId>org.apache.hadoop</groupId>
-      <artifactId>hadoop-mapreduce-client-core</artifactId>
-      <version>@HDFS_VERSION@</version>
-    </dependency>
-	
-    <dependency>
-      <groupId>com.google.protobuf</groupId>
-      <artifactId>protobuf-java</artifactId>
-      <version>2.5.0</version>
-    </dependency>
-  </dependencies>
+  <name>Hypertable Apache Hadoop 2</name>
+
+  <profiles>
+    <profile>
+      <id>apache2</id>
+      <dependencies>
+        <dependency>
+          <groupId>org.hypertable</groupId>
+          <artifactId>hypertable-common</artifactId>
+          <version>@VERSION@</version>
+          <classifier>apache2</classifier>
+        </dependency>
+      </dependencies>
+    </profile>
+  </profiles>
 
 </project>
