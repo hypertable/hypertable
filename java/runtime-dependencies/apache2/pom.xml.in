@@ -13,28 +13,29 @@
     <dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-annotations</artifactId>
-      <version>@APACHE2_VERSION@</version>
+      <version>@HDFS_VERSION@</version>
     </dependency>
     <dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-auth</artifactId>
-      <version>@APACHE2_VERSION@</version>
+      <version>@HDFS_VERSION@</version>
     </dependency>
     <dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-common</artifactId>
-      <version>@APACHE2_VERSION@</version>
+      <version>@HDFS_VERSION@</version>
     </dependency>
     <dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-hdfs</artifactId>
-      <version>@APACHE2_VERSION@</version>
+      <version>@HDFS_VERSION@</version>
     </dependency>
     <dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-mapreduce-client-core</artifactId>
-      <version>@APACHE2_VERSION@</version>
+      <version>@HDFS_VERSION@</version>
     </dependency>
+	
     <dependency>
       <groupId>com.google.protobuf</groupId>
       <artifactId>protobuf-java</artifactId>
