@@ -38,12 +38,12 @@ find_library(Libssh_LIBRARY NO_DEFAULT_PATH
 
 find_library(Libssh_ssl_LIBRARY NO_DEFAULT_PATH
   NAMES ssl
-  PATHS ${HT_DEPENDENCY_LIB_DIR} /usr/local/ssl/lib /lib /lib64 /usr/lib /usr/lib64 /usr/local/lib /usrlocal/lib64 /opt/local/lib
+  PATHS ${HT_DEPENDENCY_LIB_DIR} /usr/local/ssl/lib /lib /lib64 /usr/lib /usr/lib64 /usr/local/lib /usr/local/lib64 /opt/local/lib
 )
 
 find_library(Libssh_crypto_LIBRARY NO_DEFAULT_PATH
   NAMES crypto
-  PATHS ${HT_DEPENDENCY_LIB_DIR} /usr/local/ssl/lib /lib /lib64 /usr/lib /usr/lib64 /usr/local/lib /usrlocal/lib64 /opt/local/lib
+  PATHS ${HT_DEPENDENCY_LIB_DIR} /usr/local/ssl/lib /lib /lib64 /usr/lib /usr/lib64 /usr/local/lib /usr/local/lib64 /opt/local/lib
 )
 
 if (Libssh_INCLUDE_DIR AND Libssh_LIBRARY)
