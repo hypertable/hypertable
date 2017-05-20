@@ -34,7 +34,37 @@ if (JAVA_INCLUDE_PATH)
 
   if (NOT BUILD_SHARED_LIBS)
     message(STATUS "Not building shared libraries. Legacy Hadoop support will be disabled")
+  endif ()  
+
+  exec_program(hadoop               
+			ARGS version
+            OUTPUT_VARIABLE HDFS_VERSION_OUT
+            RETURN_VALUE HDFS_RETURN)
+  if (HDFS_RETURN STREQUAL "0")
+  
+	  string(REPLACE "\n" " " HDFS_VERSION_OUT ${HDFS_VERSION_OUT})
+	  string(REPLACE " " ";" HDFS_VERSION_OUT ${HDFS_VERSION_OUT})
+	  list(GET HDFS_VERSION_OUT 0 HDFS_DIST)
+	  list(GET HDFS_VERSION_OUT 1 HDFS_VERSION)
+	
+    if (NOT HDFS_VERSION MATCHES "^[0-9]+.*")
+      set(HDFS_VERSION "unknown -- make sure it's N.N+")
+    endif ()
+    if (HDFS_DIST MATCHES "^Hadoop")
+			string(SUBSTRING ${HDFS_VERSION} 0 1 HDFS_VERSION_TOP)
+	      set(HDFS_DIST "apache${HDFS_VERSION_TOP}")
+	  elseif (HDFS_DIST MATCHES "CDH" OR HDFS_DIST MATCHES "cloud") //not checked version parsing
+	      set(HDFS_DIST "cdh")
+	  endif ()
+	
+  else ()
+     set(HDFS_VERSION  "not found")
+     set(HDFS_DIST  "unknown")
   endif ()
+	
+  message(STATUS "       distribution: ${HDFS_DIST}")
+  message(STATUS "       version: ${HDFS_VERSION}")
+
 else ()
   message(STATUS "Java JNI not found. Legacy Hadoop support will be disabled.")
 endif(JAVA_INCLUDE_PATH)
