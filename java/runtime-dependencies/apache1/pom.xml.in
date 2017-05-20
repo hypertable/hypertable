@@ -13,7 +13,7 @@
     <dependency>
       <groupId>org.apache.hadoop</groupId>
       <artifactId>hadoop-core</artifactId>
-      <version>@APACHE1_VERSION@</version>
+      <version>@HDFS_VERSION@</version>
     </dependency>
   </dependencies>
 
