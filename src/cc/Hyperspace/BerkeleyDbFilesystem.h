@@ -798,6 +798,7 @@ namespace Hyperspace {
     static void db_event_callback(DbEnv *dbenv, uint32_t which, void *info);
     static void db_err_callback(const DbEnv *dbenv, const char *errpfx, const char *msg);
     static void db_msg_callback(const DbEnv *dbenv, const char *msg);
+    static void db_msg_callback(const DbEnv *dbenv, const char *msgpfx, const char *msg);
 
     ReplicationInfo m_replication_info;
     String m_base_dir;
