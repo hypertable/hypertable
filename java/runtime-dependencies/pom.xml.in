@@ -16,10 +16,7 @@
 
   <modules>
     <module>common</module>
-    <module>apache1</module>
-    <module>apache2</module>
-    <module>cdh3</module>
-    <module>cdh4</module>
+    <module>@HDFS_DIST@</module>
   </modules>
 
 </project>
