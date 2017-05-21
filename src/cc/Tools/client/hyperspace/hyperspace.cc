@@ -75,11 +75,11 @@ int main(int argc, char **argv) {
     int32_t timeout = has("timeout") ? get_i32("timeout") : 10000;
     silent = has("silent") && get_bool("silent");
 
-    session_ptr = make_shared<Hyperspace::Session>(comm, properties);
+    session_ptr = std::make_shared<Hyperspace::Session>(comm, properties);
     session_ptr->add_callback(&session_handler);
 
     interp = session_ptr->create_hs_interpreter();
-    shell = make_shared<CommandShell>("hyperspace", "Hyperspace", interp, properties);
+    shell = std::make_shared<CommandShell>("hyperspace", "Hyperspace", interp, properties);
     interp->set_silent(shell->silent());
     interp->set_test_mode(shell->test_mode());
 
