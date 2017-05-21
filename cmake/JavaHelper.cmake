@@ -198,16 +198,14 @@ install(FILES ${MAVEN_REPOSITORY}/org/fusesource/sigar/1.6.4/sigar-1.6.4.jar
               DESTINATION lib/java/common)
 
 # Distro specific jars
-install(FILES ${MAVEN_REPOSITORY}/com/google/protobuf/protobuf-java/2.4.0a/protobuf-java-2.4.0a.jar
-              DESTINATION lib/java/specific)
-install(FILES ${MAVEN_REPOSITORY}/com/google/protobuf/protobuf-java/2.5.0/protobuf-java-2.5.0.jar
-              DESTINATION lib/java/specific)
 install(FILES ${MAVEN_REPOSITORY}/com/google/guava/guava/11.0.2/guava-11.0.2.jar
               DESTINATION lib/java/specific)
 
 
 if (HDFS_DIST MATCHES "^apache")
 
+	install(FILES ${MAVEN_REPOSITORY}/com/google/protobuf/protobuf-java/2.5.0/protobuf-java-2.5.0.jar
+              DESTINATION lib/java/specific)
 	#set(APACHE1_VERSION "1.2.1")
 	#set(APACHE2_VERSION "2.4.1")
 	
@@ -240,6 +238,8 @@ if (HDFS_DIST MATCHES "^apache")
 	endif ()
  
 elseif (HDFS_DIST MATCHES "cdh")    
+	install(FILES ${MAVEN_REPOSITORY}/com/google/protobuf/protobuf-java/2.4.0a/protobuf-java-2.4.0a.jar
+              DESTINATION lib/java/specific)
 
 	if (HDFS_VERSION MATCHES "^0.2")
 		set(CDH3_VERSION "0.20.2-cdh3u5")
