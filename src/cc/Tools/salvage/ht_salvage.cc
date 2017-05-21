@@ -589,10 +589,10 @@ int main(int argc, char **argv) {
       load_metadata_exclude("metadata.tsv");
     }
 
-    Global::dfs = make_shared<FsBroker::Lib::Client>(host, port, timeout_ms);
+    Global::dfs = std::make_shared<FsBroker::Lib::Client>(host, port, timeout_ms);
     Global::memory_tracker = new MemoryTracker(0, 0);
 
-    hyperspace = make_shared<Hyperspace::Session>(Comm::instance(), properties);
+    hyperspace = std::make_shared<Hyperspace::Session>(Comm::instance(), properties);
 
     Timer timer(timeout_ms, true);
 
