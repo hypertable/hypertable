@@ -48,7 +48,7 @@ LoadClient::LoadClient(const String &config_file, bool thrift)
 #endif
   }
   else {
-    m_native_client = make_shared<Hypertable::Client>(config_file);
+    m_native_client = std::make_shared<Hypertable::Client>(config_file);
     m_ns = m_native_client->open_namespace("/");
   }
 }
@@ -71,7 +71,7 @@ LoadClient::LoadClient(bool thrift)
 #endif
   }
   else {
-    m_native_client = make_shared<Hypertable::Client>();
+    m_native_client = std::make_shared<Hypertable::Client>();
     m_ns = m_native_client->open_namespace("/");
   }
 }
