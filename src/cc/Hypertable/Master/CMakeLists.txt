@@ -89,7 +89,7 @@ target_link_libraries(op_dependency_test HyperMaster HyperRanger Hyperspace Hype
 
 # system_state_test
 add_executable(system_state_test tests/system_state_test.cc)
-target_link_libraries(system_state_test HyperCommon HyperMaster Hypertable ${MALLOC_LIBRARY})
+target_link_libraries(system_state_test HyperCommon HyperMaster HyperRanger Hypertable ${MALLOC_LIBRARY})
 
 #
 # Copy test files
@@ -98,7 +98,7 @@ set(SRC_DIR "${HYPERTABLE_SOURCE_DIR}/src/cc/Hypertable/Master/tests")
 set(DST_DIR "${HYPERTABLE_BINARY_DIR}/src/cc/Hypertable/Master")
 
 add_executable(ht_gc gc.cc GcWorker.cc)
-target_link_libraries(ht_gc HyperMaster HyperFsBroker Hypertable ${RRD_LIBRARIES})
+target_link_libraries(ht_gc HyperMaster HyperFsBroker HyperRanger Hypertable ${RRD_LIBRARIES})
 
 configure_file(${SRC_DIR}/balance_plan_authority_test.golden
     ${DST_DIR}/balance_plan_authority_test.golden COPYONLY)
