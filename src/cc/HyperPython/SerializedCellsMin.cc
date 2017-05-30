@@ -21,7 +21,7 @@
 #include "../ThriftBroker/SerializedCellsReader.h"
 #include "../ThriftBroker/SerializedCellsWriter.h"
 
-#include <boost/python.hpp>    // https://svn.boost.org/trac/boost/attachment/ticket/4125/4125-use-macros-instead-of-direct-access.2.patch
+//#include <boost/python.hpp>    // https://svn.boost.org/trac/boost/attachment/ticket/4125/4125-use-macros-instead-of-direct-access.2.patch
 #include <pybind11/pybind11.h> // http ://pybind11.readthedocs.io/en/master/classes.html
 
 using namespace Hypertable;
@@ -37,23 +37,27 @@ typedef int32_t(SerializedCellsWriter::*getlenfn)();
 static addfn afn = &Hypertable::SerializedCellsWriter::add;
 static getlenfn lenfn = &Hypertable::SerializedCellsWriter::get_buffer_length;
 
+namespace py = pybind11;
+//using namespace pybind11;
+
+//using namespace pybind11::literals;
+
 static PyObject *convert(const SerializedCellsWriter &scw) {
-	boost::python::object obj(handle<>(PyBuffer_FromMemory(
-		(void *)scw.get_buffer(), scw.get_buffer_length())));
-	return boost::python::incref(obj.ptr());
+	py::object obj = py::cast(PyBuffer_FromMemory((void *)scw.get_buffer(), scw.get_buffer_length()));
+	return obj.ptr();
 }
 
-namespace py = pybind11;
 
 
-PYBIND11_MODULE(libHyperPythonMin,m)
-{
-	m.doc() = "Hypertable Minimal HyperPython Library libHyperPythonMin";
+PYBIND11_MODULE(libHyperPythonMin,m) {
 	//py::module m("libHyperPythonMin", R"pbdoc(
-    //    Hypertable Minimal HyperPython Library libHyperPythonMin
+    //    libHyperPythonMin with Full Python headers
     //)pbdoc");
 
-	py::class_<Cell>(m, "Cell")
+//PYBIND11_MODULE(libHyperPythonMin,m) {
+	m.doc() = "libHyperPythonMin with Full Python headers";
+
+  py::class_<Cell>(m, "Cell")
     .def("sanity_check", &Cell::sanity_check)
     .def_readwrite("row", &Cell::row_key)
     .def_readwrite("column_family", &Cell::column_family)
@@ -61,32 +65,33 @@ PYBIND11_MODULE(libHyperPythonMin,m)
     .def_readwrite("timestamp", &Cell::timestamp)
     .def_readwrite("revision", &Cell::revision)
     .def_readwrite("value", &Cell::value)
-    .def_readwrite("flag", &Cell::flag)
-    .def(self_ns::str(self_ns::self))
+    .def_readwrite("flag", &Cell::flag)//.def(self_ns::str(self_ns::self))
     ;
 
-	py::class_<SerializedCellsReader>("SerializedCellsReader",init<const char *, uint32_t>())
+  py::class_<SerializedCellsReader> (m, "SerializedCellsReader")
+	.def(py::init<const char *, uint32_t>())
     .def("has_next", &SerializedCellsReader::next)
     .def("get_cell", &SerializedCellsReader::get_cell,
-          return_value_policy<return_by_value>())
+		py::return_value_policy::automatic)
     .def("row", &SerializedCellsReader::row,
-          return_value_policy<return_by_value>())
+		py::return_value_policy::automatic)
     .def("column_family", &SerializedCellsReader::column_family,
-          return_value_policy<return_by_value>())
+		py::return_value_policy::automatic)
     .def("column_qualifier", &SerializedCellsReader::column_qualifier,
-          return_value_policy<return_by_value>())
+		py::return_value_policy::automatic)
     .def("value", &SerializedCellsReader::value_str,
-          return_value_policy<return_by_value>())
+		py::return_value_policy::automatic)
     .def("value_len", &SerializedCellsReader::value_len)
     .def("value_str", &SerializedCellsReader::value_str,
-          return_value_policy<return_by_value>())
+		py::return_value_policy::automatic)
     .def("timestamp", &SerializedCellsReader::timestamp)
     .def("cell_flag", &SerializedCellsReader::cell_flag)
     .def("flush", &SerializedCellsReader::flush)
     .def("eos", &SerializedCellsReader::eos)
   ;
 
-  py::class_<SerializedCellsWriter, boost::noncopyable>("SerializedCellsWriter",init<int32_t, bool>())
+  py::class_<SerializedCellsWriter, std::shared_ptr<SerializedCellsWriter>>(m, "SerializedCellsWriter")
+	.def(py::init<int32_t, bool>())
     .def("add", afn)
     .def("finalize", &SerializedCellsWriter::finalize)
     .def("empty", &SerializedCellsWriter::empty)
@@ -94,4 +99,5 @@ PYBIND11_MODULE(libHyperPythonMin,m)
     .def("__len__", lenfn)
     .def("get", &convert)
   ;
+ // return m.ptr();
 }

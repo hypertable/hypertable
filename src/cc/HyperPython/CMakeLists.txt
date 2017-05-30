@@ -37,13 +37,11 @@ else ()
 endif ()
 
 
-include_directories(${PYTHON_INCLUDE_DIR} ${Pybind11_INCLUDE_DIR})
+include_directories(${PYTHON_INCLUDE_DIR} ${Pybind11_INCLUDE_DIR} )
 
 
 add_library(HyperPython MODULE SerializedCells.cc)
-
-target_link_libraries(HyperPython HyperThrift HyperCommon
-    Hypertable ${PYTHON_LIBRARY} ${Thrift_LIBS} ${LibEvent_LIBS})
+target_link_libraries(HyperPython HyperThrift HyperCommon  Hypertable ${PYTHON_LIBRARY} ${Thrift_LIBS} ${LibEvent_LIBS})
 	
 install(TARGETS HyperPython
         RUNTIME DESTINATION bin
@@ -52,8 +50,8 @@ install(TARGETS HyperPython
 
 if (Pybind11_FOUND)
 	add_library(HyperPythonMin MODULE SerializedCellsMin.cc)
-	target_link_libraries(HyperPythonMin HyperThrift HyperCommon
-		Hypertable ${PYTHON_LIBRARY} ${Thrift_LIBS} ${LibEvent_LIBS})
+	target_link_libraries(HyperPythonMin HyperThrift HyperCommon Hypertable ${PYTHON_LIBRARY} ${Thrift_LIBS} ${LibEvent_LIBS})
+	
 	install(TARGETS HyperPythonMin
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION "lib/py/hypertable"
