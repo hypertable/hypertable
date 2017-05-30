@@ -21,15 +21,45 @@
 
 set(CMAKE_CXX_FLAGS "-DHAVE_NETINET_IN_H ${CMAKE_CXX_FLAGS}")
 
-include_directories(${PYTHON_INCLUDE_DIR})
+find_path(Pybind11_INCLUDE_DIR pybind11/pybind11.h PATHS
+    /usr/local/include
+    /opt/local/include
+  )
+
+#set(LibPybind11_LIB_PATHS /usr/local/lib /opt/local/lib)
+#find_library(LibPybind11_LIB NAMES event PATHS ${LibEvent_LIB_PATHS})
+
+if (Pybind11_INCLUDE_DIR)
+  set(Pybind11_FOUND TRUE)
+  #set(LibEvent_LIBS ${LibEvent_LIB})
+else ()
+  set(Pybind11_FOUND FALSE)
+endif ()
+
+
+include_directories(${PYTHON_INCLUDE_DIR} ${Pybind11_INCLUDE_DIR})
+
 
 add_library(HyperPython MODULE SerializedCells.cc)
+
 target_link_libraries(HyperPython HyperThrift HyperCommon
     Hypertable ${PYTHON_LIBRARY} ${Thrift_LIBS} ${LibEvent_LIBS})
+	
 install(TARGETS HyperPython
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION "lib/py/hypertable"
         ARCHIVE DESTINATION "lib/py/hypertable")
+
+if (Pybind11_FOUND)
+	add_library(HyperPythonMin MODULE SerializedCellsMin.cc)
+	target_link_libraries(HyperPythonMin HyperThrift HyperCommon
+		Hypertable ${PYTHON_LIBRARY} ${Thrift_LIBS} ${LibEvent_LIBS})
+	install(TARGETS HyperPythonMin
+        RUNTIME DESTINATION bin
+        LIBRARY DESTINATION "lib/py/hypertable"
+        ARCHIVE DESTINATION "lib/py/hypertable")
+endif ()
+
 
 add_test(HyperPython-reader env PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}:${CMAKE_SOURCE_DIR}/src/py/ThriftClient:${CMAKE_SOURCE_DIR}/src/py/ThriftClient/gen-py
     ${CMAKE_CURRENT_SOURCE_DIR}/tests/run-reader.sh)
