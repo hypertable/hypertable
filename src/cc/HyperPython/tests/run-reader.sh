@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 echo "========================================================================"
-echo "HyperPython: SerizalizedCellsReader test"
+echo "Hyper$1: SerizalizedCellsReader test"
 echo "========================================================================"
 
 SCRIPT_DIR=`dirname $0`
@@ -9,7 +9,7 @@ SCRIPT_DIR=`dirname $0`
 echo "SCRIPT_DIR is $SCRIPT_DIR"
 echo "PYTHONPATH is $PYTHONPATH"
 
-python $SCRIPT_DIR/reader.py > test-reader.txt
+$1 $SCRIPT_DIR/reader.py $1 $2 > test-reader.txt
 diff test-reader.txt $SCRIPT_DIR/test-reader.golden
 if [ $? != 0 ]
 then
