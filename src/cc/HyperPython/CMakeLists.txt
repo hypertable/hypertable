@@ -24,14 +24,9 @@ set(CMAKE_CXX_FLAGS "-DHAVE_NETINET_IN_H ${CMAKE_CXX_FLAGS}")
 find_path(Pybind11_INCLUDE_DIR pybind11/pybind11.h PATHS
     /usr/local/include
     /opt/local/include
-  )
-
-#set(LibPybind11_LIB_PATHS /usr/local/lib /opt/local/lib)
-#find_library(LibPybind11_LIB NAMES event PATHS ${LibEvent_LIB_PATHS})
-
+)
 if (Pybind11_INCLUDE_DIR)
   set(Pybind11_FOUND TRUE)
-  #set(LibEvent_LIBS ${LibEvent_LIB})
 else ()
   set(Pybind11_FOUND FALSE)
 endif ()
@@ -49,10 +44,16 @@ install(TARGETS HyperPython
         ARCHIVE DESTINATION "lib/py/hypertable")
 
 if (Pybind11_FOUND)
-	add_library(HyperPythonMin MODULE SerializedCellsMin.cc)
-	target_link_libraries(HyperPythonMin HyperThrift HyperCommon Hypertable ${PYTHON_LIBRARY} ${Thrift_LIBS} ${LibEvent_LIBS})
+	add_library(HyperPyPy MODULE SerializedCells_pyBind11.cc)
+	target_link_libraries(HyperPyPy HyperThrift HyperCommon Hypertable ${PYTHON_LIBRARY} ${Thrift_LIBS} ${LibEvent_LIBS})
+	target_compile_options(HyperPyPy
+                      PRIVATE 
+					  -flto 
+					  -DPYPY_VERSION=5.7.1
+					  -DPYTHON_EXECUTABLE=/opt/pypy2/bin/pypy
+					  )
 	
-	install(TARGETS HyperPythonMin
+	install(TARGETS HyperPyPy
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION "lib/py/hypertable"
         ARCHIVE DESTINATION "lib/py/hypertable")
