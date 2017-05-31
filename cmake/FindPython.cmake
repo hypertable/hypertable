@@ -38,7 +38,7 @@ if (PYTHON_RETURN STREQUAL "0")
             /usr/include/python${PYTHON_VERSION}
             /usr/include/python
             )
-
+			
   find_library(PYTHON_LIBRARY python${PYTHON_VERSION} NO_DEFAULT_PATH PATHS
                ${HT_DEPENDENCY_LIB_DIR}
                /opt/local/lib
@@ -62,8 +62,40 @@ else ()
   set(PYTHON_FOUND FALSE)
 endif ()
 
-
 mark_as_advanced(
   PYTHON_LIBRARY
   PYTHON_INCLUDE_DIR
 )
+
+find_path(Pybind11_INCLUDE_DIR pybind11/pybind11.h PATHS
+    /usr/local/include
+    /opt/local/include
+)
+if (Pybind11_INCLUDE_DIR)
+
+  message(STATUS "Found Pybind11: ${Pybind11_INCLUDE_DIR}")
+  set(Pybind11_FOUND TRUE)
+
+  execute_process(COMMAND pypy -c "from distutils import sysconfig as s;import sys;
+print(s.get_python_inc(plat_specific=True));
+print(sys.prefix);
+"
+    RESULT_VARIABLE _PYPY_SUCCESS
+    OUTPUT_VARIABLE _PYPY_VALUES
+    )
+	
+	if(_PYPY_SUCCESS  STREQUAL "0")
+		string(REGEX REPLACE ";" "\\\\;" _PYPY_VALUES ${_PYPY_VALUES})
+		string(REGEX REPLACE "\n" ";" _PYPY_VALUES ${_PYPY_VALUES})
+		list(GET _PYPY_VALUES 0 PYPY_INCLUDE_DIR)
+		list(GET _PYPY_VALUES 1 PYPY_LIBDIR)
+		set(PYPY_LIBDIR ${PYPY_LIBDIR}/bin/libpypy-c.so)
+		message(STATUS "Found PyPy-devel: ${PYPY_LIBDIR} ${PYPY_INCLUDE_DIR}")
+		set(PyPy_FOUND TRUE)
+	else ()
+		set(PyPy_FOUND FALSE)
+	endif ()
+	
+else ()
+  set(Pybind11_FOUND FALSE)
+endif ()
