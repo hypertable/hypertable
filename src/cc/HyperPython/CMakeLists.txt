@@ -49,7 +49,9 @@ if (Pybind11_FOUND)
 	target_compile_options(HyperPyPy
                       PRIVATE 
 					  -flto 
+					  -DPYTHON_VERSION=${PYTHON_VERSION}
 					  -DPYPY_VERSION=5.7.1
+					  -DWITH_THREAD
 					  -DPYTHON_EXECUTABLE=/opt/pypy2/bin/pypy
 					  )
 	
