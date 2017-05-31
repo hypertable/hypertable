@@ -38,11 +38,6 @@ typedef int32_t(SerializedCellsWriter::*getlenfn)();
 static addfn afn = &Hypertable::SerializedCellsWriter::add;
 static getlenfn lenfn = &Hypertable::SerializedCellsWriter::get_buffer_length;
 
-static PyObject *convert(const SerializedCellsWriter &scw) {
-	py::object obj = py::cast(PyBuffer_FromMemory((void *)scw.get_buffer(), scw.get_buffer_length()));
-	return obj.ptr();
-}
-
 
 PYBIND11_MODULE(libHyperPyPy, m) {
   m.doc() = "libHyperPyPy: libHyperPython for PyPy";
@@ -80,13 +75,18 @@ PYBIND11_MODULE(libHyperPyPy, m) {
     .def("eos", &SerializedCellsReader::eos)
   ;
 
-  py::class_<SerializedCellsWriter, std::shared_ptr<SerializedCellsWriter>>(m, "SerializedCellsWriter")
+  py::class_<SerializedCellsWriter, std::unique_ptr<SerializedCellsWriter>>(m, "SerializedCellsWriter")
 	.def(py::init<int32_t, bool>())
     .def("add", afn)
     .def("finalize", &SerializedCellsWriter::finalize)
     .def("empty", &SerializedCellsWriter::empty)
     .def("clear", &SerializedCellsWriter::clear)
     .def("__len__", lenfn)
-    .def("get", &convert)
+	.def("get", [](const SerializedCellsWriter &scw) {
+		std::string s((char *)scw.get_buffer(), scw.get_buffer_length());
+		return py::bytes(s);
+	})
+	 
+     //.def_buffer("get", &get_buffer)  // std::unique_ptr<SerializedCellsWriter>
   ;
 }
