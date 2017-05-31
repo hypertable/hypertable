@@ -1,4 +1,4 @@
-#
+
 # Copyright (C) 2007-2016 Hypertable, Inc.
 #
 # This program is free software; you can redistribute it and/or
@@ -21,49 +21,36 @@
 
 set(CMAKE_CXX_FLAGS "-DHAVE_NETINET_IN_H ${CMAKE_CXX_FLAGS}")
 
-find_path(Pybind11_INCLUDE_DIR pybind11/pybind11.h PATHS
-    /usr/local/include
-    /opt/local/include
-)
-if (Pybind11_INCLUDE_DIR)
-  set(Pybind11_FOUND TRUE)
-else ()
-  set(Pybind11_FOUND FALSE)
-endif ()
-
-
-include_directories(${PYTHON_INCLUDE_DIR} ${Pybind11_INCLUDE_DIR} )
 
 
 add_library(HyperPython MODULE SerializedCells.cc)
 target_link_libraries(HyperPython HyperThrift HyperCommon  Hypertable ${PYTHON_LIBRARY} ${Thrift_LIBS} ${LibEvent_LIBS})
+target_include_directories(HyperPython PRIVATE ${PYTHON_INCLUDE_DIR})
 	
 install(TARGETS HyperPython
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION "lib/py/hypertable"
         ARCHIVE DESTINATION "lib/py/hypertable")
 
-if (Pybind11_FOUND)
+add_test(HyperPython-reader env PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}:${CMAKE_SOURCE_DIR}/src/py/ThriftClient:${CMAKE_SOURCE_DIR}/src/py/ThriftClient/gen-py
+    ${CMAKE_CURRENT_SOURCE_DIR}/tests/run-reader.sh)
+
+add_test(HyperPython-writer env PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}:${CMAKE_SOURCE_DIR}/src/py/ThriftClient:${CMAKE_SOURCE_DIR}/src/py/ThriftClient/gen-py
+    ${CMAKE_CURRENT_SOURCE_DIR}/tests/run-writer.sh)
+
+if (Pybind11_FOUND AND PyPy_FOUND)
 	add_library(HyperPyPy MODULE SerializedCells_pyBind11.cc)
-	target_link_libraries(HyperPyPy HyperThrift HyperCommon Hypertable ${PYTHON_LIBRARY} ${Thrift_LIBS} ${LibEvent_LIBS})
-	target_compile_options(HyperPyPy
-                      PRIVATE 
+	target_link_libraries(HyperPyPy HyperThrift HyperCommon Hypertable ${PYPY_LIBDIR} ${Thrift_LIBS} ${LibEvent_LIBS})
+	target_compile_options(HyperPyPy PRIVATE
 					  -flto 
 					  -DPYTHON_VERSION=${PYTHON_VERSION}
-					  -DPYPY_VERSION=5.7.1
+					  -DPYPY_VERSION=1
 					  -DWITH_THREAD
-					  -DPYTHON_EXECUTABLE=/opt/pypy2/bin/pypy
 					  )
+	 target_include_directories(HyperPyPy PRIVATE ${Pybind11_INCLUDE_DIR} ${PYPY_INCLUDE_DIR})
 	
 	install(TARGETS HyperPyPy
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION "lib/py/hypertable"
         ARCHIVE DESTINATION "lib/py/hypertable")
 endif ()
-
-
-add_test(HyperPython-reader env PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}:${CMAKE_SOURCE_DIR}/src/py/ThriftClient:${CMAKE_SOURCE_DIR}/src/py/ThriftClient/gen-py
-    ${CMAKE_CURRENT_SOURCE_DIR}/tests/run-reader.sh)
-
-add_test(HyperPython-writer env PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}:${CMAKE_SOURCE_DIR}/src/py/ThriftClient:${CMAKE_SOURCE_DIR}/src/py/ThriftClient/gen-py
-    ${CMAKE_CURRENT_SOURCE_DIR}/tests/run-writer.sh)
