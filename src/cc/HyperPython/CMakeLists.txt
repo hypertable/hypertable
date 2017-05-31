@@ -1,4 +1,5 @@
 
+#
 # Copyright (C) 2007-2016 Hypertable, Inc.
 #
 # This program is free software; you can redistribute it and/or
@@ -33,16 +34,17 @@ install(TARGETS HyperPython
         ARCHIVE DESTINATION "lib/py/hypertable")
 
 add_test(HyperPython-reader env PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}:${CMAKE_SOURCE_DIR}/src/py/ThriftClient:${CMAKE_SOURCE_DIR}/src/py/ThriftClient/gen-py
-    ${CMAKE_CURRENT_SOURCE_DIR}/tests/run-reader.sh)
+    ${CMAKE_CURRENT_SOURCE_DIR}/tests/run-reader.sh python $CMAKE_INSTALL_PREFIX/lib/py/hypertable/libHyperPython.so)
 
 add_test(HyperPython-writer env PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}:${CMAKE_SOURCE_DIR}/src/py/ThriftClient:${CMAKE_SOURCE_DIR}/src/py/ThriftClient/gen-py
-    ${CMAKE_CURRENT_SOURCE_DIR}/tests/run-writer.sh)
+    ${CMAKE_CURRENT_SOURCE_DIR}/tests/run-writer.sh python $CMAKE_INSTALL_PREFIX/lib/py/hypertable/libHyperPython.so)
+
 
 if (Pybind11_FOUND AND PyPy_FOUND)
 	add_library(HyperPyPy MODULE SerializedCells_pyBind11.cc)
 	target_link_libraries(HyperPyPy HyperThrift HyperCommon Hypertable ${PYPY_LIBDIR} ${Thrift_LIBS} ${LibEvent_LIBS})
 	target_compile_options(HyperPyPy PRIVATE
-					  -flto 
+					  -flto
 					  -DPYTHON_VERSION=${PYTHON_VERSION}
 					  -DPYPY_VERSION=1
 					  -DWITH_THREAD
@@ -53,4 +55,12 @@ if (Pybind11_FOUND AND PyPy_FOUND)
         RUNTIME DESTINATION bin
         LIBRARY DESTINATION "lib/py/hypertable"
         ARCHIVE DESTINATION "lib/py/hypertable")
+
+	add_test(HyperPyPy-reader env PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}:${CMAKE_SOURCE_DIR}/src/py/ThriftClient:${CMAKE_SOURCE_DIR}/src/py/ThriftClient/gen-py
+		${CMAKE_CURRENT_SOURCE_DIR}/tests/run-reader.sh pypy $CMAKE_INSTALL_PREFIX/lib/py/hypertable/libHyperPyPy.so)
+
+	add_test(HyperPyPy-writer env PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}:${CMAKE_SOURCE_DIR}/src/py/ThriftClient:${CMAKE_SOURCE_DIR}/src/py/ThriftClient/gen-py
+		${CMAKE_CURRENT_SOURCE_DIR}/tests/run-writer.sh pypy $CMAKE_INSTALL_PREFIX/lib/py/hypertable/libHyperPyPy.so)
+
 endif ()
+
