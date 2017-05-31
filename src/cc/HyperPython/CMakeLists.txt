@@ -55,5 +55,4 @@ if (Pybind11_FOUND AND PyPy_FOUND)
 	add_test(HyperPyPy-reader env PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}:${CMAKE_SOURCE_DIR}/src/py/ThriftClient/:${CMAKE_SOURCE_DIR}/src/py/ThriftClient/gen-py/ bash ${CMAKE_CURRENT_SOURCE_DIR}/tests/run-reader.sh pypy $CMAKE_INSTALL_PREFIX/lib/py/hypertable/libHyperPyPy.so)
 	add_test(HyperPyPy-writer env PYTHONPATH=${CMAKE_CURRENT_BINARY_DIR}:${CMAKE_SOURCE_DIR}/src/py/ThriftClient/:${CMAKE_SOURCE_DIR}/src/py/ThriftClient/gen-py/ bash ${CMAKE_CURRENT_SOURCE_DIR}/tests/run-writer.sh pypy $CMAKE_INSTALL_PREFIX/lib/py/hypertable/libHyperPyPy.so)
 
-		/opt/hypertable/current/lib/py/hypertable/:/opt/hypertable/current/lib/py/gen-py/:/opt/hypertable/current/lib/py/
 endif ()
