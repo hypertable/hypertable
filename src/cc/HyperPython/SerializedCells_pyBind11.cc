@@ -22,7 +22,6 @@
 #include "../ThriftBroker/SerializedCellsWriter.h"
 
 #include <pybind11/pybind11.h>
-
 using namespace Hypertable;
 namespace py = pybind11;
 
@@ -50,25 +49,20 @@ PYBIND11_MODULE(libHyperPyPy, m) {
     .def_readwrite("timestamp", &Cell::timestamp)
     .def_readwrite("revision", &Cell::revision)
     .def_readwrite("value", &Cell::value)
-    .def_readwrite("flag", &Cell::flag)//.def(self_ns::str(self_ns::self))
+    .def_readwrite("flag", &Cell::flag)//.def(py::self::str(py::self))
     ;
 
   py::class_<SerializedCellsReader> (m, "SerializedCellsReader")
-	.def(py::init<const char *, uint32_t>())
-    .def("has_next", &SerializedCellsReader::next)
-    .def("get_cell", &SerializedCellsReader::get_cell,
-		py::return_value_policy::automatic)
-    .def("row", &SerializedCellsReader::row,
-		py::return_value_policy::automatic)
-    .def("column_family", &SerializedCellsReader::column_family,
-		py::return_value_policy::automatic)
-    .def("column_qualifier", &SerializedCellsReader::column_qualifier,
-		py::return_value_policy::automatic)
-    .def("value", &SerializedCellsReader::value_str,
-		py::return_value_policy::automatic)
+	.def(py::init<py::bytes, uint32_t>())
+	.def("has_next", &SerializedCellsReader::next)
+    .def("get_cell", &SerializedCellsReader::get_cell)
+	.def("row", &SerializedCellsReader::row)
+
+    .def("column_family", &SerializedCellsReader::column_family)
+    .def("column_qualifier", &SerializedCellsReader::column_qualifier)
+    .def("value", &SerializedCellsReader::value_str)
     .def("value_len", &SerializedCellsReader::value_len)
-    .def("value_str", &SerializedCellsReader::value_str,
-		py::return_value_policy::automatic)
+    .def("value_str", &SerializedCellsReader::value_str)
     .def("timestamp", &SerializedCellsReader::timestamp)
     .def("cell_flag", &SerializedCellsReader::cell_flag)
     .def("flush", &SerializedCellsReader::flush)
@@ -90,3 +84,4 @@ PYBIND11_MODULE(libHyperPyPy, m) {
      //.def_buffer("get", &get_buffer)  // std::unique_ptr<SerializedCellsWriter>
   ;
 }
+
