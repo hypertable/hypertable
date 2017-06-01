@@ -1,16 +1,12 @@
 import sys
-import time
 import imp
 
-if sys.argv[1]=='python':
-    imp.load_dynamic('libHyperPython',sys.argv[2])
-    import libHyperPython as htSerialize
-elif sys.argv[1]=='pypy':
-    imp.load_dynamic('libHyperPyPy',sys.argv[2])
-    import libHyperPyPy as htSerialize
+if sys.argv[1]=='python': ht_serialize = imp.load_dynamic('libHyperPython',sys.argv[2]) # import libHyperPython as ht_serialize
+elif sys.argv[1]=='pypy': ht_serialize = imp.load_dynamic('libHyperPyPy',sys.argv[2])
 
 from hypertable.thriftclient import *
 from hyperthrift.gen.ttypes import *
+
 
 try:
   client = ThriftClient("localhost", 15867)
@@ -44,7 +40,7 @@ try:
     buf = client.scanner_get_cells_serialized(scanner)
     if (len(buf) <= 5):
       break
-    scr = htSerialize.SerializedCellsReader(buf, len(buf))
+    scr = ht_serialize.SerializedCellsReader(buf, len(buf))
     while scr.has_next():
       print scr.row(),
       print scr.column_family(),

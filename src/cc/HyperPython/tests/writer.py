@@ -1,15 +1,12 @@
 import sys
-import time
 import imp
-if sys.argv[1]=='python':
-    imp.load_dynamic('libHyperPython',sys.argv[2])
-    import libHyperPython as htSerialize
-elif sys.argv[1]=='pypy':
-    imp.load_dynamic('libHyperPyPy',sys.argv[2])
-    import libHyperPyPy as htSerialize
+
+if sys.argv[1]=='python': ht_serialize = imp.load_dynamic('libHyperPython',sys.argv[2]) # import libHyperPython as ht_serialize
+elif sys.argv[1]=='pypy': ht_serialize = imp.load_dynamic('libHyperPyPy',sys.argv[2])
 
 from hypertable.thriftclient import *
 from hyperthrift.gen.ttypes import *
+
 
 try:
   client = ThriftClient("localhost", 15867)
@@ -20,7 +17,7 @@ try:
   client.hql_query(namespace, "create table thrift_test (col)")
 
   # write with SerializedCellsWriter
-  scw = htSerialize.SerializedCellsWriter(100, True)
+  scw = ht_serialize.SerializedCellsWriter(100, True)
 
   scw.add("row0", "col", "", 0, "cell0", 6, 255)
   scw.add("row1", "col", "", 0, "cell1", 6, 255)
