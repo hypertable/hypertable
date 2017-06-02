@@ -111,6 +111,12 @@
           <version>@HDFS_VERSION@</version>
           <scope>provided</scope>
         </dependency>
+	
+        <dependency>
+          <groupId>org.apache.htrace</groupId>
+          <artifactId>htrace-core</artifactId>
+          <version>4.0.0-incubating</version>
+        </dependency>
       </dependencies>
     </profile>
   </profiles>
