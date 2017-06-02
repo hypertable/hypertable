@@ -68,10 +68,6 @@ usage() {
   echo
 }
 
-if [ -f /etc/profile.d/custom_env.sh ]; then
-	source /etc/profile;
-	source ~/.bashrc;
-fi
 
 # Parse and remove ht-java-run.sh specific arguments
 DEBUG_ARGS=
@@ -126,11 +122,11 @@ fi
 IFS=
 
 DISTRO_NEEDS_SETTING=0
-JAR_COUNT=`ls -1 $HYPERTABLE_HOME/lib/java/*.jar | wc -l`
+JAR_COUNT=`find $HYPERTABLE_HOME/lib/java/ -name *.jar | wc -l`
 if [ $JAR_COUNT -eq 0 ]; then
     DISTRO_NEEDS_SETTING=1
 else
-    JAR=`ls -1 $HYPERTABLE_HOME/lib/java/*.jar | head -1`
+    JAR=`find $HYPERTABLE_HOME/lib/java/ -name *.jar | head -1`
     SYSTEM=`uname -s`
     if [ $SYSTEM == "Linux" ]; then
         CONF_DATE=`stat -t -c '%Y' $HYPERTABLE_HOME/conf/hadoop-distro`
@@ -155,8 +151,8 @@ fi
 
 
 # add lib/java to CLASSPATH
-for f in $HYPERTABLE_HOME/lib/java/*.jar; do
-  CLASSPATH=${CLASSPATH}:$f;
+for f in `find $HYPERTABLE_HOME/lib/java/ -name *.jar`; do 
+	CLASSPATH=${CLASSPATH}:$f; 
 done
 
 unset IFS
