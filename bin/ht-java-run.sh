@@ -68,6 +68,10 @@ usage() {
   echo
 }
 
+if [ -f /etc/profile.d/custom_env.sh ]; then
+	source /etc/profile;
+	source ~/.bashrc;
+fi
 
 # Parse and remove ht-java-run.sh specific arguments
 DEBUG_ARGS=
