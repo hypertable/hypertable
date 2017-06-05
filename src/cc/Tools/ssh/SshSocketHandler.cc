@@ -274,9 +274,12 @@ bool SshSocketHandler::handle(int sd, int events) {
           return false;
         }
 
-        // First load system config
-        if (FileUtils::exists("/etc/ssh/ssh_config"))
-          ssh_options_parse_config(m_ssh_session, "/etc/ssh/ssh_config");
+
+		// First load Hypertable conf or system config  
+		if (FileUtils::exists("../conf/ssh_config"))
+			ssh_options_parse_config(m_ssh_session, "/etc/ssh/ssh_config");
+		else if (FileUtils::exists("/etc/ssh/ssh_config"))
+			ssh_options_parse_config(m_ssh_session, "/etc/ssh/ssh_config");
 
         // Then load ~/.ssh/config
         string config_file = ssh_dir + "/config";
