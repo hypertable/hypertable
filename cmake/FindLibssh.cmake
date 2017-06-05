@@ -90,7 +90,7 @@ if (Libssh_FOUND)
           ${HYPERTABLE_SOURCE_DIR}/cmake/CheckLibssh.cc
           CMAKE_FLAGS -DINCLUDE_DIRECTORIES=${Libssh_INCLUDE_DIR}
                       -DLINK_LIBRARIES=${Libssh_LIBRARY}
-					            -D-lasan
+			-D-fsanitize=address
           RUN_OUTPUT_VARIABLE TC_TRY_OUT)
   if (TC_CHECK_BUILD AND NOT TC_CHECK STREQUAL "0")
     message(STATUS "${TC_TRY_OUT}")
