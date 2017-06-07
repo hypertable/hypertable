@@ -182,7 +182,7 @@ install(FILES ${MAVEN_REPOSITORY}/commons-collections/commons-collections/3.2.1/
               DESTINATION lib/java/common)
 install(FILES ${MAVEN_REPOSITORY}/commons-configuration/commons-configuration/1.6/commons-configuration-1.6.jar
               DESTINATION lib/java/common)
-install(FILES ${MAVEN_REPOSITORY}/commons-io/commons-io/2.4/commons-io-2.4.jar
+install(FILES ${MAVEN_REPOSITORY}/commons-io/commons-io/2.1/commons-io-2.1.jar
               DESTINATION lib/java/common)
 install(FILES ${MAVEN_REPOSITORY}/commons-lang/commons-lang/2.6/commons-lang-2.6.jar
               DESTINATION lib/java/common)
@@ -222,6 +222,9 @@ if (HDFS_DIST MATCHES "^apache")
 		# Apache Hadoop 2 jars
 		install(FILES ${MAVEN_REPOSITORY}/org/apache/hadoop/hadoop-annotations/${HDFS_VERSION}/hadoop-annotations-${HDFS_VERSION}.jar
               DESTINATION lib/java/apache2)
+		install(FILES ${MAVEN_REPOSITORY}/org/apache/htrace/htrace-core/3.1.0-incubating/htrace-core-3.1.0-incubating.jar
+              DESTINATION lib/java/apache2)
+
 		install(FILES ${MAVEN_REPOSITORY}/org/apache/hadoop/hadoop-auth/${HDFS_VERSION}/hadoop-auth-${HDFS_VERSION}.jar
               DESTINATION lib/java/apache2)
 		install(FILES ${MAVEN_REPOSITORY}/org/apache/hadoop/hadoop-common/${HDFS_VERSION}/hadoop-common-${HDFS_VERSION}.jar
@@ -234,7 +237,6 @@ if (HDFS_DIST MATCHES "^apache")
               DESTINATION lib/java/apache2)
 		install(FILES ${HYPERTABLE_BINARY_DIR}/java/hypertable-examples/target/hypertable-examples-${VERSION}-apache2.jar
               DESTINATION lib/java/apache2)
-
 	endif ()
  
 elseif (HDFS_DIST MATCHES "cdh")    
