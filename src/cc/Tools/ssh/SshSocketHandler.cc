@@ -395,7 +395,7 @@ bool SshSocketHandler::handle(int sd, int events) {
       m_state = STATE_CHANNEL_REQUEST_READ;
       
     case (STATE_CHANNEL_REQUEST_READ):
-		for (int is_stderr = 0; is_stderr <= 1; is_stderr++) {
+		for (int is_stderr = 0; is_stderr <= 1;) {
 			while (true) {
 
 				if (m_stdout_buffer.base == 0)
@@ -433,6 +433,7 @@ bool SshSocketHandler::handle(int sd, int events) {
 					m_stdout_buffer = SshOutputCollector::Buffer();
 				}
 			}
+			is_stderr++;
 		}
 
 
