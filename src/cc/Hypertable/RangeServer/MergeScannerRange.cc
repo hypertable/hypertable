@@ -91,6 +91,11 @@ void MergeScannerRange::forward() {
   ScannerState sstate;
   Key key;
 
+  if (m_cell_limit != 0 && m_cell_count >= m_cell_limit) {
+    m_done = true;
+    return;
+  }
+
 forward:
   // empty queue? return to caller
   if (m_queue.empty())
@@ -218,12 +223,6 @@ forward:
 
     if (m_cell_limit)
       m_cell_count++;
-  }
-
-  if (m_cell_limit != 0 && m_cell_count > m_cell_limit)
-    m_done = true;
-
-  if (!m_done) {
     m_cells_output++;
     m_bytes_output += cur_bytes;
   }
@@ -231,8 +230,10 @@ forward:
 
 bool MergeScannerRange::get(Key &key, ByteString &value) {
 
-  if (!m_initialized)
+  if (!m_initialized) {
     initialize();
+    m_cell_count = 1;
+  }
 
   if (m_done)
     return false;
@@ -290,8 +291,6 @@ void MergeScannerRange::initialize() {
 
     if (m_cell_offset)
       m_cell_skipped = 1;
-    else if (!m_row_offset && m_cell_limit)
-      m_cell_count = 1;
 
     if (m_row_limit && !m_row_offset && !m_cell_offset)
       m_row_count = 1;
