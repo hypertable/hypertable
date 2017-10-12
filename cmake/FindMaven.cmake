@@ -43,7 +43,10 @@ exec_program(env ARGS javac -version OUTPUT_VARIABLE JAVAC_OUT
 
 if (JAVAC_RETURN STREQUAL "0")
   message(STATUS "    Javac: ${JAVAC_OUT}")
-  string(REGEX MATCH "1\\.[6-9]\\..*" JAVAC_VERSION ${JAVAC_OUT})
+  
+  if (NOT JAVAC_OUT STREQUAL "javac 9")
+	 string(REGEX MATCH "1\\.[6-9]\\..*" JAVAC_VERSION ${JAVAC_OUT})
+  endif ()
 
   if (NOT JAVAC_VERSION)
     message(STATUS "    Expected JDK 1.6 or greater. Skipping Java build")
