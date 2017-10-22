@@ -313,6 +313,9 @@ convert_scan_spec(const ThriftGen::ScanSpec &tss, Hypertable::ScanSpec &hss) {
   if (tss.__isset.and_column_predicates)
     hss.and_column_predicates = tss.and_column_predicates;
 
+  if (tss.__isset.debug)
+    hss.debug = tss.debug.c_str();
+
   // shallow copy
   const char *start_row;
   const char *end_row;
@@ -404,6 +407,9 @@ convert_scan_spec(const ThriftGen::ScanSpec &tss, Hypertable::ScanSpecBuilder &s
 
   if (tss.__isset.and_column_predicates)
     ssb.set_and_column_predicates(tss.and_column_predicates);
+
+  if (tss.__isset.debug)
+    ssb.set_debug(tss.debug.c_str());
 
   // columns
   ssb.reserve_columns(tss.columns.size());

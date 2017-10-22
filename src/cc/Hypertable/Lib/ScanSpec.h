@@ -33,6 +33,7 @@
 
 #include <boost/noncopyable.hpp>
 
+#include <cstring>
 #include <vector>
 
 namespace Hypertable {
@@ -91,6 +92,7 @@ namespace Lib {
       scan_and_filter_rows = false;
       do_not_cache = false;
       and_column_predicates = false;
+      debug = nullptr;
     }
 
     /// Initialize another ScanSpec object with this copy sans the intervals.
@@ -118,6 +120,7 @@ namespace Lib {
       other.column_predicates = column_predicates;
       other.and_column_predicates = and_column_predicates;
       other.rebuild_indices = rebuild_indices;
+      other.debug = debug;
     }
 
     bool cacheable() const {
@@ -265,6 +268,20 @@ namespace Lib {
       time_interval.second = end;
     }
 
+    void set_debug(CharArena &arena, const char *deb) {
+      if (debug != nullptr)
+        HT_THROWF(Error::BAD_SCAN_SPEC, "debug already set to '%s'", debug);
+      debug = arena.dup(deb);
+    }
+
+    bool debug_equals(const string &str) const {
+      return debug && str.compare(debug) == 0;
+    }
+
+    bool debug_contains(const string &str) const {
+      return debug && strstr(debug, str.c_str());
+    }
+
     int32_t row_limit {};
     int32_t cell_limit {};
     int32_t cell_limit_per_family {};
@@ -284,6 +301,7 @@ namespace Lib {
     bool do_not_cache {};
     bool and_column_predicates {};
     TableParts rebuild_indices;
+    const char *debug {};
 
   private:
 
@@ -548,6 +566,13 @@ namespace Lib {
     void set_and_column_predicates(bool val) {
       m_scan_spec.and_column_predicates = val;
     }
+
+    /**
+     * Sets the debug string
+     *
+     * @param debug Debug string
+     */
+    void set_debug(const char* debug) { m_scan_spec.set_debug(m_arena, debug); }
 
     /**
      * Clears the state.

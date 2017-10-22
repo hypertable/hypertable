@@ -725,6 +725,11 @@ void ScanSpec::__set_and_column_predicates(const bool val) {
 __isset.and_column_predicates = true;
 }
 
+void ScanSpec::__set_debug(const std::string& val) {
+  this->debug = val;
+__isset.debug = true;
+}
+
 uint32_t ScanSpec::read(::apache::thrift::protocol::TProtocol* iprot) {
 
   apache::thrift::protocol::TInputRecursionTracker tracker(*iprot);
@@ -946,6 +951,14 @@ uint32_t ScanSpec::read(::apache::thrift::protocol::TProtocol* iprot) {
           xfer += iprot->skip(ftype);
         }
         break;
+      case 20:
+        if (ftype == ::apache::thrift::protocol::T_STRING) {
+          xfer += iprot->readString(this->debug);
+          this->__isset.debug = true;
+        } else {
+          xfer += iprot->skip(ftype);
+        }
+        break;
       default:
         xfer += iprot->skip(ftype);
         break;
@@ -1090,6 +1103,11 @@ uint32_t ScanSpec::write(::apache::thrift::protocol::TProtocol* oprot) const {
     xfer += oprot->writeBool(this->and_column_predicates);
     xfer += oprot->writeFieldEnd();
   }
+  if (this->__isset.debug) {
+    xfer += oprot->writeFieldBegin("debug", ::apache::thrift::protocol::T_STRING, 20);
+    xfer += oprot->writeString(this->debug);
+    xfer += oprot->writeFieldEnd();
+  }
   xfer += oprot->writeFieldStop();
   xfer += oprot->writeStructEnd();
   return xfer;
@@ -1116,6 +1134,7 @@ void swap(ScanSpec &a, ScanSpec &b) {
   swap(a.column_predicates, b.column_predicates);
   swap(a.do_not_cache, b.do_not_cache);
   swap(a.and_column_predicates, b.and_column_predicates);
+  swap(a.debug, b.debug);
   swap(a.__isset, b.__isset);
 }
 
@@ -1139,6 +1158,7 @@ ScanSpec::ScanSpec(const ScanSpec& other30) {
   column_predicates = other30.column_predicates;
   do_not_cache = other30.do_not_cache;
   and_column_predicates = other30.and_column_predicates;
+  debug = other30.debug;
   __isset = other30.__isset;
 }
 ScanSpec& ScanSpec::operator=(const ScanSpec& other31) {
@@ -1161,6 +1181,7 @@ ScanSpec& ScanSpec::operator=(const ScanSpec& other31) {
   column_predicates = other31.column_predicates;
   do_not_cache = other31.do_not_cache;
   and_column_predicates = other31.and_column_predicates;
+  debug = other31.debug;
   __isset = other31.__isset;
   return *this;
 }
@@ -1186,6 +1207,7 @@ void ScanSpec::printTo(std::ostream& out) const {
   out << ", " << "column_predicates="; (__isset.column_predicates ? (out << to_string(column_predicates)) : (out << "<null>"));
   out << ", " << "do_not_cache="; (__isset.do_not_cache ? (out << to_string(do_not_cache)) : (out << "<null>"));
   out << ", " << "and_column_predicates="; (__isset.and_column_predicates ? (out << to_string(and_column_predicates)) : (out << "<null>"));
+  out << ", " << "debug="; (__isset.debug ? (out << to_string(debug)) : (out << "<null>"));
   out << ")";
 }
 

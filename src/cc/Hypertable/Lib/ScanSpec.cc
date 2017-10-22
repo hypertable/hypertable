@@ -37,7 +37,7 @@ using namespace Hypertable::Lib;
 using namespace std;
 
 uint8_t ScanSpec::encoding_version() const {
-  return 1;
+  return 2;
 }
 
 size_t ScanSpec::encoded_length_internal() const {
@@ -62,7 +62,10 @@ size_t ScanSpec::encoded_length_internal() const {
     len += ci.encoded_length();
   for (auto &cp : column_predicates)
     len += cp.encoded_length();
-  return len + 8 + 8 + 5;
+  len += (8 + 8 + 5);
+  // v2
+  len += Serialization::encoded_length_vstr(debug);
+  return len;
 }
 
 /// @details
@@ -97,6 +100,8 @@ size_t ScanSpec::encoded_length_internal() const {
 /// <tr><td>bool</td><td><i>scan and filter rows</i> flag</td></tr>
 /// <tr><td>bool</td><td><i>do not cache</i> flag</td></tr>
 /// <tr><td>bool</td><td><i>and column predicates</i> flag</td></tr>
+/// <tr><td>verison 2</td></tr>
+/// <tr><td>vstr</td><td>Debug string</td></tr>
 /// </table>
 void ScanSpec::encode_internal(uint8_t **bufp) const {
   Serialization::encode_vi32(bufp, row_offset);
@@ -123,10 +128,11 @@ void ScanSpec::encode_internal(uint8_t **bufp) const {
   Serialization::encode_bool(bufp, do_not_cache);
   Serialization::encode_bool(bufp, and_column_predicates);
   rebuild_indices.encode(bufp);
+  Serialization::encode_vstr(bufp, debug);
 }
 
 void ScanSpec::decode_internal(uint8_t version, const uint8_t **bufp,
-                                      size_t *remainp) {
+                               size_t *remainp) {
   RowInterval ri;
   CellInterval ci;
   ColumnPredicate cp;
@@ -161,6 +167,9 @@ void ScanSpec::decode_internal(uint8_t version, const uint8_t **bufp,
          do_not_cache = Serialization::decode_bool(bufp, remainp);
          and_column_predicates = Serialization::decode_bool(bufp, remainp);
          rebuild_indices.decode(bufp, remainp));
+  if (version >= 2)
+    HT_TRY("decoding scan spec (v2)",
+           debug = Serialization::decode_vstr(bufp, remainp));
 }
 
 const string ScanSpec::render_hql(const string &table) const {
@@ -294,6 +303,9 @@ const string ScanSpec::render_hql(const string &table) const {
   if (rebuild_indices)
     hql.append(format(" REBUILD_INDICES %s", rebuild_indices.to_string().c_str()));
 
+  if (debug)
+    hql.append(format(" DEBUG \"%s\"", debug));
+
   return hql;
 }
 
@@ -383,6 +395,9 @@ ostream &Hypertable::Lib::operator<<(ostream &os, const ScanSpec &scan_spec) {
   if (scan_spec.rebuild_indices)
     os << " rebuild_indices=" << scan_spec.rebuild_indices.to_string();
 
+  if (scan_spec.debug)
+    os << " debug=\"" << scan_spec.debug << "\"";
+
   os << "}";
 
   return os;
@@ -402,7 +417,7 @@ ScanSpec::ScanSpec(CharArena &arena, const ScanSpec &ss)
     return_deletes(ss.return_deletes), keys_only(ss.keys_only),
     scan_and_filter_rows(ss.scan_and_filter_rows),
     do_not_cache(ss.do_not_cache), and_column_predicates(ss.and_column_predicates),
-    rebuild_indices(ss.rebuild_indices) {
+    rebuild_indices(ss.rebuild_indices), debug(arena.dup(ss.debug)) {
   columns.reserve(ss.columns.size());
   row_intervals.reserve(ss.row_intervals.size());
   cell_intervals.reserve(ss.cell_intervals.size());

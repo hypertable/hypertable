@@ -370,7 +370,7 @@ inline std::ostream& operator<<(std::ostream& out, const ColumnPredicate& obj)
 }
 
 typedef struct _ScanSpec__isset {
-  _ScanSpec__isset() : row_intervals(false), cell_intervals(false), return_deletes(true), versions(true), row_limit(true), start_time(false), end_time(false), columns(false), keys_only(true), cell_limit(true), cell_limit_per_family(true), row_regexp(false), value_regexp(false), scan_and_filter_rows(true), row_offset(true), cell_offset(true), column_predicates(false), do_not_cache(true), and_column_predicates(true) {}
+  _ScanSpec__isset() : row_intervals(false), cell_intervals(false), return_deletes(true), versions(true), row_limit(true), start_time(false), end_time(false), columns(false), keys_only(true), cell_limit(true), cell_limit_per_family(true), row_regexp(false), value_regexp(false), scan_and_filter_rows(true), row_offset(true), cell_offset(true), column_predicates(false), do_not_cache(true), and_column_predicates(true), debug(false) {}
   bool row_intervals :1;
   bool cell_intervals :1;
   bool return_deletes :1;
@@ -390,6 +390,7 @@ typedef struct _ScanSpec__isset {
   bool column_predicates :1;
   bool do_not_cache :1;
   bool and_column_predicates :1;
+  bool debug :1;
 } _ScanSpec__isset;
 
 class ScanSpec {
@@ -397,7 +398,7 @@ class ScanSpec {
 
   ScanSpec(const ScanSpec&);
   ScanSpec& operator=(const ScanSpec&);
-  ScanSpec() : return_deletes(false), versions(0), row_limit(0), start_time(0), end_time(0), keys_only(false), cell_limit(0), cell_limit_per_family(0), row_regexp(), value_regexp(), scan_and_filter_rows(false), row_offset(0), cell_offset(0), do_not_cache(false), and_column_predicates(false) {
+  ScanSpec() : return_deletes(false), versions(0), row_limit(0), start_time(0), end_time(0), keys_only(false), cell_limit(0), cell_limit_per_family(0), row_regexp(), value_regexp(), scan_and_filter_rows(false), row_offset(0), cell_offset(0), do_not_cache(false), and_column_predicates(false), debug() {
   }
 
   virtual ~ScanSpec() throw();
@@ -420,6 +421,7 @@ class ScanSpec {
   std::vector<ColumnPredicate>  column_predicates;
   bool do_not_cache;
   bool and_column_predicates;
+  std::string debug;
 
   _ScanSpec__isset __isset;
 
@@ -460,6 +462,8 @@ class ScanSpec {
   void __set_do_not_cache(const bool val);
 
   void __set_and_column_predicates(const bool val);
+
+  void __set_debug(const std::string& val);
 
   bool operator == (const ScanSpec & rhs) const
   {
@@ -538,6 +542,10 @@ class ScanSpec {
     if (__isset.and_column_predicates != rhs.__isset.and_column_predicates)
       return false;
     else if (__isset.and_column_predicates && !(and_column_predicates == rhs.and_column_predicates))
+      return false;
+    if (__isset.debug != rhs.__isset.debug)
+      return false;
+    else if (__isset.debug && !(debug == rhs.debug))
       return false;
     return true;
   }

@@ -421,7 +421,7 @@ sub write {
 
 package Hypertable::ThriftGen::ScanSpec;
 use base qw(Class::Accessor);
-Hypertable::ThriftGen::ScanSpec->mk_accessors( qw( row_intervals cell_intervals return_deletes versions row_limit start_time end_time columns keys_only cell_limit cell_limit_per_family row_regexp value_regexp scan_and_filter_rows row_offset cell_offset column_predicates do_not_cache and_column_predicates ) );
+Hypertable::ThriftGen::ScanSpec->mk_accessors( qw( row_intervals cell_intervals return_deletes versions row_limit start_time end_time columns keys_only cell_limit cell_limit_per_family row_regexp value_regexp scan_and_filter_rows row_offset cell_offset column_predicates do_not_cache and_column_predicates debug ) );
 
 sub new {
   my $classname = shift;
@@ -446,6 +446,7 @@ sub new {
   $self->{column_predicates} = undef;
   $self->{do_not_cache} = 0;
   $self->{and_column_predicates} = 0;
+  $self->{debug} = undef;
   if (UNIVERSAL::isa($vals,'HASH')) {
     if (defined $vals->{row_intervals}) {
       $self->{row_intervals} = $vals->{row_intervals};
@@ -503,6 +504,9 @@ sub new {
     }
     if (defined $vals->{and_column_predicates}) {
       $self->{and_column_predicates} = $vals->{and_column_predicates};
+    }
+    if (defined $vals->{debug}) {
+      $self->{debug} = $vals->{debug};
     }
   }
   return bless ($self, $classname);
@@ -692,6 +696,12 @@ sub read {
         $xfer += $input->skip($ftype);
       }
       last; };
+      /^20$/ && do{      if ($ftype == TType::STRING) {
+        $xfer += $input->readString(\$self->{debug});
+      } else {
+        $xfer += $input->skip($ftype);
+      }
+      last; };
         $xfer += $input->skip($ftype);
     }
     $xfer += $input->readFieldEnd();
@@ -833,6 +843,11 @@ sub write {
   if (defined $self->{and_column_predicates}) {
     $xfer += $output->writeFieldBegin('and_column_predicates', TType::BOOL, 19);
     $xfer += $output->writeBool($self->{and_column_predicates});
+    $xfer += $output->writeFieldEnd();
+  }
+  if (defined $self->{debug}) {
+    $xfer += $output->writeFieldBegin('debug', TType::STRING, 20);
+    $xfer += $output->writeString($self->{debug});
     $xfer += $output->writeFieldEnd();
   }
   $xfer += $output->writeFieldStop();

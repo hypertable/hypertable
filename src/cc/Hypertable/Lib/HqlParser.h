@@ -2182,6 +2182,18 @@ namespace Hypertable {
       ParserState &state;
     };
 
+    struct scan_set_debug {
+      scan_set_debug(ParserState &state) : state(state) { }
+      void operator()(char const *str, char const *end) const {
+        if (state.scan.builder.get().debug != nullptr)
+          HT_THROW(Error::HQL_PARSE_ERROR,
+                   "DEBUG predicate multiply defined.");
+        std::string debug = strip_quotes(str, end-str);
+        state.scan.builder.set_debug(debug.c_str());
+      }
+      ParserState &state;
+    };
+
     struct set_insert_timestamp {
       set_insert_timestamp(ParserState &state) : state(state) { }
       void operator()(char const *str, char const *end) const {
@@ -2447,7 +2459,7 @@ namespace Hypertable {
             "into", "INTO", "Into", "table", "TABLE", "Table", "NAMESPACE", "Namespace",
             "cells", "CELLS", "value", "VALUE", "regexp", "REGEXP", "wait", "WAIT"
             "for", "FOR", "maintenance", "MAINTENANCE", "index", "INDEX", 
-            "qualifier", "QUALIFIER";
+            "qualifier", "QUALIFIER", "debug", "DEBUG";
 
           /**
            * OPERATORS
@@ -2641,6 +2653,7 @@ namespace Hypertable {
           Token REBUILD      = as_lower_d["rebuild"];
           Token INDICES      = as_lower_d["indices"];
           Token STATUS       = as_lower_d["status"];
+          Token DEBUG        = as_lower_d["debug"];
 
           /**
            * Start grammar definition
@@ -3318,6 +3331,7 @@ namespace Hypertable {
             | NO_ESCAPE[set_noescape(self.state)]
             | SCAN_AND_FILTER_ROWS[scan_set_scan_and_filter_rows(self.state)]
             | FS >> EQUAL >> single_string_literal[set_field_separator(self.state)]
+            | DEBUG >> single_string_literal[scan_set_debug(self.state)]
             ;
 
           unused_tokens

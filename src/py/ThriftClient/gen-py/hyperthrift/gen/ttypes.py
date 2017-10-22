@@ -643,6 +643,7 @@ class ScanSpec(object):
    - column_predicates
    - do_not_cache
    - and_column_predicates
+   - debug
   """
 
   thrift_spec = (
@@ -666,9 +667,10 @@ class ScanSpec(object):
     (17, TType.LIST, 'column_predicates', (TType.STRUCT,(ColumnPredicate, ColumnPredicate.thrift_spec)), None, ), # 17
     (18, TType.BOOL, 'do_not_cache', None, False, ), # 18
     (19, TType.BOOL, 'and_column_predicates', None, False, ), # 19
+    (20, TType.STRING, 'debug', None, None, ), # 20
   )
 
-  def __init__(self, row_intervals=None, cell_intervals=None, return_deletes=thrift_spec[3][4], versions=thrift_spec[4][4], row_limit=thrift_spec[5][4], start_time=None, end_time=None, columns=None, keys_only=thrift_spec[9][4], cell_limit=thrift_spec[14][4], cell_limit_per_family=thrift_spec[10][4], row_regexp=None, value_regexp=None, scan_and_filter_rows=thrift_spec[13][4], row_offset=thrift_spec[15][4], cell_offset=thrift_spec[16][4], column_predicates=None, do_not_cache=thrift_spec[18][4], and_column_predicates=thrift_spec[19][4],):
+  def __init__(self, row_intervals=None, cell_intervals=None, return_deletes=thrift_spec[3][4], versions=thrift_spec[4][4], row_limit=thrift_spec[5][4], start_time=None, end_time=None, columns=None, keys_only=thrift_spec[9][4], cell_limit=thrift_spec[14][4], cell_limit_per_family=thrift_spec[10][4], row_regexp=None, value_regexp=None, scan_and_filter_rows=thrift_spec[13][4], row_offset=thrift_spec[15][4], cell_offset=thrift_spec[16][4], column_predicates=None, do_not_cache=thrift_spec[18][4], and_column_predicates=thrift_spec[19][4], debug=None,):
     self.row_intervals = row_intervals
     self.cell_intervals = cell_intervals
     self.return_deletes = return_deletes
@@ -688,6 +690,7 @@ class ScanSpec(object):
     self.column_predicates = column_predicates
     self.do_not_cache = do_not_cache
     self.and_column_predicates = and_column_predicates
+    self.debug = debug
 
   def read(self, iprot):
     if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
@@ -816,6 +819,11 @@ class ScanSpec(object):
           self.and_column_predicates = iprot.readBool()
         else:
           iprot.skip(ftype)
+      elif fid == 20:
+        if ftype == TType.STRING:
+          self.debug = iprot.readString()
+        else:
+          iprot.skip(ftype)
       else:
         iprot.skip(ftype)
       iprot.readFieldEnd()
@@ -914,6 +922,10 @@ class ScanSpec(object):
       oprot.writeFieldBegin('and_column_predicates', TType.BOOL, 19)
       oprot.writeBool(self.and_column_predicates)
       oprot.writeFieldEnd()
+    if self.debug is not None:
+      oprot.writeFieldBegin('debug', TType.STRING, 20)
+      oprot.writeString(self.debug)
+      oprot.writeFieldEnd()
     oprot.writeFieldStop()
     oprot.writeStructEnd()
 
@@ -942,6 +954,7 @@ class ScanSpec(object):
     value = (value * 31) ^ hash(self.column_predicates)
     value = (value * 31) ^ hash(self.do_not_cache)
     value = (value * 31) ^ hash(self.and_column_predicates)
+    value = (value * 31) ^ hash(self.debug)
     return value
 
   def __repr__(self):

@@ -832,6 +832,10 @@ class ScanSpec {
    * @var bool
    */
   public $and_column_predicates = false;
+  /**
+   * @var string
+   */
+  public $debug = null;
 
   public function __construct($vals=null) {
     if (!isset(self::$_TSPEC)) {
@@ -931,6 +935,10 @@ class ScanSpec {
           'var' => 'and_column_predicates',
           'type' => TType::BOOL,
           ),
+        20 => array(
+          'var' => 'debug',
+          'type' => TType::STRING,
+          ),
         );
     }
     if (is_array($vals)) {
@@ -990,6 +998,9 @@ class ScanSpec {
       }
       if (isset($vals['and_column_predicates'])) {
         $this->and_column_predicates = $vals['and_column_predicates'];
+      }
+      if (isset($vals['debug'])) {
+        $this->debug = $vals['debug'];
       }
     }
   }
@@ -1189,6 +1200,13 @@ class ScanSpec {
             $xfer += $input->skip($ftype);
           }
           break;
+        case 20:
+          if ($ftype == TType::STRING) {
+            $xfer += $input->readString($this->debug);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
         default:
           $xfer += $input->skip($ftype);
           break;
@@ -1343,6 +1361,11 @@ class ScanSpec {
     if ($this->and_column_predicates !== null) {
       $xfer += $output->writeFieldBegin('and_column_predicates', TType::BOOL, 19);
       $xfer += $output->writeBool($this->and_column_predicates);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->debug !== null) {
+      $xfer += $output->writeFieldBegin('debug', TType::STRING, 20);
+      $xfer += $output->writeString($this->debug);
       $xfer += $output->writeFieldEnd();
     }
     $xfer += $output->writeFieldStop();

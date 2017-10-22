@@ -250,6 +250,7 @@ struct ScanSpec {
   17:optional list<ColumnPredicate> column_predicates
   18:optional bool do_not_cache = 0
   19:optional bool and_column_predicates = 0
+  20:optional string debug
 }
 
 
