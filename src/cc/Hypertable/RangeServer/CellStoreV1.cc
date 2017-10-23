@@ -91,7 +91,7 @@ BlockCompressionCodec *CellStoreV1::create_block_compression_codec() {
 
 
 CellListScannerPtr CellStoreV1::create_scanner(ScanContext *scan_ctx) {
-  bool need_index =  m_restricted_range || scan_ctx->restricted_range || scan_ctx->single_row;
+  bool need_index =  m_restricted_range || scan_ctx->restricted_range || scan_ctx->use_index;
 
   if (need_index) {
     m_index_stats.block_index_access_counter = ++Global::access_counter;

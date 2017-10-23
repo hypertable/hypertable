@@ -96,7 +96,7 @@ CellStoreScanner<IndexT>::CellStoreScanner(CellStorePtr &&cellstore, ScanContext
     else
       end_key.ptr = scan_ctx->end_serkey.ptr;
 
-    if (scan_ctx->single_row)
+    if (scan_ctx->use_index)
       m_interval_scanners[m_interval_max++] = make_unique<CellStoreScannerIntervalBlockIndex<IndexT>>(cellstore, index, scan_ctx->start_serkey, end_key, scan_ctx);
     else
       m_interval_scanners[m_interval_max++] = make_unique<CellStoreScannerIntervalReadahead<IndexT>>(cellstore, index, scan_ctx->start_serkey, scan_ctx->end_serkey, scan_ctx);
@@ -134,8 +134,7 @@ CellStoreScanner<IndexT>::CellStoreScanner(CellStorePtr &&cellstore, ScanContext
       readahead =  readahead || (!strcmp(scan_ctx->end_key.row, Key::END_ROW_MARKER));
     }
 
-    // dont do readahead for single row scans
-    if (scan_ctx->single_row)
+    if (scan_ctx->use_index)
       readahead = false;
 
     if (readahead)

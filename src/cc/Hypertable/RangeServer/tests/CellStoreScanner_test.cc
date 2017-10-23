@@ -562,6 +562,11 @@ namespace {
       out << replaced_files_read[ii] << "\n";
     }
   }
+  bool gUseIndex = false;
+  void maybe_set_use_index(ScanContext *scan_ctx) {
+    if (gUseIndex)
+      scan_ctx->use_index = true;
+  }
 }
 
 
@@ -590,6 +595,9 @@ int main(int argc, char **argv) {
     replaced_files_write.push_back("/hypertable/tables/0/1/default/qyoNKN5rd__dbHKv/cs11");
 
     Config::init(argc, argv);
+
+    if (argc == 2 && strcmp(argv[1], "use_index") == 0)
+      gUseIndex = true;
 
     if (Config::has("help"))
       Usage::dump_and_exit(usage);
@@ -749,6 +757,7 @@ int main(int argc, char **argv) {
       ssbuilder.add_cell(keyv[i].row, column.c_str());
       scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                      schema);
+      maybe_set_use_index(scan_ctx.get());
       scanner = cs->create_scanner(scan_ctx.get());
       count = display_scan(scanner, out);
 
@@ -780,6 +789,7 @@ int main(int argc, char **argv) {
                                "http://www.Boulangism.com/", true);
     scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
+    maybe_set_use_index(scan_ctx.get());
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
 
@@ -789,6 +799,7 @@ int main(int argc, char **argv) {
                                "http://www.Boulangism.com/", true);
     scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
+    maybe_set_use_index(scan_ctx.get());
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
 
@@ -798,6 +809,7 @@ int main(int argc, char **argv) {
                                "http://www.Boulangism.com/", false);
     scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
+    maybe_set_use_index(scan_ctx.get());
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
 
@@ -807,6 +819,7 @@ int main(int argc, char **argv) {
                                "http://www.Boulangism.com/", false);
     scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
+    maybe_set_use_index(scan_ctx.get());
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
 
@@ -816,6 +829,7 @@ int main(int argc, char **argv) {
                                "http://www.unscramble.com/", true);
     scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
+    maybe_set_use_index(scan_ctx.get());
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
 
@@ -825,6 +839,7 @@ int main(int argc, char **argv) {
                                "http://www.unscramble.com/", true);
     scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
+    maybe_set_use_index(scan_ctx.get());
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
 
@@ -834,6 +849,7 @@ int main(int argc, char **argv) {
                                "http://www.unscramble.com/", false);
     scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
+    maybe_set_use_index(scan_ctx.get());
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
 
@@ -843,6 +859,7 @@ int main(int argc, char **argv) {
                                "http://www.unscramble.com/", false);
     scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
+    maybe_set_use_index(scan_ctx.get());
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
 
@@ -852,6 +869,7 @@ int main(int argc, char **argv) {
                                "http://www.Texas.com/", true);
     scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
+    maybe_set_use_index(scan_ctx.get());
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
 
@@ -861,6 +879,7 @@ int main(int argc, char **argv) {
                                "http://www.Texas.com/", true);
     scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
+    maybe_set_use_index(scan_ctx.get());
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
 
@@ -870,6 +889,7 @@ int main(int argc, char **argv) {
                                "http://www.Texas.com/", false);
     scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
+    maybe_set_use_index(scan_ctx.get());
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
 
@@ -879,6 +899,7 @@ int main(int argc, char **argv) {
                                "http://www.Texas.com/", false);
     scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
+    maybe_set_use_index(scan_ctx.get());
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
 
@@ -888,6 +909,7 @@ int main(int argc, char **argv) {
                                "http://www.carlings.com/", true);
     scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
+    maybe_set_use_index(scan_ctx.get());
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
 
@@ -897,6 +919,7 @@ int main(int argc, char **argv) {
                                "http://www.carlings.com/", true);
     scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
+    maybe_set_use_index(scan_ctx.get());
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
 
@@ -906,6 +929,7 @@ int main(int argc, char **argv) {
                                "http://www.carlings.com/", false);
     scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
+    maybe_set_use_index(scan_ctx.get());
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
 
@@ -915,6 +939,7 @@ int main(int argc, char **argv) {
                                "http://www.carlings.com/", false);
     scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
+    maybe_set_use_index(scan_ctx.get());
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
 
@@ -924,6 +949,7 @@ int main(int argc, char **argv) {
                                "http://www.omega.com/", true);
     scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
+    maybe_set_use_index(scan_ctx.get());
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
 
@@ -933,6 +959,7 @@ int main(int argc, char **argv) {
                                "http://www.omega.com/", true);
     scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
+    maybe_set_use_index(scan_ctx.get());
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
 
@@ -942,6 +969,7 @@ int main(int argc, char **argv) {
                                "http://www.omega.com/", false);
     scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
+    maybe_set_use_index(scan_ctx.get());
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
 
@@ -951,6 +979,7 @@ int main(int argc, char **argv) {
                                "http://www.omega.com/", false);
     scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
+    maybe_set_use_index(scan_ctx.get());
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
 
@@ -960,6 +989,7 @@ int main(int argc, char **argv) {
                                "http://www.oometry.com/", true);
     scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
+    maybe_set_use_index(scan_ctx.get());
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
 
@@ -969,6 +999,7 @@ int main(int argc, char **argv) {
                                "http://www.oometry.com/", true);
     scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
+    maybe_set_use_index(scan_ctx.get());
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
 
@@ -978,6 +1009,7 @@ int main(int argc, char **argv) {
                                "http://www.oometry.com/", false);
     scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
+    maybe_set_use_index(scan_ctx.get());
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
 
@@ -987,6 +1019,7 @@ int main(int argc, char **argv) {
                                "http://www.oometry.com/", false);
     scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
+    maybe_set_use_index(scan_ctx.get());
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
 
@@ -996,6 +1029,7 @@ int main(int argc, char **argv) {
                                "http://www.vipresident.com/", true);
     scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
+    maybe_set_use_index(scan_ctx.get());
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
 
@@ -1005,6 +1039,7 @@ int main(int argc, char **argv) {
                                "http://www.vipresident.com/", true);
     scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
+    maybe_set_use_index(scan_ctx.get());
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
 
@@ -1014,6 +1049,7 @@ int main(int argc, char **argv) {
                                "http://www.vipresident.com/", false);
     scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
+    maybe_set_use_index(scan_ctx.get());
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
 
@@ -1023,6 +1059,7 @@ int main(int argc, char **argv) {
                                "http://www.vipresident.com/", false);
     scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
+    maybe_set_use_index(scan_ctx.get());
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
 
@@ -1032,6 +1069,7 @@ int main(int argc, char **argv) {
                                "http://www.younglet.com/", true);
     scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
+    maybe_set_use_index(scan_ctx.get());
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
 
@@ -1041,6 +1079,7 @@ int main(int argc, char **argv) {
                                "http://www.younglet.com/", true);
     scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
+    maybe_set_use_index(scan_ctx.get());
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
 
@@ -1050,6 +1089,7 @@ int main(int argc, char **argv) {
                                "http://www.younglet.com/", false);
     scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
+    maybe_set_use_index(scan_ctx.get());
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
 
@@ -1059,6 +1099,7 @@ int main(int argc, char **argv) {
                                "http://www.younglet.com/", false);
     scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
+    maybe_set_use_index(scan_ctx.get());
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
 
@@ -1073,6 +1114,7 @@ int main(int argc, char **argv) {
     ssbuilder.add_cell(deleted_row.c_str(), deleted_column.c_str());
     scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
+    maybe_set_use_index(scan_ctx.get());
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
 
@@ -1082,6 +1124,7 @@ int main(int argc, char **argv) {
     ssbuilder.add_cell(deleted_row.c_str(), deleted_column.c_str());
     scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
+    maybe_set_use_index(scan_ctx.get());
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
 
@@ -1093,6 +1136,7 @@ int main(int argc, char **argv) {
     ssbuilder.add_column(cf_foo.c_str());
     scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
+    maybe_set_use_index(scan_ctx.get());
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
 
@@ -1102,6 +1146,7 @@ int main(int argc, char **argv) {
     ssbuilder.add_cell(cf_foo_row.c_str(), cf_foo.c_str());
     scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
+    maybe_set_use_index(scan_ctx.get());
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
 
@@ -1115,6 +1160,7 @@ int main(int argc, char **argv) {
         "http://www.Boulangism.com/", "tag:laminiplantar", true);
     scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
+    maybe_set_use_index(scan_ctx.get());
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
 
@@ -1124,6 +1170,7 @@ int main(int argc, char **argv) {
         "http://www.Boulangism.com/", "tag:laminiplantar", true);
     scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
+    maybe_set_use_index(scan_ctx.get());
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
 
@@ -1133,6 +1180,7 @@ int main(int argc, char **argv) {
         "http://www.Boulangism.com/", "tag:laminiplantar", false);
     scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
+    maybe_set_use_index(scan_ctx.get());
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
 
@@ -1142,6 +1190,7 @@ int main(int argc, char **argv) {
         "http://www.Boulangism.com/", "tag:laminiplantar", false);
     scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
+    maybe_set_use_index(scan_ctx.get());
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
 
@@ -1151,6 +1200,7 @@ int main(int argc, char **argv) {
         true, "http://www.unscramble.com/", "tag:milliform", true);
     scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
+    maybe_set_use_index(scan_ctx.get());
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
 
@@ -1160,6 +1210,7 @@ int main(int argc, char **argv) {
         false, "http://www.unscramble.com/", "tag:milliform", true);
     scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
+    maybe_set_use_index(scan_ctx.get());
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
 
@@ -1169,6 +1220,7 @@ int main(int argc, char **argv) {
         true, "http://www.unscramble.com/", "tag:milliform", false);
     scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
+    maybe_set_use_index(scan_ctx.get());
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
 
@@ -1178,6 +1230,7 @@ int main(int argc, char **argv) {
         false, "http://www.unscramble.com/", "tag:milliform", false);
     scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
+    maybe_set_use_index(scan_ctx.get());
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
 
@@ -1187,6 +1240,7 @@ int main(int argc, char **argv) {
         "http://www.Texas.com/", "tag:semimembranosus", true);
     scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
+    maybe_set_use_index(scan_ctx.get());
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
 
@@ -1196,6 +1250,7 @@ int main(int argc, char **argv) {
         false, "http://www.Texas.com/", "tag:semimembranosus", true);
     scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
+    maybe_set_use_index(scan_ctx.get());
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
 
@@ -1205,6 +1260,7 @@ int main(int argc, char **argv) {
         "http://www.Texas.com/", "tag:semimembranosus", false);
     scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
+    maybe_set_use_index(scan_ctx.get());
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
 
@@ -1214,6 +1270,7 @@ int main(int argc, char **argv) {
         false, "http://www.Texas.com/", "tag:semimembranosus", false);
     scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
+    maybe_set_use_index(scan_ctx.get());
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
 
@@ -1223,6 +1280,7 @@ int main(int argc, char **argv) {
         true, "http://www.carlings.com/", "tag:dilogy", true);
     scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
+    maybe_set_use_index(scan_ctx.get());
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
 
@@ -1232,6 +1290,7 @@ int main(int argc, char **argv) {
         false, "http://www.carlings.com/", "tag:dilogy", true);
     scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
+    maybe_set_use_index(scan_ctx.get());
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
 
@@ -1241,6 +1300,7 @@ int main(int argc, char **argv) {
         true, "http://www.carlings.com/", "tag:dilogy", false);
     scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
+    maybe_set_use_index(scan_ctx.get());
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
 
@@ -1250,6 +1310,7 @@ int main(int argc, char **argv) {
         false, "http://www.carlings.com/", "tag:dilogy", false);
     scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
+    maybe_set_use_index(scan_ctx.get());
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
 
@@ -1259,6 +1320,7 @@ int main(int argc, char **argv) {
         true, "http://www.omega.com/", "tag:muskroot", true);
     scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
+    maybe_set_use_index(scan_ctx.get());
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
 
@@ -1268,6 +1330,7 @@ int main(int argc, char **argv) {
         false, "http://www.omega.com/", "tag:muskroot", true);
     scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
+    maybe_set_use_index(scan_ctx.get());
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
 
@@ -1277,6 +1340,7 @@ int main(int argc, char **argv) {
         true, "http://www.omega.com/", "tag:muskroot", false);
     scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
+    maybe_set_use_index(scan_ctx.get());
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
 
@@ -1286,6 +1350,7 @@ int main(int argc, char **argv) {
         false, "http://www.omega.com/", "tag:muskroot", false);
     scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
+    maybe_set_use_index(scan_ctx.get());
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
 
@@ -1295,6 +1360,7 @@ int main(int argc, char **argv) {
         "http://www.oometry.com/", "tag:nubigenous", true);
     scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
+    maybe_set_use_index(scan_ctx.get());
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
 
@@ -1304,6 +1370,7 @@ int main(int argc, char **argv) {
         "http://www.oometry.com/", "tag:nubigenous", true);
     scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
+    maybe_set_use_index(scan_ctx.get());
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
 
@@ -1313,6 +1380,7 @@ int main(int argc, char **argv) {
         "http://www.oometry.com/", "tag:nubigenous", false);
     scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
+    maybe_set_use_index(scan_ctx.get());
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
 
@@ -1322,6 +1390,7 @@ int main(int argc, char **argv) {
         "http://www.oometry.com/", "tag:nubigenous", false);
     scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
+    maybe_set_use_index(scan_ctx.get());
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
 
@@ -1332,6 +1401,7 @@ int main(int argc, char **argv) {
         true);
     scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
+    maybe_set_use_index(scan_ctx.get());
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
 
@@ -1342,6 +1412,7 @@ int main(int argc, char **argv) {
         true);
     scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
+    maybe_set_use_index(scan_ctx.get());
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
 
@@ -1352,6 +1423,7 @@ int main(int argc, char **argv) {
         false);
     scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
+    maybe_set_use_index(scan_ctx.get());
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
 
@@ -1362,6 +1434,7 @@ int main(int argc, char **argv) {
         false);
     scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
+    maybe_set_use_index(scan_ctx.get());
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
 
@@ -1371,6 +1444,7 @@ int main(int argc, char **argv) {
         "http://www.younglet.com/", "tag:laeotropism", true);
     scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                schema);
+    maybe_set_use_index(scan_ctx.get());
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
 
@@ -1380,6 +1454,7 @@ int main(int argc, char **argv) {
         "http://www.younglet.com/", "tag:laeotropism", true);
     scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                schema);
+    maybe_set_use_index(scan_ctx.get());
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
 
@@ -1389,6 +1464,7 @@ int main(int argc, char **argv) {
         "http://www.younglet.com/", "tag:laeotropism", false);
     scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                schema);
+    maybe_set_use_index(scan_ctx.get());
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
 
@@ -1398,6 +1474,7 @@ int main(int argc, char **argv) {
         "http://www.younglet.com/", "tag:laeotropism", false);
     scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                schema);
+    maybe_set_use_index(scan_ctx.get());
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
 
@@ -1413,6 +1490,7 @@ int main(int argc, char **argv) {
     ssbuilder.add_row_interval("", true, Key::END_ROW_MARKER, true);
     scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                schema);
+    maybe_set_use_index(scan_ctx.get());
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
 
@@ -1423,6 +1501,7 @@ int main(int argc, char **argv) {
     ssbuilder.add_row_interval("", true, Key::END_ROW_MARKER, true);
     scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                schema);
+    maybe_set_use_index(scan_ctx.get());
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
 
@@ -1481,6 +1560,7 @@ int main(int argc, char **argv) {
     ssbuilder.add_row_interval("row000050", true,
                                "row000450", true);
     scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range, schema);
+    maybe_set_use_index(scan_ctx.get());
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
 
@@ -1490,6 +1570,7 @@ int main(int argc, char **argv) {
     ssbuilder.add_row_interval("row000071", true,
                                "row000365", true);
     scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range, schema);
+    maybe_set_use_index(scan_ctx.get());
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
 
@@ -1499,6 +1580,7 @@ int main(int argc, char **argv) {
     ssbuilder.add_row_interval("row000300", true,
                                Key::END_ROW_MARKER, true);
     scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range, schema);
+    maybe_set_use_index(scan_ctx.get());
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
 
@@ -1509,6 +1591,7 @@ int main(int argc, char **argv) {
     ssbuilder.add_row_interval("row000364", true,
                                Key::END_ROW_MARKER, true);
     scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range, schema);
+    maybe_set_use_index(scan_ctx.get());
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
 
@@ -1519,6 +1602,7 @@ int main(int argc, char **argv) {
     ssbuilder.add_row_interval("", true,
                                Key::END_ROW_MARKER, true);
     scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range, schema);
+    maybe_set_use_index(scan_ctx.get());
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
 
@@ -1528,6 +1612,7 @@ int main(int argc, char **argv) {
     ssbuilder.add_row_interval("row000250", true,
                                "row000275", true);
     scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range, schema);
+    maybe_set_use_index(scan_ctx.get());
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
 

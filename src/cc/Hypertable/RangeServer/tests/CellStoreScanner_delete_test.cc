@@ -482,6 +482,11 @@ namespace {
     out << flush;
     return count;
   }
+  bool gUseIndex = false;
+  void maybe_set_use_index(ScanContext *scan_ctx) {
+    if (gUseIndex)
+      scan_ctx->use_index = true;
+  }
 }
 
 
@@ -502,6 +507,9 @@ int main(int argc, char **argv) {
     TableIdentifier table_id("0");
 
     Config::init(argc, argv);
+
+    if (argc == 2 && strcmp(argv[1], "use_index") == 0)
+      gUseIndex = true;
 
     if (Config::has("help"))
       Usage::dump_and_exit(usage);
@@ -764,6 +772,7 @@ int main(int argc, char **argv) {
     ssbuilder.add_cell(row.c_str(), column.c_str());
     scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
+    maybe_set_use_index(scan_ctx.get());
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
 
@@ -772,6 +781,7 @@ int main(int argc, char **argv) {
         row.c_str(), "tag:z", true);
     scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
+    maybe_set_use_index(scan_ctx.get());
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
 
@@ -779,6 +789,7 @@ int main(int argc, char **argv) {
     ssbuilder.add_row(row.c_str());
     scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
+    maybe_set_use_index(scan_ctx.get());
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
 
@@ -789,6 +800,7 @@ int main(int argc, char **argv) {
     ssbuilder.add_cell(row.c_str(), column.c_str());
     scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
+    maybe_set_use_index(scan_ctx.get());
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
 
@@ -797,6 +809,7 @@ int main(int argc, char **argv) {
         row.c_str(), "tag:z", true);
     scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
+    maybe_set_use_index(scan_ctx.get());
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
 
@@ -805,6 +818,7 @@ int main(int argc, char **argv) {
         row.c_str(), "tag:z", true);
     scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
+    maybe_set_use_index(scan_ctx.get());
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
 
@@ -812,6 +826,7 @@ int main(int argc, char **argv) {
     ssbuilder.add_row(row.c_str());
     scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
+    maybe_set_use_index(scan_ctx.get());
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
 
@@ -823,6 +838,7 @@ int main(int argc, char **argv) {
     ssbuilder.add_cell(row.c_str(), column.c_str());
     scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
+    maybe_set_use_index(scan_ctx.get());
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
 
@@ -831,6 +847,7 @@ int main(int argc, char **argv) {
         row.c_str(), "tag", true);
     scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
+    maybe_set_use_index(scan_ctx.get());
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
 
@@ -841,6 +858,7 @@ int main(int argc, char **argv) {
     ssbuilder.add_cell(row.c_str(), column.c_str());
     scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
+    maybe_set_use_index(scan_ctx.get());
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
 
@@ -849,6 +867,7 @@ int main(int argc, char **argv) {
         row.c_str(), "tag", true);
     scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
+    maybe_set_use_index(scan_ctx.get());
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
 
@@ -859,6 +878,7 @@ int main(int argc, char **argv) {
     ssbuilder.add_cell(row.c_str(), column.c_str());
     scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
+    maybe_set_use_index(scan_ctx.get());
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
 
@@ -867,6 +887,7 @@ int main(int argc, char **argv) {
         row.c_str(), "tag", true);
     scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
+    maybe_set_use_index(scan_ctx.get());
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
 
@@ -877,6 +898,7 @@ int main(int argc, char **argv) {
     ssbuilder.add_cell(row.c_str(), column.c_str());
     scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                    schema);
+    maybe_set_use_index(scan_ctx.get());
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
 
@@ -887,6 +909,7 @@ int main(int argc, char **argv) {
     ssbuilder.add_cell(row.c_str(), column.c_str());
     scan_ctx = make_shared<ScanContext>(TIMESTAMP_MAX, &(ssbuilder.get()), &range,
                                schema);
+    maybe_set_use_index(scan_ctx.get());
     scanner = cs->create_scanner(scan_ctx.get());
     display_scan(scanner, out);
 

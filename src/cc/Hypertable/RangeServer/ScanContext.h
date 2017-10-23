@@ -62,10 +62,11 @@ namespace Hypertable {
     String start_row, end_row;
     String start_qualifier, end_qualifier;
     bool start_inclusive, end_inclusive;
-    bool single_row;
-    bool has_cell_interval;
-    bool has_start_cf_qualifier;
-    bool restricted_range;
+    bool single_row {};
+    bool use_index {};
+    bool has_cell_interval {};
+    bool has_start_cf_qualifier {};
+    bool restricted_range {};
     int64_t revision;
     pair<int64_t, int64_t> time_interval;
     bool family_mask[256];

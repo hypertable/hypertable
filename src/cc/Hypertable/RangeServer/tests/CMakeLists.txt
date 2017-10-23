@@ -60,6 +60,8 @@ configure_file(${SRC_DIR}/CellStoreScanner_delete_test.golden
 add_test(FileBlockCache FileBlockCache_test)
 add_test(QueryCache QueryCache_test)
 add_test(CellStoreScanner CellStoreScanner_test)
+add_test(CellStoreScanner-bi CellStoreScanner_test use_index)
 add_test(CellStoreScanner-delete CellStoreScanner_delete_test)
+add_test(CellStoreScanner-delete-bi CellStoreScanner_delete_test use_index)
 #add_test(AccessGroup-garbage-tracker AccessGroupGarbageTracker_test)
 add_test(AccessGroup-hints-file access_group_hints_file_test)

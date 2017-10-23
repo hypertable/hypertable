@@ -142,7 +142,7 @@ void CellStoreV7::populate_index_pseudo_table_scanner(CellListScannerBuffer *sca
 
 CellListScannerPtr CellStoreV7::create_scanner(ScanContext *scan_ctx) {
   bool need_index =  m_restricted_range || scan_ctx->restricted_range ||
-    scan_ctx->single_row || scan_ctx->has_cell_interval;
+    scan_ctx->use_index || scan_ctx->has_cell_interval;
 
   if (need_index) {
     lock_guard<mutex> lock(m_mutex);

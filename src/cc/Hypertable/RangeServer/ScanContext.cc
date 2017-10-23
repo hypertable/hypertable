@@ -172,14 +172,15 @@ ScanContext::initialize(int64_t rev, const ScanSpec *ss,
    * Create Start Key and End Key
    */
 
-  single_row = false;
-  has_cell_interval = false;
-  has_start_cf_qualifier = false;
   start_inclusive = end_inclusive = true;
   restricted_range = true;
 
   if (spec) {
     const char *ptr = 0;
+
+    // Use index if either row or cell limit set.  The rationalle is that
+    // limits are typically small (e.g. for pagination).
+    use_index = spec->row_limit > 0 || spec->cell_limit > 0;
 
     if (!spec->row_intervals.empty()) {
       // start row
@@ -293,6 +294,9 @@ ScanContext::initialize(int64_t rev, const ScanSpec *ss,
     start_row = "";
     end_row = Key::END_ROW_MARKER;
   }
+
+  if (single_row)
+    use_index = true;
 
   if (start_row == "" && end_row == Key::END_ROW_MARKER)
     restricted_range = false;
