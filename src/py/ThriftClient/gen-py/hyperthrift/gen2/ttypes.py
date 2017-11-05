@@ -42,6 +42,7 @@ class HqlResult(object):
    - cells
    - scanner
    - mutator
+   - scan_profile_data
   """
 
   thrift_spec = (
@@ -50,13 +51,15 @@ class HqlResult(object):
     (2, TType.LIST, 'cells', (TType.STRUCT,(hyperthrift.gen.ttypes.Cell, hyperthrift.gen.ttypes.Cell.thrift_spec)), None, ), # 2
     (3, TType.I64, 'scanner', None, None, ), # 3
     (4, TType.I64, 'mutator', None, None, ), # 4
+    (5, TType.STRUCT, 'scan_profile_data', (hyperthrift.gen.ttypes.ScanProfileData, hyperthrift.gen.ttypes.ScanProfileData.thrift_spec), None, ), # 5
   )
 
-  def __init__(self, results=None, cells=None, scanner=None, mutator=None,):
+  def __init__(self, results=None, cells=None, scanner=None, mutator=None, scan_profile_data=None,):
     self.results = results
     self.cells = cells
     self.scanner = scanner
     self.mutator = mutator
+    self.scan_profile_data = scan_profile_data
 
   def read(self, iprot):
     if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
@@ -98,6 +101,12 @@ class HqlResult(object):
           self.mutator = iprot.readI64()
         else:
           iprot.skip(ftype)
+      elif fid == 5:
+        if ftype == TType.STRUCT:
+          self.scan_profile_data = hyperthrift.gen.ttypes.ScanProfileData()
+          self.scan_profile_data.read(iprot)
+        else:
+          iprot.skip(ftype)
       else:
         iprot.skip(ftype)
       iprot.readFieldEnd()
@@ -130,6 +139,10 @@ class HqlResult(object):
       oprot.writeFieldBegin('mutator', TType.I64, 4)
       oprot.writeI64(self.mutator)
       oprot.writeFieldEnd()
+    if self.scan_profile_data is not None:
+      oprot.writeFieldBegin('scan_profile_data', TType.STRUCT, 5)
+      self.scan_profile_data.write(oprot)
+      oprot.writeFieldEnd()
     oprot.writeFieldStop()
     oprot.writeStructEnd()
 
@@ -143,6 +156,7 @@ class HqlResult(object):
     value = (value * 31) ^ hash(self.cells)
     value = (value * 31) ^ hash(self.scanner)
     value = (value * 31) ^ hash(self.mutator)
+    value = (value * 31) ^ hash(self.scan_profile_data)
     return value
 
   def __repr__(self):
@@ -165,6 +179,7 @@ class HqlResult2(object):
    - cells
    - scanner
    - mutator
+   - scan_profile_data
   """
 
   thrift_spec = (
@@ -173,13 +188,15 @@ class HqlResult2(object):
     (2, TType.LIST, 'cells', (TType.LIST,(TType.STRING,None)), None, ), # 2
     (3, TType.I64, 'scanner', None, None, ), # 3
     (4, TType.I64, 'mutator', None, None, ), # 4
+    (5, TType.STRUCT, 'scan_profile_data', (hyperthrift.gen.ttypes.ScanProfileData, hyperthrift.gen.ttypes.ScanProfileData.thrift_spec), None, ), # 5
   )
 
-  def __init__(self, results=None, cells=None, scanner=None, mutator=None,):
+  def __init__(self, results=None, cells=None, scanner=None, mutator=None, scan_profile_data=None,):
     self.results = results
     self.cells = cells
     self.scanner = scanner
     self.mutator = mutator
+    self.scan_profile_data = scan_profile_data
 
   def read(self, iprot):
     if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
@@ -225,6 +242,12 @@ class HqlResult2(object):
           self.mutator = iprot.readI64()
         else:
           iprot.skip(ftype)
+      elif fid == 5:
+        if ftype == TType.STRUCT:
+          self.scan_profile_data = hyperthrift.gen.ttypes.ScanProfileData()
+          self.scan_profile_data.read(iprot)
+        else:
+          iprot.skip(ftype)
       else:
         iprot.skip(ftype)
       iprot.readFieldEnd()
@@ -260,6 +283,10 @@ class HqlResult2(object):
       oprot.writeFieldBegin('mutator', TType.I64, 4)
       oprot.writeI64(self.mutator)
       oprot.writeFieldEnd()
+    if self.scan_profile_data is not None:
+      oprot.writeFieldBegin('scan_profile_data', TType.STRUCT, 5)
+      self.scan_profile_data.write(oprot)
+      oprot.writeFieldEnd()
     oprot.writeFieldStop()
     oprot.writeStructEnd()
 
@@ -273,6 +300,7 @@ class HqlResult2(object):
     value = (value * 31) ^ hash(self.cells)
     value = (value * 31) ^ hash(self.scanner)
     value = (value * 31) ^ hash(self.mutator)
+    value = (value * 31) ^ hash(self.scan_profile_data)
     return value
 
   def __repr__(self):
@@ -295,6 +323,7 @@ class HqlResultAsArrays(object):
    - cells
    - scanner
    - mutator
+   - scan_profile_data
   """
 
   thrift_spec = (
@@ -303,13 +332,15 @@ class HqlResultAsArrays(object):
     (2, TType.LIST, 'cells', (TType.LIST,(TType.STRING,None)), None, ), # 2
     (3, TType.I64, 'scanner', None, None, ), # 3
     (4, TType.I64, 'mutator', None, None, ), # 4
+    (5, TType.STRUCT, 'scan_profile_data', (hyperthrift.gen.ttypes.ScanProfileData, hyperthrift.gen.ttypes.ScanProfileData.thrift_spec), None, ), # 5
   )
 
-  def __init__(self, results=None, cells=None, scanner=None, mutator=None,):
+  def __init__(self, results=None, cells=None, scanner=None, mutator=None, scan_profile_data=None,):
     self.results = results
     self.cells = cells
     self.scanner = scanner
     self.mutator = mutator
+    self.scan_profile_data = scan_profile_data
 
   def read(self, iprot):
     if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
@@ -355,6 +386,12 @@ class HqlResultAsArrays(object):
           self.mutator = iprot.readI64()
         else:
           iprot.skip(ftype)
+      elif fid == 5:
+        if ftype == TType.STRUCT:
+          self.scan_profile_data = hyperthrift.gen.ttypes.ScanProfileData()
+          self.scan_profile_data.read(iprot)
+        else:
+          iprot.skip(ftype)
       else:
         iprot.skip(ftype)
       iprot.readFieldEnd()
@@ -390,6 +427,10 @@ class HqlResultAsArrays(object):
       oprot.writeFieldBegin('mutator', TType.I64, 4)
       oprot.writeI64(self.mutator)
       oprot.writeFieldEnd()
+    if self.scan_profile_data is not None:
+      oprot.writeFieldBegin('scan_profile_data', TType.STRUCT, 5)
+      self.scan_profile_data.write(oprot)
+      oprot.writeFieldEnd()
     oprot.writeFieldStop()
     oprot.writeStructEnd()
 
@@ -403,6 +444,7 @@ class HqlResultAsArrays(object):
     value = (value * 31) ^ hash(self.cells)
     value = (value * 31) ^ hash(self.scanner)
     value = (value * 31) ^ hash(self.mutator)
+    value = (value * 31) ^ hash(self.scan_profile_data)
     return value
 
   def __repr__(self):

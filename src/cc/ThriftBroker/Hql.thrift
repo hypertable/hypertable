@@ -46,7 +46,8 @@ struct HqlResult {
   1: optional list<string> results,
   2: optional list<Client.Cell> cells,
   3: optional i64 scanner,
-  4: optional i64 mutator
+  4: optional i64 mutator,
+  5: optional Client.ScanProfileData scan_profile_data
 }
 
 /**
@@ -56,7 +57,8 @@ struct HqlResult2 {
   1: optional list<string> results,
   2: optional list<Client.CellAsArray> cells,
   3: optional i64 scanner,
-  4: optional i64 mutator
+  4: optional i64 mutator,
+  5: optional Client.ScanProfileData scan_profile_data
 }
 
 /**
@@ -66,7 +68,8 @@ struct HqlResultAsArrays {
   1: optional list<string> results,
   2: optional list<Client.CellAsArray> cells,
   3: optional i64 scanner,
-  4: optional i64 mutator
+  4: optional i64 mutator,
+  5: optional Client.ScanProfileData scan_profile_data
 }
 
 /**

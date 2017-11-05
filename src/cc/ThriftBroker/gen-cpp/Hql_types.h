@@ -27,11 +27,12 @@ class HqlResult2;
 class HqlResultAsArrays;
 
 typedef struct _HqlResult__isset {
-  _HqlResult__isset() : results(false), cells(false), scanner(false), mutator(false) {}
+  _HqlResult__isset() : results(false), cells(false), scanner(false), mutator(false), scan_profile_data(false) {}
   bool results :1;
   bool cells :1;
   bool scanner :1;
   bool mutator :1;
+  bool scan_profile_data :1;
 } _HqlResult__isset;
 
 class HqlResult {
@@ -47,6 +48,7 @@ class HqlResult {
   std::vector< ::Hypertable::ThriftGen::Cell>  cells;
   int64_t scanner;
   int64_t mutator;
+   ::Hypertable::ThriftGen::ScanProfileData scan_profile_data;
 
   _HqlResult__isset __isset;
 
@@ -57,6 +59,8 @@ class HqlResult {
   void __set_scanner(const int64_t val);
 
   void __set_mutator(const int64_t val);
+
+  void __set_scan_profile_data(const  ::Hypertable::ThriftGen::ScanProfileData& val);
 
   bool operator == (const HqlResult & rhs) const
   {
@@ -75,6 +79,10 @@ class HqlResult {
     if (__isset.mutator != rhs.__isset.mutator)
       return false;
     else if (__isset.mutator && !(mutator == rhs.mutator))
+      return false;
+    if (__isset.scan_profile_data != rhs.__isset.scan_profile_data)
+      return false;
+    else if (__isset.scan_profile_data && !(scan_profile_data == rhs.scan_profile_data))
       return false;
     return true;
   }
@@ -99,11 +107,12 @@ inline std::ostream& operator<<(std::ostream& out, const HqlResult& obj)
 }
 
 typedef struct _HqlResult2__isset {
-  _HqlResult2__isset() : results(false), cells(false), scanner(false), mutator(false) {}
+  _HqlResult2__isset() : results(false), cells(false), scanner(false), mutator(false), scan_profile_data(false) {}
   bool results :1;
   bool cells :1;
   bool scanner :1;
   bool mutator :1;
+  bool scan_profile_data :1;
 } _HqlResult2__isset;
 
 class HqlResult2 {
@@ -119,6 +128,7 @@ class HqlResult2 {
   std::vector< ::Hypertable::ThriftGen::CellAsArray>  cells;
   int64_t scanner;
   int64_t mutator;
+   ::Hypertable::ThriftGen::ScanProfileData scan_profile_data;
 
   _HqlResult2__isset __isset;
 
@@ -129,6 +139,8 @@ class HqlResult2 {
   void __set_scanner(const int64_t val);
 
   void __set_mutator(const int64_t val);
+
+  void __set_scan_profile_data(const  ::Hypertable::ThriftGen::ScanProfileData& val);
 
   bool operator == (const HqlResult2 & rhs) const
   {
@@ -147,6 +159,10 @@ class HqlResult2 {
     if (__isset.mutator != rhs.__isset.mutator)
       return false;
     else if (__isset.mutator && !(mutator == rhs.mutator))
+      return false;
+    if (__isset.scan_profile_data != rhs.__isset.scan_profile_data)
+      return false;
+    else if (__isset.scan_profile_data && !(scan_profile_data == rhs.scan_profile_data))
       return false;
     return true;
   }
@@ -171,11 +187,12 @@ inline std::ostream& operator<<(std::ostream& out, const HqlResult2& obj)
 }
 
 typedef struct _HqlResultAsArrays__isset {
-  _HqlResultAsArrays__isset() : results(false), cells(false), scanner(false), mutator(false) {}
+  _HqlResultAsArrays__isset() : results(false), cells(false), scanner(false), mutator(false), scan_profile_data(false) {}
   bool results :1;
   bool cells :1;
   bool scanner :1;
   bool mutator :1;
+  bool scan_profile_data :1;
 } _HqlResultAsArrays__isset;
 
 class HqlResultAsArrays {
@@ -191,6 +208,7 @@ class HqlResultAsArrays {
   std::vector< ::Hypertable::ThriftGen::CellAsArray>  cells;
   int64_t scanner;
   int64_t mutator;
+   ::Hypertable::ThriftGen::ScanProfileData scan_profile_data;
 
   _HqlResultAsArrays__isset __isset;
 
@@ -201,6 +219,8 @@ class HqlResultAsArrays {
   void __set_scanner(const int64_t val);
 
   void __set_mutator(const int64_t val);
+
+  void __set_scan_profile_data(const  ::Hypertable::ThriftGen::ScanProfileData& val);
 
   bool operator == (const HqlResultAsArrays & rhs) const
   {
@@ -219,6 +239,10 @@ class HqlResultAsArrays {
     if (__isset.mutator != rhs.__isset.mutator)
       return false;
     else if (__isset.mutator && !(mutator == rhs.mutator))
+      return false;
+    if (__isset.scan_profile_data != rhs.__isset.scan_profile_data)
+      return false;
+    else if (__isset.scan_profile_data && !(scan_profile_data == rhs.scan_profile_data))
       return false;
     return true;
   }

@@ -23,6 +23,41 @@ var client = new hypertable.ThriftClient("localhost", 15867);
  */
 var testNamespace;
 
+function validateScanProfileData(label, scanner, profile_data) {
+  if (profile_data.servers.length != 1) {
+    console.log("[%s] Expected profile data to have non-empty servers field",
+                label);
+    process.exit(1);
+  }
+  if (profile_data.servers[0] != "rs1") {
+    console.log("[%s] Expected profile data servers to contain rs1 but got %s",
+                label, profile_data.servers[0]);
+    process.exit(1);
+  }
+  if (scanner != 0 && profile_data.id.value != scanner.value) {
+    console.log("[%s] Expected profile data to have id %d but got %d",
+                label, scanner, profile_data.id);
+    process.exit(1);
+  }
+  if (profile_data.bytes_scanned == 0 || profile_data.bytes_returned == 0) {
+    console.log("[%s] Expected profile data to have non-zero bytes scanned and"+
+                " returned but got bytes_scanned=%d and and bytes_returned=%d",
+                label, profile_data.bytes_scanned, profile_data.bytes_returned);
+    process.exit(1);
+  }
+  if (profile_data.cells_scanned == 0 || profile_data.cells_returned == 0) {
+    console.log("[%s] Expected profile data to have non-zero cells scanned and"+
+                " returned but got cells_scanned=%d and and cells_returned=%d",
+                label, profile_data.cells_scanned, profile_data.cells_returned);
+    process.exit(1);
+  }
+  if (profile_data.subscanners != 1) {
+    console.log("[%s] Expected profile data to have 1 subscanner but got %d",
+                label, profile_data.subscanners);
+    process.exit(1);
+  }
+} 
+
 
 /**
  * Opens the 'test' namespace.  Assigns the returned namespace ID to the
@@ -102,6 +137,7 @@ var selectTestTable = function(callback) {
       for (var i = 0; i < response.cells.length; i++) {
         console.log(response.cells[i].toString());
       }
+      validateScanProfileData("HqlResult", 0, response.scan_profile_data);
       callback(null);
     }
   ],
@@ -188,6 +224,11 @@ var scannerTest = function (callback) {
       for (var i = 0; i < result.length; i++) {
         console.log(result[i].toString());
       }
+      client.scanner_get_profile_data(scanner, callback);
+    },
+    function validateProfileData(result, callback) {
+      console.log(result);
+      validateScanProfileData("HqlResult", scanner, result);
       client.scanner_close(scanner, callback);
     },
     function handleCloseMutatorResult(result, callback) {
@@ -432,6 +473,25 @@ var asyncTest = function (callback) {
         }
       ],
       function(error) { callback(error); });
+    },
+    function validateProfileData (callback) {
+      async.parallel([
+        function (callback) {
+          client.async_scanner_get_profile_data(asyncScanner[0], callback);
+        },
+        function (callback) {
+          client.async_scanner_get_profile_data(asyncScanner[1], callback);
+        },
+        function (callback) {
+          client.async_scanner_get_profile_data(asyncScanner[2], callback);
+        }
+      ],
+      function(error, results) {
+        validateScanProfileData("Async Scanner 0", asyncScanner[0], results[0]);
+        validateScanProfileData("Async Scanner 1", asyncScanner[1], results[1]);
+        validateScanProfileData("Async Scanner 2", asyncScanner[2], results[2]);
+        callback(error);
+      });
     },
     function cleanup (callback) {
       async.series([

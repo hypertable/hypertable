@@ -305,6 +305,30 @@ class ClientServiceHandler : virtual public ClientServiceIf {
   }
 
   /**
+   * Get scan profile data
+   * 
+   * @param scanner - scanner id to close
+   * 
+   * @param scanner
+   */
+  void scanner_get_profile_data(ScanProfileData& _return, const Scanner scanner) {
+    // Your implementation goes here
+    printf("scanner_get_profile_data\n");
+  }
+
+  /**
+   * Get asynchronous scan profile data
+   * 
+   * @param scanner - scanner id to close
+   * 
+   * @param scanner
+   */
+  void async_scanner_get_profile_data(ScanProfileData& _return, const Scanner scanner) {
+    // Your implementation goes here
+    printf("async_scanner_get_profile_data\n");
+  }
+
+  /**
    * Close a table scanner
    * 
    * @param scanner - scanner id to close

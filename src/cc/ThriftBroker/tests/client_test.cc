@@ -34,6 +34,48 @@ using namespace Hypertable;
 using namespace Hypertable::ThriftGen;
 using namespace std;
 
+namespace {
+  using std::cout;
+  using std::endl;
+  void validate_scan_profile_data(const string &label, int64_t scanner,
+                     Hypertable::ThriftGen::ScanProfileData &profile_data) {
+    if (profile_data.servers.size() != 1) {
+      cout << "[" << label << "] Expected profile data to have non-empty "
+           << "servers field" << endl;
+      exit(1);
+    }
+    if (profile_data.servers[0] != "rs1") {
+      cout << "[" << label << "] Expected profile data servers to contain rs1 "
+           << "but got " << profile_data.servers[0] << endl;
+      exit(1);
+    }
+    if (scanner != 0 && profile_data.id != scanner) {
+      cout << "[" << label << "] Expected profile data to have id " << scanner
+           << ", but got " << profile_data.id << endl;
+      exit(1);
+    }
+    if (profile_data.bytes_scanned == 0 || profile_data.bytes_returned == 0) {
+      cout << "[" << label << "] Expected profile data to have non-zero bytes "
+           << "scanned and returned but got bytes_scanned="
+           << profile_data.bytes_scanned << " and bytes_returned="
+           << profile_data.bytes_returned << endl;
+      exit(1);
+    }
+    if (profile_data.cells_scanned == 0 || profile_data.cells_returned == 0) {
+      cout << "[" << label << "] Expected profile data to have non-zero cells "
+           << "scanned and returned but got cells_scanned="
+           << profile_data.cells_scanned << " and cells_returned="
+           << profile_data.cells_returned << endl;
+      exit(1);
+    }
+    if (profile_data.subscanners == 0) {
+      cout << "[" << label << "] Expected profile data to have non-zero "
+           << "subscanners" << endl;
+      exit(1);
+    }
+  }
+}
+
 void run(Thrift::Client *client);
 void test_rename_alter(Thrift::Client *client, std::ostream &out);
 void test_guid(Thrift::Client *client, std::ostream &out);
@@ -188,6 +230,7 @@ void test_hql(Thrift::Client *client, std::ostream &out) {
             "('2008-11-11 11:11:11', 'k2', 'col', 'v2'), "
             "('2008-11-11 11:11:11', 'k3', 'col', 'v3')");
   client->hql_query(result, ns, "select * from thrift_test");
+  validate_scan_profile_data("HqlResult", 0, result.scan_profile_data);
   out << result << std::endl;
 
   HqlResultAsArrays result_as_arrays;
@@ -209,6 +252,9 @@ void test_scan(Thrift::Client *client, std::ostream &out) {
       out << cell << std::endl;
   } while (cells.size());
 
+  Hypertable::ThriftGen::ScanProfileData profile_data;
+  client->scanner_get_profile_data(profile_data, s);
+  validate_scan_profile_data("HqlResult", s, profile_data);
   client->scanner_close(s);
 
   ss.cell_limit=1;
@@ -566,9 +612,20 @@ void test_async(Thrift::Client *client, std::ostream &out) {
   client->scanner_close(cp_scanner);
   // -------------------------------------------------------------------
 
+  Hypertable::ThriftGen::ScanProfileData profile_data;
+
+  client->async_scanner_get_profile_data(profile_data, color_scanner);
+  validate_scan_profile_data("color_scanner", color_scanner, profile_data);
   client->async_scanner_close(color_scanner);
+
+  client->async_scanner_get_profile_data(profile_data, location_scanner);
+  validate_scan_profile_data("location_scanner", location_scanner, profile_data);
   client->async_scanner_close(location_scanner);
+
+  client->async_scanner_get_profile_data(profile_data, energy_scanner);
+  validate_scan_profile_data("energy_scanner", energy_scanner, profile_data);
   client->async_scanner_close(energy_scanner);
+
   client->future_close(ff);
   client->namespace_close(ns);
   if (num_results != num_expected_results) {

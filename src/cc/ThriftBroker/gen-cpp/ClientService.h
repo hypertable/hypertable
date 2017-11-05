@@ -207,6 +207,24 @@ class ClientServiceIf {
   virtual ScannerAsync open_scanner_async(const Namespace ns, const std::string& table_name, const Future future, const ScanSpec& scan_spec) = 0;
 
   /**
+   * Get scan profile data
+   * 
+   * @param scanner - scanner id to close
+   * 
+   * @param scanner
+   */
+  virtual void scanner_get_profile_data(ScanProfileData& _return, const Scanner scanner) = 0;
+
+  /**
+   * Get asynchronous scan profile data
+   * 
+   * @param scanner - scanner id to close
+   * 
+   * @param scanner
+   */
+  virtual void async_scanner_get_profile_data(ScanProfileData& _return, const Scanner scanner) = 0;
+
+  /**
    * Close a table scanner
    * 
    * @param scanner - scanner id to close
@@ -1061,6 +1079,12 @@ class ClientServiceNull : virtual public ClientServiceIf {
   ScannerAsync open_scanner_async(const Namespace /* ns */, const std::string& /* table_name */, const Future /* future */, const ScanSpec& /* scan_spec */) {
     ScannerAsync _return = 0;
     return _return;
+  }
+  void scanner_get_profile_data(ScanProfileData& /* _return */, const Scanner /* scanner */) {
+    return;
+  }
+  void async_scanner_get_profile_data(ScanProfileData& /* _return */, const Scanner /* scanner */) {
+    return;
   }
   void scanner_close(const Scanner /* scanner */) {
     return;
@@ -4665,6 +4689,230 @@ class ClientService_open_scanner_async_presult {
   ClientException e;
 
   _ClientService_open_scanner_async_presult__isset __isset;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
+typedef struct _ClientService_scanner_get_profile_data_args__isset {
+  _ClientService_scanner_get_profile_data_args__isset() : scanner(false) {}
+  bool scanner :1;
+} _ClientService_scanner_get_profile_data_args__isset;
+
+class ClientService_scanner_get_profile_data_args {
+ public:
+
+  ClientService_scanner_get_profile_data_args(const ClientService_scanner_get_profile_data_args&);
+  ClientService_scanner_get_profile_data_args& operator=(const ClientService_scanner_get_profile_data_args&);
+  ClientService_scanner_get_profile_data_args() : scanner(0) {
+  }
+
+  virtual ~ClientService_scanner_get_profile_data_args() throw();
+  Scanner scanner;
+
+  _ClientService_scanner_get_profile_data_args__isset __isset;
+
+  void __set_scanner(const Scanner val);
+
+  bool operator == (const ClientService_scanner_get_profile_data_args & rhs) const
+  {
+    if (!(scanner == rhs.scanner))
+      return false;
+    return true;
+  }
+  bool operator != (const ClientService_scanner_get_profile_data_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ClientService_scanner_get_profile_data_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class ClientService_scanner_get_profile_data_pargs {
+ public:
+
+
+  virtual ~ClientService_scanner_get_profile_data_pargs() throw();
+  const Scanner* scanner;
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ClientService_scanner_get_profile_data_result__isset {
+  _ClientService_scanner_get_profile_data_result__isset() : success(false), e(false) {}
+  bool success :1;
+  bool e :1;
+} _ClientService_scanner_get_profile_data_result__isset;
+
+class ClientService_scanner_get_profile_data_result {
+ public:
+
+  ClientService_scanner_get_profile_data_result(const ClientService_scanner_get_profile_data_result&);
+  ClientService_scanner_get_profile_data_result& operator=(const ClientService_scanner_get_profile_data_result&);
+  ClientService_scanner_get_profile_data_result() {
+  }
+
+  virtual ~ClientService_scanner_get_profile_data_result() throw();
+  ScanProfileData success;
+  ClientException e;
+
+  _ClientService_scanner_get_profile_data_result__isset __isset;
+
+  void __set_success(const ScanProfileData& val);
+
+  void __set_e(const ClientException& val);
+
+  bool operator == (const ClientService_scanner_get_profile_data_result & rhs) const
+  {
+    if (!(success == rhs.success))
+      return false;
+    if (!(e == rhs.e))
+      return false;
+    return true;
+  }
+  bool operator != (const ClientService_scanner_get_profile_data_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ClientService_scanner_get_profile_data_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ClientService_scanner_get_profile_data_presult__isset {
+  _ClientService_scanner_get_profile_data_presult__isset() : success(false), e(false) {}
+  bool success :1;
+  bool e :1;
+} _ClientService_scanner_get_profile_data_presult__isset;
+
+class ClientService_scanner_get_profile_data_presult {
+ public:
+
+
+  virtual ~ClientService_scanner_get_profile_data_presult() throw();
+  ScanProfileData* success;
+  ClientException e;
+
+  _ClientService_scanner_get_profile_data_presult__isset __isset;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+
+};
+
+typedef struct _ClientService_async_scanner_get_profile_data_args__isset {
+  _ClientService_async_scanner_get_profile_data_args__isset() : scanner(false) {}
+  bool scanner :1;
+} _ClientService_async_scanner_get_profile_data_args__isset;
+
+class ClientService_async_scanner_get_profile_data_args {
+ public:
+
+  ClientService_async_scanner_get_profile_data_args(const ClientService_async_scanner_get_profile_data_args&);
+  ClientService_async_scanner_get_profile_data_args& operator=(const ClientService_async_scanner_get_profile_data_args&);
+  ClientService_async_scanner_get_profile_data_args() : scanner(0) {
+  }
+
+  virtual ~ClientService_async_scanner_get_profile_data_args() throw();
+  Scanner scanner;
+
+  _ClientService_async_scanner_get_profile_data_args__isset __isset;
+
+  void __set_scanner(const Scanner val);
+
+  bool operator == (const ClientService_async_scanner_get_profile_data_args & rhs) const
+  {
+    if (!(scanner == rhs.scanner))
+      return false;
+    return true;
+  }
+  bool operator != (const ClientService_async_scanner_get_profile_data_args &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ClientService_async_scanner_get_profile_data_args & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+
+class ClientService_async_scanner_get_profile_data_pargs {
+ public:
+
+
+  virtual ~ClientService_async_scanner_get_profile_data_pargs() throw();
+  const Scanner* scanner;
+
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ClientService_async_scanner_get_profile_data_result__isset {
+  _ClientService_async_scanner_get_profile_data_result__isset() : success(false), e(false) {}
+  bool success :1;
+  bool e :1;
+} _ClientService_async_scanner_get_profile_data_result__isset;
+
+class ClientService_async_scanner_get_profile_data_result {
+ public:
+
+  ClientService_async_scanner_get_profile_data_result(const ClientService_async_scanner_get_profile_data_result&);
+  ClientService_async_scanner_get_profile_data_result& operator=(const ClientService_async_scanner_get_profile_data_result&);
+  ClientService_async_scanner_get_profile_data_result() {
+  }
+
+  virtual ~ClientService_async_scanner_get_profile_data_result() throw();
+  ScanProfileData success;
+  ClientException e;
+
+  _ClientService_async_scanner_get_profile_data_result__isset __isset;
+
+  void __set_success(const ScanProfileData& val);
+
+  void __set_e(const ClientException& val);
+
+  bool operator == (const ClientService_async_scanner_get_profile_data_result & rhs) const
+  {
+    if (!(success == rhs.success))
+      return false;
+    if (!(e == rhs.e))
+      return false;
+    return true;
+  }
+  bool operator != (const ClientService_async_scanner_get_profile_data_result &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ClientService_async_scanner_get_profile_data_result & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+};
+
+typedef struct _ClientService_async_scanner_get_profile_data_presult__isset {
+  _ClientService_async_scanner_get_profile_data_presult__isset() : success(false), e(false) {}
+  bool success :1;
+  bool e :1;
+} _ClientService_async_scanner_get_profile_data_presult__isset;
+
+class ClientService_async_scanner_get_profile_data_presult {
+ public:
+
+
+  virtual ~ClientService_async_scanner_get_profile_data_presult() throw();
+  ScanProfileData* success;
+  ClientException e;
+
+  _ClientService_async_scanner_get_profile_data_presult__isset __isset;
 
   uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
 
@@ -15926,6 +16174,12 @@ class ClientServiceClient : virtual public ClientServiceIf {
   ScannerAsync open_scanner_async(const Namespace ns, const std::string& table_name, const Future future, const ScanSpec& scan_spec);
   void send_open_scanner_async(const Namespace ns, const std::string& table_name, const Future future, const ScanSpec& scan_spec);
   ScannerAsync recv_open_scanner_async();
+  void scanner_get_profile_data(ScanProfileData& _return, const Scanner scanner);
+  void send_scanner_get_profile_data(const Scanner scanner);
+  void recv_scanner_get_profile_data(ScanProfileData& _return);
+  void async_scanner_get_profile_data(ScanProfileData& _return, const Scanner scanner);
+  void send_async_scanner_get_profile_data(const Scanner scanner);
+  void recv_async_scanner_get_profile_data(ScanProfileData& _return);
   void scanner_close(const Scanner scanner);
   void send_scanner_close(const Scanner scanner);
   void recv_scanner_close();
@@ -16261,6 +16515,8 @@ class ClientServiceProcessor : public ::apache::thrift::TDispatchProcessor {
   void process_open_scanner(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_async_scanner_open(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_open_scanner_async(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_scanner_get_profile_data(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
+  void process_async_scanner_get_profile_data(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_scanner_close(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_close_scanner(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
   void process_async_scanner_cancel(int32_t seqid, ::apache::thrift::protocol::TProtocol* iprot, ::apache::thrift::protocol::TProtocol* oprot, void* callContext);
@@ -16390,6 +16646,8 @@ class ClientServiceProcessor : public ::apache::thrift::TDispatchProcessor {
     processMap_["open_scanner"] = &ClientServiceProcessor::process_open_scanner;
     processMap_["async_scanner_open"] = &ClientServiceProcessor::process_async_scanner_open;
     processMap_["open_scanner_async"] = &ClientServiceProcessor::process_open_scanner_async;
+    processMap_["scanner_get_profile_data"] = &ClientServiceProcessor::process_scanner_get_profile_data;
+    processMap_["async_scanner_get_profile_data"] = &ClientServiceProcessor::process_async_scanner_get_profile_data;
     processMap_["scanner_close"] = &ClientServiceProcessor::process_scanner_close;
     processMap_["close_scanner"] = &ClientServiceProcessor::process_close_scanner;
     processMap_["async_scanner_cancel"] = &ClientServiceProcessor::process_async_scanner_cancel;
@@ -16780,6 +17038,26 @@ class ClientServiceMultiface : virtual public ClientServiceIf {
       ifaces_[i]->open_scanner_async(ns, table_name, future, scan_spec);
     }
     return ifaces_[i]->open_scanner_async(ns, table_name, future, scan_spec);
+  }
+
+  void scanner_get_profile_data(ScanProfileData& _return, const Scanner scanner) {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->scanner_get_profile_data(_return, scanner);
+    }
+    ifaces_[i]->scanner_get_profile_data(_return, scanner);
+    return;
+  }
+
+  void async_scanner_get_profile_data(ScanProfileData& _return, const Scanner scanner) {
+    size_t sz = ifaces_.size();
+    size_t i = 0;
+    for (; i < (sz - 1); ++i) {
+      ifaces_[i]->async_scanner_get_profile_data(_return, scanner);
+    }
+    ifaces_[i]->async_scanner_get_profile_data(_return, scanner);
+    return;
   }
 
   void scanner_close(const Scanner scanner) {
@@ -17808,6 +18086,12 @@ class ClientServiceConcurrentClient : virtual public ClientServiceIf {
   ScannerAsync open_scanner_async(const Namespace ns, const std::string& table_name, const Future future, const ScanSpec& scan_spec);
   int32_t send_open_scanner_async(const Namespace ns, const std::string& table_name, const Future future, const ScanSpec& scan_spec);
   ScannerAsync recv_open_scanner_async(const int32_t seqid);
+  void scanner_get_profile_data(ScanProfileData& _return, const Scanner scanner);
+  int32_t send_scanner_get_profile_data(const Scanner scanner);
+  void recv_scanner_get_profile_data(ScanProfileData& _return, const int32_t seqid);
+  void async_scanner_get_profile_data(ScanProfileData& _return, const Scanner scanner);
+  int32_t send_async_scanner_get_profile_data(const Scanner scanner);
+  void recv_async_scanner_get_profile_data(ScanProfileData& _return, const int32_t seqid);
   void scanner_close(const Scanner scanner);
   int32_t send_scanner_close(const Scanner scanner);
   void recv_scanner_close(const int32_t seqid);

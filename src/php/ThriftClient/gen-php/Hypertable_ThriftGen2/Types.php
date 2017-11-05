@@ -53,6 +53,10 @@ class HqlResult {
    * @var int
    */
   public $mutator = null;
+  /**
+   * @var \Hypertable_ThriftGen\ScanProfileData
+   */
+  public $scan_profile_data = null;
 
   public function __construct($vals=null) {
     if (!isset(self::$_TSPEC)) {
@@ -82,6 +86,11 @@ class HqlResult {
           'var' => 'mutator',
           'type' => TType::I64,
           ),
+        5 => array(
+          'var' => 'scan_profile_data',
+          'type' => TType::STRUCT,
+          'class' => '\Hypertable_ThriftGen\ScanProfileData',
+          ),
         );
     }
     if (is_array($vals)) {
@@ -96,6 +105,9 @@ class HqlResult {
       }
       if (isset($vals['mutator'])) {
         $this->mutator = $vals['mutator'];
+      }
+      if (isset($vals['scan_profile_data'])) {
+        $this->scan_profile_data = $vals['scan_profile_data'];
       }
     }
   }
@@ -168,6 +180,14 @@ class HqlResult {
             $xfer += $input->skip($ftype);
           }
           break;
+        case 5:
+          if ($ftype == TType::STRUCT) {
+            $this->scan_profile_data = new \Hypertable_ThriftGen\ScanProfileData();
+            $xfer += $this->scan_profile_data->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
         default:
           $xfer += $input->skip($ftype);
           break;
@@ -225,6 +245,14 @@ class HqlResult {
       $xfer += $output->writeI64($this->mutator);
       $xfer += $output->writeFieldEnd();
     }
+    if ($this->scan_profile_data !== null) {
+      if (!is_object($this->scan_profile_data)) {
+        throw new TProtocolException('Bad type in structure.', TProtocolException::INVALID_DATA);
+      }
+      $xfer += $output->writeFieldBegin('scan_profile_data', TType::STRUCT, 5);
+      $xfer += $this->scan_profile_data->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
     $xfer += $output->writeFieldStop();
     $xfer += $output->writeStructEnd();
     return $xfer;
@@ -254,6 +282,10 @@ class HqlResult2 {
    * @var int
    */
   public $mutator = null;
+  /**
+   * @var \Hypertable_ThriftGen\ScanProfileData
+   */
+  public $scan_profile_data = null;
 
   public function __construct($vals=null) {
     if (!isset(self::$_TSPEC)) {
@@ -286,6 +318,11 @@ class HqlResult2 {
           'var' => 'mutator',
           'type' => TType::I64,
           ),
+        5 => array(
+          'var' => 'scan_profile_data',
+          'type' => TType::STRUCT,
+          'class' => '\Hypertable_ThriftGen\ScanProfileData',
+          ),
         );
     }
     if (is_array($vals)) {
@@ -300,6 +337,9 @@ class HqlResult2 {
       }
       if (isset($vals['mutator'])) {
         $this->mutator = $vals['mutator'];
+      }
+      if (isset($vals['scan_profile_data'])) {
+        $this->scan_profile_data = $vals['scan_profile_data'];
       }
     }
   }
@@ -381,6 +421,14 @@ class HqlResult2 {
             $xfer += $input->skip($ftype);
           }
           break;
+        case 5:
+          if ($ftype == TType::STRUCT) {
+            $this->scan_profile_data = new \Hypertable_ThriftGen\ScanProfileData();
+            $xfer += $this->scan_profile_data->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
         default:
           $xfer += $input->skip($ftype);
           break;
@@ -447,6 +495,14 @@ class HqlResult2 {
       $xfer += $output->writeI64($this->mutator);
       $xfer += $output->writeFieldEnd();
     }
+    if ($this->scan_profile_data !== null) {
+      if (!is_object($this->scan_profile_data)) {
+        throw new TProtocolException('Bad type in structure.', TProtocolException::INVALID_DATA);
+      }
+      $xfer += $output->writeFieldBegin('scan_profile_data', TType::STRUCT, 5);
+      $xfer += $this->scan_profile_data->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
     $xfer += $output->writeFieldStop();
     $xfer += $output->writeStructEnd();
     return $xfer;
@@ -476,6 +532,10 @@ class HqlResultAsArrays {
    * @var int
    */
   public $mutator = null;
+  /**
+   * @var \Hypertable_ThriftGen\ScanProfileData
+   */
+  public $scan_profile_data = null;
 
   public function __construct($vals=null) {
     if (!isset(self::$_TSPEC)) {
@@ -508,6 +568,11 @@ class HqlResultAsArrays {
           'var' => 'mutator',
           'type' => TType::I64,
           ),
+        5 => array(
+          'var' => 'scan_profile_data',
+          'type' => TType::STRUCT,
+          'class' => '\Hypertable_ThriftGen\ScanProfileData',
+          ),
         );
     }
     if (is_array($vals)) {
@@ -522,6 +587,9 @@ class HqlResultAsArrays {
       }
       if (isset($vals['mutator'])) {
         $this->mutator = $vals['mutator'];
+      }
+      if (isset($vals['scan_profile_data'])) {
+        $this->scan_profile_data = $vals['scan_profile_data'];
       }
     }
   }
@@ -603,6 +671,14 @@ class HqlResultAsArrays {
             $xfer += $input->skip($ftype);
           }
           break;
+        case 5:
+          if ($ftype == TType::STRUCT) {
+            $this->scan_profile_data = new \Hypertable_ThriftGen\ScanProfileData();
+            $xfer += $this->scan_profile_data->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
         default:
           $xfer += $input->skip($ftype);
           break;
@@ -667,6 +743,14 @@ class HqlResultAsArrays {
     if ($this->mutator !== null) {
       $xfer += $output->writeFieldBegin('mutator', TType::I64, 4);
       $xfer += $output->writeI64($this->mutator);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->scan_profile_data !== null) {
+      if (!is_object($this->scan_profile_data)) {
+        throw new TProtocolException('Bad type in structure.', TProtocolException::INVALID_DATA);
+      }
+      $xfer += $output->writeFieldBegin('scan_profile_data', TType::STRUCT, 5);
+      $xfer += $this->scan_profile_data->write($output);
       $xfer += $output->writeFieldEnd();
     }
     $xfer += $output->writeFieldStop();

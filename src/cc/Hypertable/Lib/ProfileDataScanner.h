@@ -81,6 +81,9 @@ namespace Hypertable {
     /// Set of server proxy names participating in scan
     std::set<std::string> servers;
 
+    /// Duration of scan in milliseconds
+    int64_t elapsed_time_millis {};
+
   private:
 
     uint8_t encoding_version() const override;

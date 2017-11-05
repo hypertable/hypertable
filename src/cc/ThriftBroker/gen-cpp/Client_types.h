@@ -93,6 +93,8 @@ class ColumnPredicate;
 
 class ScanSpec;
 
+class ScanProfileData;
+
 class Key;
 
 class MutateSpec;
@@ -564,6 +566,106 @@ class ScanSpec {
 void swap(ScanSpec &a, ScanSpec &b);
 
 inline std::ostream& operator<<(std::ostream& out, const ScanSpec& obj)
+{
+  obj.printTo(out);
+  return out;
+}
+
+typedef struct _ScanProfileData__isset {
+  _ScanProfileData__isset() : id(false), subscanners(false), scanblocks(false), cells_scanned(false), cells_returned(false), bytes_scanned(false), bytes_returned(false), disk_read(false), servers(false), elapsed_time_millis(false) {}
+  bool id :1;
+  bool subscanners :1;
+  bool scanblocks :1;
+  bool cells_scanned :1;
+  bool cells_returned :1;
+  bool bytes_scanned :1;
+  bool bytes_returned :1;
+  bool disk_read :1;
+  bool servers :1;
+  bool elapsed_time_millis :1;
+} _ScanProfileData__isset;
+
+class ScanProfileData {
+ public:
+
+  ScanProfileData(const ScanProfileData&);
+  ScanProfileData& operator=(const ScanProfileData&);
+  ScanProfileData() : id(0), subscanners(0), scanblocks(0), cells_scanned(0), cells_returned(0), bytes_scanned(0), bytes_returned(0), disk_read(0), elapsed_time_millis(0) {
+  }
+
+  virtual ~ScanProfileData() throw();
+  int64_t id;
+  int32_t subscanners;
+  int32_t scanblocks;
+  int64_t cells_scanned;
+  int64_t cells_returned;
+  int64_t bytes_scanned;
+  int64_t bytes_returned;
+  int64_t disk_read;
+  std::vector<std::string>  servers;
+  int64_t elapsed_time_millis;
+
+  _ScanProfileData__isset __isset;
+
+  void __set_id(const int64_t val);
+
+  void __set_subscanners(const int32_t val);
+
+  void __set_scanblocks(const int32_t val);
+
+  void __set_cells_scanned(const int64_t val);
+
+  void __set_cells_returned(const int64_t val);
+
+  void __set_bytes_scanned(const int64_t val);
+
+  void __set_bytes_returned(const int64_t val);
+
+  void __set_disk_read(const int64_t val);
+
+  void __set_servers(const std::vector<std::string> & val);
+
+  void __set_elapsed_time_millis(const int64_t val);
+
+  bool operator == (const ScanProfileData & rhs) const
+  {
+    if (!(id == rhs.id))
+      return false;
+    if (!(subscanners == rhs.subscanners))
+      return false;
+    if (!(scanblocks == rhs.scanblocks))
+      return false;
+    if (!(cells_scanned == rhs.cells_scanned))
+      return false;
+    if (!(cells_returned == rhs.cells_returned))
+      return false;
+    if (!(bytes_scanned == rhs.bytes_scanned))
+      return false;
+    if (!(bytes_returned == rhs.bytes_returned))
+      return false;
+    if (!(disk_read == rhs.disk_read))
+      return false;
+    if (!(servers == rhs.servers))
+      return false;
+    if (!(elapsed_time_millis == rhs.elapsed_time_millis))
+      return false;
+    return true;
+  }
+  bool operator != (const ScanProfileData &rhs) const {
+    return !(*this == rhs);
+  }
+
+  bool operator < (const ScanProfileData & ) const;
+
+  uint32_t read(::apache::thrift::protocol::TProtocol* iprot);
+  uint32_t write(::apache::thrift::protocol::TProtocol* oprot) const;
+
+  virtual void printTo(std::ostream& out) const;
+};
+
+void swap(ScanProfileData &a, ScanProfileData &b);
+
+inline std::ostream& operator<<(std::ostream& out, const ScanProfileData& obj)
 {
   obj.printTo(out);
   return out;

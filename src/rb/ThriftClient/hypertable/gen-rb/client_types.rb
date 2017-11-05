@@ -286,6 +286,40 @@ module Hypertable
       ::Thrift::Struct.generate_accessors self
     end
 
+    class ScanProfileData
+      include ::Thrift::Struct, ::Thrift::Struct_Union
+      ID = 1
+      SUBSCANNERS = 2
+      SCANBLOCKS = 3
+      CELLS_SCANNED = 4
+      CELLS_RETURNED = 5
+      BYTES_SCANNED = 6
+      BYTES_RETURNED = 7
+      DISK_READ = 8
+      SERVERS = 9
+      ELAPSED_TIME_MILLIS = 10
+
+      FIELDS = {
+        ID => {:type => ::Thrift::Types::I64, :name => 'id'},
+        SUBSCANNERS => {:type => ::Thrift::Types::I32, :name => 'subscanners'},
+        SCANBLOCKS => {:type => ::Thrift::Types::I32, :name => 'scanblocks'},
+        CELLS_SCANNED => {:type => ::Thrift::Types::I64, :name => 'cells_scanned'},
+        CELLS_RETURNED => {:type => ::Thrift::Types::I64, :name => 'cells_returned'},
+        BYTES_SCANNED => {:type => ::Thrift::Types::I64, :name => 'bytes_scanned'},
+        BYTES_RETURNED => {:type => ::Thrift::Types::I64, :name => 'bytes_returned'},
+        DISK_READ => {:type => ::Thrift::Types::I64, :name => 'disk_read'},
+        SERVERS => {:type => ::Thrift::Types::LIST, :name => 'servers', :element => {:type => ::Thrift::Types::STRING}},
+        ELAPSED_TIME_MILLIS => {:type => ::Thrift::Types::I64, :name => 'elapsed_time_millis'}
+      }
+
+      def struct_fields; FIELDS; end
+
+      def validate
+      end
+
+      ::Thrift::Struct.generate_accessors self
+    end
+
     # Defines a cell key
 # 
 # <dl>

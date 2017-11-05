@@ -10,7 +10,7 @@ use Thrift;
 
 package Hypertable::ThriftGen2::HqlResult;
 use base qw(Class::Accessor);
-Hypertable::ThriftGen2::HqlResult->mk_accessors( qw( results cells scanner mutator ) );
+Hypertable::ThriftGen2::HqlResult->mk_accessors( qw( results cells scanner mutator scan_profile_data ) );
 
 sub new {
   my $classname = shift;
@@ -20,6 +20,7 @@ sub new {
   $self->{cells} = undef;
   $self->{scanner} = undef;
   $self->{mutator} = undef;
+  $self->{scan_profile_data} = undef;
   if (UNIVERSAL::isa($vals,'HASH')) {
     if (defined $vals->{results}) {
       $self->{results} = $vals->{results};
@@ -32,6 +33,9 @@ sub new {
     }
     if (defined $vals->{mutator}) {
       $self->{mutator} = $vals->{mutator};
+    }
+    if (defined $vals->{scan_profile_data}) {
+      $self->{scan_profile_data} = $vals->{scan_profile_data};
     }
   }
   return bless ($self, $classname);
@@ -105,6 +109,13 @@ sub read {
         $xfer += $input->skip($ftype);
       }
       last; };
+      /^5$/ && do{      if ($ftype == TType::STRUCT) {
+        $self->{scan_profile_data} = new Hypertable::ThriftGen::ScanProfileData();
+        $xfer += $self->{scan_profile_data}->read($input);
+      } else {
+        $xfer += $input->skip($ftype);
+      }
+      last; };
         $xfer += $input->skip($ftype);
     }
     $xfer += $input->readFieldEnd();
@@ -155,6 +166,11 @@ sub write {
     $xfer += $output->writeI64($self->{mutator});
     $xfer += $output->writeFieldEnd();
   }
+  if (defined $self->{scan_profile_data}) {
+    $xfer += $output->writeFieldBegin('scan_profile_data', TType::STRUCT, 5);
+    $xfer += $self->{scan_profile_data}->write($output);
+    $xfer += $output->writeFieldEnd();
+  }
   $xfer += $output->writeFieldStop();
   $xfer += $output->writeStructEnd();
   return $xfer;
@@ -162,7 +178,7 @@ sub write {
 
 package Hypertable::ThriftGen2::HqlResult2;
 use base qw(Class::Accessor);
-Hypertable::ThriftGen2::HqlResult2->mk_accessors( qw( results cells scanner mutator ) );
+Hypertable::ThriftGen2::HqlResult2->mk_accessors( qw( results cells scanner mutator scan_profile_data ) );
 
 sub new {
   my $classname = shift;
@@ -172,6 +188,7 @@ sub new {
   $self->{cells} = undef;
   $self->{scanner} = undef;
   $self->{mutator} = undef;
+  $self->{scan_profile_data} = undef;
   if (UNIVERSAL::isa($vals,'HASH')) {
     if (defined $vals->{results}) {
       $self->{results} = $vals->{results};
@@ -184,6 +201,9 @@ sub new {
     }
     if (defined $vals->{mutator}) {
       $self->{mutator} = $vals->{mutator};
+    }
+    if (defined $vals->{scan_profile_data}) {
+      $self->{scan_profile_data} = $vals->{scan_profile_data};
     }
   }
   return bless ($self, $classname);
@@ -268,6 +288,13 @@ sub read {
         $xfer += $input->skip($ftype);
       }
       last; };
+      /^5$/ && do{      if ($ftype == TType::STRUCT) {
+        $self->{scan_profile_data} = new Hypertable::ThriftGen::ScanProfileData();
+        $xfer += $self->{scan_profile_data}->read($input);
+      } else {
+        $xfer += $input->skip($ftype);
+      }
+      last; };
         $xfer += $input->skip($ftype);
     }
     $xfer += $input->readFieldEnd();
@@ -327,6 +354,11 @@ sub write {
     $xfer += $output->writeI64($self->{mutator});
     $xfer += $output->writeFieldEnd();
   }
+  if (defined $self->{scan_profile_data}) {
+    $xfer += $output->writeFieldBegin('scan_profile_data', TType::STRUCT, 5);
+    $xfer += $self->{scan_profile_data}->write($output);
+    $xfer += $output->writeFieldEnd();
+  }
   $xfer += $output->writeFieldStop();
   $xfer += $output->writeStructEnd();
   return $xfer;
@@ -334,7 +366,7 @@ sub write {
 
 package Hypertable::ThriftGen2::HqlResultAsArrays;
 use base qw(Class::Accessor);
-Hypertable::ThriftGen2::HqlResultAsArrays->mk_accessors( qw( results cells scanner mutator ) );
+Hypertable::ThriftGen2::HqlResultAsArrays->mk_accessors( qw( results cells scanner mutator scan_profile_data ) );
 
 sub new {
   my $classname = shift;
@@ -344,6 +376,7 @@ sub new {
   $self->{cells} = undef;
   $self->{scanner} = undef;
   $self->{mutator} = undef;
+  $self->{scan_profile_data} = undef;
   if (UNIVERSAL::isa($vals,'HASH')) {
     if (defined $vals->{results}) {
       $self->{results} = $vals->{results};
@@ -356,6 +389,9 @@ sub new {
     }
     if (defined $vals->{mutator}) {
       $self->{mutator} = $vals->{mutator};
+    }
+    if (defined $vals->{scan_profile_data}) {
+      $self->{scan_profile_data} = $vals->{scan_profile_data};
     }
   }
   return bless ($self, $classname);
@@ -440,6 +476,13 @@ sub read {
         $xfer += $input->skip($ftype);
       }
       last; };
+      /^5$/ && do{      if ($ftype == TType::STRUCT) {
+        $self->{scan_profile_data} = new Hypertable::ThriftGen::ScanProfileData();
+        $xfer += $self->{scan_profile_data}->read($input);
+      } else {
+        $xfer += $input->skip($ftype);
+      }
+      last; };
         $xfer += $input->skip($ftype);
     }
     $xfer += $input->readFieldEnd();
@@ -497,6 +540,11 @@ sub write {
   if (defined $self->{mutator}) {
     $xfer += $output->writeFieldBegin('mutator', TType::I64, 4);
     $xfer += $output->writeI64($self->{mutator});
+    $xfer += $output->writeFieldEnd();
+  }
+  if (defined $self->{scan_profile_data}) {
+    $xfer += $output->writeFieldBegin('scan_profile_data', TType::STRUCT, 5);
+    $xfer += $self->{scan_profile_data}->write($output);
     $xfer += $output->writeFieldEnd();
   }
   $xfer += $output->writeFieldStop();

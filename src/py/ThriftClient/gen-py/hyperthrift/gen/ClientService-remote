@@ -53,6 +53,8 @@ if len(sys.argv) <= 1 or sys.argv[1] == '--help':
   print('  Scanner open_scanner(Namespace ns, string table_name, ScanSpec scan_spec)')
   print('  ScannerAsync async_scanner_open(Namespace ns, string table_name, Future future, ScanSpec scan_spec)')
   print('  ScannerAsync open_scanner_async(Namespace ns, string table_name, Future future, ScanSpec scan_spec)')
+  print('  ScanProfileData scanner_get_profile_data(Scanner scanner)')
+  print('  ScanProfileData async_scanner_get_profile_data(Scanner scanner)')
   print('  void scanner_close(Scanner scanner)')
   print('  void close_scanner(Scanner scanner)')
   print('  void async_scanner_cancel(ScannerAsync scanner)')
@@ -379,6 +381,18 @@ elif cmd == 'open_scanner_async':
     print('open_scanner_async requires 4 args')
     sys.exit(1)
   pp.pprint(client.open_scanner_async(eval(args[0]),args[1],eval(args[2]),eval(args[3]),))
+
+elif cmd == 'scanner_get_profile_data':
+  if len(args) != 1:
+    print('scanner_get_profile_data requires 1 args')
+    sys.exit(1)
+  pp.pprint(client.scanner_get_profile_data(eval(args[0]),))
+
+elif cmd == 'async_scanner_get_profile_data':
+  if len(args) != 1:
+    print('async_scanner_get_profile_data requires 1 args')
+    sys.exit(1)
+  pp.pprint(client.async_scanner_get_profile_data(eval(args[0]),))
 
 elif cmd == 'scanner_close':
   if len(args) != 1:

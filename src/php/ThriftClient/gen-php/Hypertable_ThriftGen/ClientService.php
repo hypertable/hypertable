@@ -450,6 +450,26 @@ interface ClientServiceIf {
    */
   public function open_scanner_async($ns, $table_name, $future, \Hypertable_ThriftGen\ScanSpec $scan_spec);
   /**
+   * Get scan profile data
+   * 
+   * @param scanner - scanner id to close
+   * 
+   * @param int $scanner
+   * @return \Hypertable_ThriftGen\ScanProfileData
+   * @throws \Hypertable_ThriftGen\ClientException
+   */
+  public function scanner_get_profile_data($scanner);
+  /**
+   * Get asynchronous scan profile data
+   * 
+   * @param scanner - scanner id to close
+   * 
+   * @param int $scanner
+   * @return \Hypertable_ThriftGen\ScanProfileData
+   * @throws \Hypertable_ThriftGen\ClientException
+   */
+  public function async_scanner_get_profile_data($scanner);
+  /**
    * Close a table scanner
    * 
    * @param scanner - scanner id to close
@@ -3027,6 +3047,114 @@ class ClientServiceClient implements \Hypertable_ThriftGen\ClientServiceIf {
       throw $result->e;
     }
     throw new \Exception("open_scanner_async failed: unknown result");
+  }
+
+  public function scanner_get_profile_data($scanner)
+  {
+    $this->send_scanner_get_profile_data($scanner);
+    return $this->recv_scanner_get_profile_data();
+  }
+
+  public function send_scanner_get_profile_data($scanner)
+  {
+    $args = new \Hypertable_ThriftGen\ClientService_scanner_get_profile_data_args();
+    $args->scanner = $scanner;
+    $bin_accel = ($this->output_ instanceof TBinaryProtocolAccelerated) && function_exists('thrift_protocol_write_binary');
+    if ($bin_accel)
+    {
+      thrift_protocol_write_binary($this->output_, 'scanner_get_profile_data', TMessageType::CALL, $args, $this->seqid_, $this->output_->isStrictWrite());
+    }
+    else
+    {
+      $this->output_->writeMessageBegin('scanner_get_profile_data', TMessageType::CALL, $this->seqid_);
+      $args->write($this->output_);
+      $this->output_->writeMessageEnd();
+      $this->output_->getTransport()->flush();
+    }
+  }
+
+  public function recv_scanner_get_profile_data()
+  {
+    $bin_accel = ($this->input_ instanceof TBinaryProtocolAccelerated) && function_exists('thrift_protocol_read_binary');
+    if ($bin_accel) $result = thrift_protocol_read_binary($this->input_, '\Hypertable_ThriftGen\ClientService_scanner_get_profile_data_result', $this->input_->isStrictRead());
+    else
+    {
+      $rseqid = 0;
+      $fname = null;
+      $mtype = 0;
+
+      $this->input_->readMessageBegin($fname, $mtype, $rseqid);
+      if ($mtype == TMessageType::EXCEPTION) {
+        $x = new TApplicationException();
+        $x->read($this->input_);
+        $this->input_->readMessageEnd();
+        throw $x;
+      }
+      $result = new \Hypertable_ThriftGen\ClientService_scanner_get_profile_data_result();
+      $result->read($this->input_);
+      $this->input_->readMessageEnd();
+    }
+    if ($result->success !== null) {
+      return $result->success;
+    }
+    if ($result->e !== null) {
+      throw $result->e;
+    }
+    throw new \Exception("scanner_get_profile_data failed: unknown result");
+  }
+
+  public function async_scanner_get_profile_data($scanner)
+  {
+    $this->send_async_scanner_get_profile_data($scanner);
+    return $this->recv_async_scanner_get_profile_data();
+  }
+
+  public function send_async_scanner_get_profile_data($scanner)
+  {
+    $args = new \Hypertable_ThriftGen\ClientService_async_scanner_get_profile_data_args();
+    $args->scanner = $scanner;
+    $bin_accel = ($this->output_ instanceof TBinaryProtocolAccelerated) && function_exists('thrift_protocol_write_binary');
+    if ($bin_accel)
+    {
+      thrift_protocol_write_binary($this->output_, 'async_scanner_get_profile_data', TMessageType::CALL, $args, $this->seqid_, $this->output_->isStrictWrite());
+    }
+    else
+    {
+      $this->output_->writeMessageBegin('async_scanner_get_profile_data', TMessageType::CALL, $this->seqid_);
+      $args->write($this->output_);
+      $this->output_->writeMessageEnd();
+      $this->output_->getTransport()->flush();
+    }
+  }
+
+  public function recv_async_scanner_get_profile_data()
+  {
+    $bin_accel = ($this->input_ instanceof TBinaryProtocolAccelerated) && function_exists('thrift_protocol_read_binary');
+    if ($bin_accel) $result = thrift_protocol_read_binary($this->input_, '\Hypertable_ThriftGen\ClientService_async_scanner_get_profile_data_result', $this->input_->isStrictRead());
+    else
+    {
+      $rseqid = 0;
+      $fname = null;
+      $mtype = 0;
+
+      $this->input_->readMessageBegin($fname, $mtype, $rseqid);
+      if ($mtype == TMessageType::EXCEPTION) {
+        $x = new TApplicationException();
+        $x->read($this->input_);
+        $this->input_->readMessageEnd();
+        throw $x;
+      }
+      $result = new \Hypertable_ThriftGen\ClientService_async_scanner_get_profile_data_result();
+      $result->read($this->input_);
+      $this->input_->readMessageEnd();
+    }
+    if ($result->success !== null) {
+      return $result->success;
+    }
+    if ($result->e !== null) {
+      throw $result->e;
+    }
+    throw new \Exception("async_scanner_get_profile_data failed: unknown result");
   }
 
   public function scanner_close($scanner)
@@ -13576,6 +13704,366 @@ class ClientService_open_scanner_async_result {
 
 }
 
+class ClientService_scanner_get_profile_data_args {
+  static $_TSPEC;
+
+  /**
+   * @var int
+   */
+  public $scanner = null;
+
+  public function __construct($vals=null) {
+    if (!isset(self::$_TSPEC)) {
+      self::$_TSPEC = array(
+        1 => array(
+          'var' => 'scanner',
+          'type' => TType::I64,
+          ),
+        );
+    }
+    if (is_array($vals)) {
+      if (isset($vals['scanner'])) {
+        $this->scanner = $vals['scanner'];
+      }
+    }
+  }
+
+  public function getName() {
+    return 'ClientService_scanner_get_profile_data_args';
+  }
+
+  public function read($input)
+  {
+    $xfer = 0;
+    $fname = null;
+    $ftype = 0;
+    $fid = 0;
+    $xfer += $input->readStructBegin($fname);
+    while (true)
+    {
+      $xfer += $input->readFieldBegin($fname, $ftype, $fid);
+      if ($ftype == TType::STOP) {
+        break;
+      }
+      switch ($fid)
+      {
+        case 1:
+          if ($ftype == TType::I64) {
+            $xfer += $input->readI64($this->scanner);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        default:
+          $xfer += $input->skip($ftype);
+          break;
+      }
+      $xfer += $input->readFieldEnd();
+    }
+    $xfer += $input->readStructEnd();
+    return $xfer;
+  }
+
+  public function write($output) {
+    $xfer = 0;
+    $xfer += $output->writeStructBegin('ClientService_scanner_get_profile_data_args');
+    if ($this->scanner !== null) {
+      $xfer += $output->writeFieldBegin('scanner', TType::I64, 1);
+      $xfer += $output->writeI64($this->scanner);
+      $xfer += $output->writeFieldEnd();
+    }
+    $xfer += $output->writeFieldStop();
+    $xfer += $output->writeStructEnd();
+    return $xfer;
+  }
+
+}
+
+class ClientService_scanner_get_profile_data_result {
+  static $_TSPEC;
+
+  /**
+   * @var \Hypertable_ThriftGen\ScanProfileData
+   */
+  public $success = null;
+  /**
+   * @var \Hypertable_ThriftGen\ClientException
+   */
+  public $e = null;
+
+  public function __construct($vals=null) {
+    if (!isset(self::$_TSPEC)) {
+      self::$_TSPEC = array(
+        0 => array(
+          'var' => 'success',
+          'type' => TType::STRUCT,
+          'class' => '\Hypertable_ThriftGen\ScanProfileData',
+          ),
+        1 => array(
+          'var' => 'e',
+          'type' => TType::STRUCT,
+          'class' => '\Hypertable_ThriftGen\ClientException',
+          ),
+        );
+    }
+    if (is_array($vals)) {
+      if (isset($vals['success'])) {
+        $this->success = $vals['success'];
+      }
+      if (isset($vals['e'])) {
+        $this->e = $vals['e'];
+      }
+    }
+  }
+
+  public function getName() {
+    return 'ClientService_scanner_get_profile_data_result';
+  }
+
+  public function read($input)
+  {
+    $xfer = 0;
+    $fname = null;
+    $ftype = 0;
+    $fid = 0;
+    $xfer += $input->readStructBegin($fname);
+    while (true)
+    {
+      $xfer += $input->readFieldBegin($fname, $ftype, $fid);
+      if ($ftype == TType::STOP) {
+        break;
+      }
+      switch ($fid)
+      {
+        case 0:
+          if ($ftype == TType::STRUCT) {
+            $this->success = new \Hypertable_ThriftGen\ScanProfileData();
+            $xfer += $this->success->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 1:
+          if ($ftype == TType::STRUCT) {
+            $this->e = new \Hypertable_ThriftGen\ClientException();
+            $xfer += $this->e->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        default:
+          $xfer += $input->skip($ftype);
+          break;
+      }
+      $xfer += $input->readFieldEnd();
+    }
+    $xfer += $input->readStructEnd();
+    return $xfer;
+  }
+
+  public function write($output) {
+    $xfer = 0;
+    $xfer += $output->writeStructBegin('ClientService_scanner_get_profile_data_result');
+    if ($this->success !== null) {
+      if (!is_object($this->success)) {
+        throw new TProtocolException('Bad type in structure.', TProtocolException::INVALID_DATA);
+      }
+      $xfer += $output->writeFieldBegin('success', TType::STRUCT, 0);
+      $xfer += $this->success->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->e !== null) {
+      $xfer += $output->writeFieldBegin('e', TType::STRUCT, 1);
+      $xfer += $this->e->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    $xfer += $output->writeFieldStop();
+    $xfer += $output->writeStructEnd();
+    return $xfer;
+  }
+
+}
+
+class ClientService_async_scanner_get_profile_data_args {
+  static $_TSPEC;
+
+  /**
+   * @var int
+   */
+  public $scanner = null;
+
+  public function __construct($vals=null) {
+    if (!isset(self::$_TSPEC)) {
+      self::$_TSPEC = array(
+        1 => array(
+          'var' => 'scanner',
+          'type' => TType::I64,
+          ),
+        );
+    }
+    if (is_array($vals)) {
+      if (isset($vals['scanner'])) {
+        $this->scanner = $vals['scanner'];
+      }
+    }
+  }
+
+  public function getName() {
+    return 'ClientService_async_scanner_get_profile_data_args';
+  }
+
+  public function read($input)
+  {
+    $xfer = 0;
+    $fname = null;
+    $ftype = 0;
+    $fid = 0;
+    $xfer += $input->readStructBegin($fname);
+    while (true)
+    {
+      $xfer += $input->readFieldBegin($fname, $ftype, $fid);
+      if ($ftype == TType::STOP) {
+        break;
+      }
+      switch ($fid)
+      {
+        case 1:
+          if ($ftype == TType::I64) {
+            $xfer += $input->readI64($this->scanner);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        default:
+          $xfer += $input->skip($ftype);
+          break;
+      }
+      $xfer += $input->readFieldEnd();
+    }
+    $xfer += $input->readStructEnd();
+    return $xfer;
+  }
+
+  public function write($output) {
+    $xfer = 0;
+    $xfer += $output->writeStructBegin('ClientService_async_scanner_get_profile_data_args');
+    if ($this->scanner !== null) {
+      $xfer += $output->writeFieldBegin('scanner', TType::I64, 1);
+      $xfer += $output->writeI64($this->scanner);
+      $xfer += $output->writeFieldEnd();
+    }
+    $xfer += $output->writeFieldStop();
+    $xfer += $output->writeStructEnd();
+    return $xfer;
+  }
+
+}
+
+class ClientService_async_scanner_get_profile_data_result {
+  static $_TSPEC;
+
+  /**
+   * @var \Hypertable_ThriftGen\ScanProfileData
+   */
+  public $success = null;
+  /**
+   * @var \Hypertable_ThriftGen\ClientException
+   */
+  public $e = null;
+
+  public function __construct($vals=null) {
+    if (!isset(self::$_TSPEC)) {
+      self::$_TSPEC = array(
+        0 => array(
+          'var' => 'success',
+          'type' => TType::STRUCT,
+          'class' => '\Hypertable_ThriftGen\ScanProfileData',
+          ),
+        1 => array(
+          'var' => 'e',
+          'type' => TType::STRUCT,
+          'class' => '\Hypertable_ThriftGen\ClientException',
+          ),
+        );
+    }
+    if (is_array($vals)) {
+      if (isset($vals['success'])) {
+        $this->success = $vals['success'];
+      }
+      if (isset($vals['e'])) {
+        $this->e = $vals['e'];
+      }
+    }
+  }
+
+  public function getName() {
+    return 'ClientService_async_scanner_get_profile_data_result';
+  }
+
+  public function read($input)
+  {
+    $xfer = 0;
+    $fname = null;
+    $ftype = 0;
+    $fid = 0;
+    $xfer += $input->readStructBegin($fname);
+    while (true)
+    {
+      $xfer += $input->readFieldBegin($fname, $ftype, $fid);
+      if ($ftype == TType::STOP) {
+        break;
+      }
+      switch ($fid)
+      {
+        case 0:
+          if ($ftype == TType::STRUCT) {
+            $this->success = new \Hypertable_ThriftGen\ScanProfileData();
+            $xfer += $this->success->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        case 1:
+          if ($ftype == TType::STRUCT) {
+            $this->e = new \Hypertable_ThriftGen\ClientException();
+            $xfer += $this->e->read($input);
+          } else {
+            $xfer += $input->skip($ftype);
+          }
+          break;
+        default:
+          $xfer += $input->skip($ftype);
+          break;
+      }
+      $xfer += $input->readFieldEnd();
+    }
+    $xfer += $input->readStructEnd();
+    return $xfer;
+  }
+
+  public function write($output) {
+    $xfer = 0;
+    $xfer += $output->writeStructBegin('ClientService_async_scanner_get_profile_data_result');
+    if ($this->success !== null) {
+      if (!is_object($this->success)) {
+        throw new TProtocolException('Bad type in structure.', TProtocolException::INVALID_DATA);
+      }
+      $xfer += $output->writeFieldBegin('success', TType::STRUCT, 0);
+      $xfer += $this->success->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    if ($this->e !== null) {
+      $xfer += $output->writeFieldBegin('e', TType::STRUCT, 1);
+      $xfer += $this->e->write($output);
+      $xfer += $output->writeFieldEnd();
+    }
+    $xfer += $output->writeFieldStop();
+    $xfer += $output->writeStructEnd();
+    return $xfer;
+  }
+
+}
+
 class ClientService_scanner_close_args {
   static $_TSPEC;
 
@@ -14626,15 +15114,15 @@ class ClientService_scanner_get_cells_result {
         case 0:
           if ($ftype == TType::LST) {
             $this->success = array();
-            $_size67 = 0;
-            $_etype70 = 0;
-            $xfer += $input->readListBegin($_etype70, $_size67);
-            for ($_i71 = 0; $_i71 < $_size67; ++$_i71)
+            $_size74 = 0;
+            $_etype77 = 0;
+            $xfer += $input->readListBegin($_etype77, $_size74);
+            for ($_i78 = 0; $_i78 < $_size74; ++$_i78)
             {
-              $elem72 = null;
-              $elem72 = new \Hypertable_ThriftGen\Cell();
-              $xfer += $elem72->read($input);
-              $this->success []= $elem72;
+              $elem79 = null;
+              $elem79 = new \Hypertable_ThriftGen\Cell();
+              $xfer += $elem79->read($input);
+              $this->success []= $elem79;
             }
             $xfer += $input->readListEnd();
           } else {
@@ -14670,9 +15158,9 @@ class ClientService_scanner_get_cells_result {
       {
         $output->writeListBegin(TType::STRUCT, count($this->success));
         {
-          foreach ($this->success as $iter73)
+          foreach ($this->success as $iter80)
           {
-            $xfer += $iter73->write($output);
+            $xfer += $iter80->write($output);
           }
         }
         $output->writeListEnd();
@@ -14829,15 +15317,15 @@ class ClientService_next_cells_result {
         case 0:
           if ($ftype == TType::LST) {
             $this->success = array();
-            $_size74 = 0;
-            $_etype77 = 0;
-            $xfer += $input->readListBegin($_etype77, $_size74);
-            for ($_i78 = 0; $_i78 < $_size74; ++$_i78)
+            $_size81 = 0;
+            $_etype84 = 0;
+            $xfer += $input->readListBegin($_etype84, $_size81);
+            for ($_i85 = 0; $_i85 < $_size81; ++$_i85)
             {
-              $elem79 = null;
-              $elem79 = new \Hypertable_ThriftGen\Cell();
-              $xfer += $elem79->read($input);
-              $this->success []= $elem79;
+              $elem86 = null;
+              $elem86 = new \Hypertable_ThriftGen\Cell();
+              $xfer += $elem86->read($input);
+              $this->success []= $elem86;
             }
             $xfer += $input->readListEnd();
           } else {
@@ -14873,9 +15361,9 @@ class ClientService_next_cells_result {
       {
         $output->writeListBegin(TType::STRUCT, count($this->success));
         {
-          foreach ($this->success as $iter80)
+          foreach ($this->success as $iter87)
           {
-            $xfer += $iter80->write($output);
+            $xfer += $iter87->write($output);
           }
         }
         $output->writeListEnd();
@@ -15035,24 +15523,24 @@ class ClientService_scanner_get_cells_as_arrays_result {
         case 0:
           if ($ftype == TType::LST) {
             $this->success = array();
-            $_size81 = 0;
-            $_etype84 = 0;
-            $xfer += $input->readListBegin($_etype84, $_size81);
-            for ($_i85 = 0; $_i85 < $_size81; ++$_i85)
+            $_size88 = 0;
+            $_etype91 = 0;
+            $xfer += $input->readListBegin($_etype91, $_size88);
+            for ($_i92 = 0; $_i92 < $_size88; ++$_i92)
             {
-              $elem86 = null;
-              $elem86 = array();
-              $_size87 = 0;
-              $_etype90 = 0;
-              $xfer += $input->readListBegin($_etype90, $_size87);
-              for ($_i91 = 0; $_i91 < $_size87; ++$_i91)
+              $elem93 = null;
+              $elem93 = array();
+              $_size94 = 0;
+              $_etype97 = 0;
+              $xfer += $input->readListBegin($_etype97, $_size94);
+              for ($_i98 = 0; $_i98 < $_size94; ++$_i98)
               {
-                $elem92 = null;
-                $xfer += $input->readString($elem92);
-                $elem86 []= $elem92;
+                $elem99 = null;
+                $xfer += $input->readString($elem99);
+                $elem93 []= $elem99;
               }
               $xfer += $input->readListEnd();
-              $this->success []= $elem86;
+              $this->success []= $elem93;
             }
             $xfer += $input->readListEnd();
           } else {
@@ -15088,14 +15576,14 @@ class ClientService_scanner_get_cells_as_arrays_result {
       {
         $output->writeListBegin(TType::LST, count($this->success));
         {
-          foreach ($this->success as $iter93)
+          foreach ($this->success as $iter100)
           {
             {
-              $output->writeListBegin(TType::STRING, count($iter93));
+              $output->writeListBegin(TType::STRING, count($iter100));
               {
-                foreach ($iter93 as $iter94)
+                foreach ($iter100 as $iter101)
                 {
-                  $xfer += $output->writeString($iter94);
+                  $xfer += $output->writeString($iter101);
                 }
               }
               $output->writeListEnd();
@@ -15259,24 +15747,24 @@ class ClientService_next_cells_as_arrays_result {
         case 0:
           if ($ftype == TType::LST) {
             $this->success = array();
-            $_size95 = 0;
-            $_etype98 = 0;
-            $xfer += $input->readListBegin($_etype98, $_size95);
-            for ($_i99 = 0; $_i99 < $_size95; ++$_i99)
+            $_size102 = 0;
+            $_etype105 = 0;
+            $xfer += $input->readListBegin($_etype105, $_size102);
+            for ($_i106 = 0; $_i106 < $_size102; ++$_i106)
             {
-              $elem100 = null;
-              $elem100 = array();
-              $_size101 = 0;
-              $_etype104 = 0;
-              $xfer += $input->readListBegin($_etype104, $_size101);
-              for ($_i105 = 0; $_i105 < $_size101; ++$_i105)
+              $elem107 = null;
+              $elem107 = array();
+              $_size108 = 0;
+              $_etype111 = 0;
+              $xfer += $input->readListBegin($_etype111, $_size108);
+              for ($_i112 = 0; $_i112 < $_size108; ++$_i112)
               {
-                $elem106 = null;
-                $xfer += $input->readString($elem106);
-                $elem100 []= $elem106;
+                $elem113 = null;
+                $xfer += $input->readString($elem113);
+                $elem107 []= $elem113;
               }
               $xfer += $input->readListEnd();
-              $this->success []= $elem100;
+              $this->success []= $elem107;
             }
             $xfer += $input->readListEnd();
           } else {
@@ -15312,14 +15800,14 @@ class ClientService_next_cells_as_arrays_result {
       {
         $output->writeListBegin(TType::LST, count($this->success));
         {
-          foreach ($this->success as $iter107)
+          foreach ($this->success as $iter114)
           {
             {
-              $output->writeListBegin(TType::STRING, count($iter107));
+              $output->writeListBegin(TType::STRING, count($iter114));
               {
-                foreach ($iter107 as $iter108)
+                foreach ($iter114 as $iter115)
                 {
-                  $xfer += $output->writeString($iter108);
+                  $xfer += $output->writeString($iter115);
                 }
               }
               $output->writeListEnd();
@@ -15830,15 +16318,15 @@ class ClientService_scanner_get_row_result {
         case 0:
           if ($ftype == TType::LST) {
             $this->success = array();
-            $_size109 = 0;
-            $_etype112 = 0;
-            $xfer += $input->readListBegin($_etype112, $_size109);
-            for ($_i113 = 0; $_i113 < $_size109; ++$_i113)
+            $_size116 = 0;
+            $_etype119 = 0;
+            $xfer += $input->readListBegin($_etype119, $_size116);
+            for ($_i120 = 0; $_i120 < $_size116; ++$_i120)
             {
-              $elem114 = null;
-              $elem114 = new \Hypertable_ThriftGen\Cell();
-              $xfer += $elem114->read($input);
-              $this->success []= $elem114;
+              $elem121 = null;
+              $elem121 = new \Hypertable_ThriftGen\Cell();
+              $xfer += $elem121->read($input);
+              $this->success []= $elem121;
             }
             $xfer += $input->readListEnd();
           } else {
@@ -15874,9 +16362,9 @@ class ClientService_scanner_get_row_result {
       {
         $output->writeListBegin(TType::STRUCT, count($this->success));
         {
-          foreach ($this->success as $iter115)
+          foreach ($this->success as $iter122)
           {
-            $xfer += $iter115->write($output);
+            $xfer += $iter122->write($output);
           }
         }
         $output->writeListEnd();
@@ -16033,15 +16521,15 @@ class ClientService_next_row_result {
         case 0:
           if ($ftype == TType::LST) {
             $this->success = array();
-            $_size116 = 0;
-            $_etype119 = 0;
-            $xfer += $input->readListBegin($_etype119, $_size116);
-            for ($_i120 = 0; $_i120 < $_size116; ++$_i120)
+            $_size123 = 0;
+            $_etype126 = 0;
+            $xfer += $input->readListBegin($_etype126, $_size123);
+            for ($_i127 = 0; $_i127 < $_size123; ++$_i127)
             {
-              $elem121 = null;
-              $elem121 = new \Hypertable_ThriftGen\Cell();
-              $xfer += $elem121->read($input);
-              $this->success []= $elem121;
+              $elem128 = null;
+              $elem128 = new \Hypertable_ThriftGen\Cell();
+              $xfer += $elem128->read($input);
+              $this->success []= $elem128;
             }
             $xfer += $input->readListEnd();
           } else {
@@ -16077,9 +16565,9 @@ class ClientService_next_row_result {
       {
         $output->writeListBegin(TType::STRUCT, count($this->success));
         {
-          foreach ($this->success as $iter122)
+          foreach ($this->success as $iter129)
           {
-            $xfer += $iter122->write($output);
+            $xfer += $iter129->write($output);
           }
         }
         $output->writeListEnd();
@@ -16239,24 +16727,24 @@ class ClientService_scanner_get_row_as_arrays_result {
         case 0:
           if ($ftype == TType::LST) {
             $this->success = array();
-            $_size123 = 0;
-            $_etype126 = 0;
-            $xfer += $input->readListBegin($_etype126, $_size123);
-            for ($_i127 = 0; $_i127 < $_size123; ++$_i127)
+            $_size130 = 0;
+            $_etype133 = 0;
+            $xfer += $input->readListBegin($_etype133, $_size130);
+            for ($_i134 = 0; $_i134 < $_size130; ++$_i134)
             {
-              $elem128 = null;
-              $elem128 = array();
-              $_size129 = 0;
-              $_etype132 = 0;
-              $xfer += $input->readListBegin($_etype132, $_size129);
-              for ($_i133 = 0; $_i133 < $_size129; ++$_i133)
+              $elem135 = null;
+              $elem135 = array();
+              $_size136 = 0;
+              $_etype139 = 0;
+              $xfer += $input->readListBegin($_etype139, $_size136);
+              for ($_i140 = 0; $_i140 < $_size136; ++$_i140)
               {
-                $elem134 = null;
-                $xfer += $input->readString($elem134);
-                $elem128 []= $elem134;
+                $elem141 = null;
+                $xfer += $input->readString($elem141);
+                $elem135 []= $elem141;
               }
               $xfer += $input->readListEnd();
-              $this->success []= $elem128;
+              $this->success []= $elem135;
             }
             $xfer += $input->readListEnd();
           } else {
@@ -16292,14 +16780,14 @@ class ClientService_scanner_get_row_as_arrays_result {
       {
         $output->writeListBegin(TType::LST, count($this->success));
         {
-          foreach ($this->success as $iter135)
+          foreach ($this->success as $iter142)
           {
             {
-              $output->writeListBegin(TType::STRING, count($iter135));
+              $output->writeListBegin(TType::STRING, count($iter142));
               {
-                foreach ($iter135 as $iter136)
+                foreach ($iter142 as $iter143)
                 {
-                  $xfer += $output->writeString($iter136);
+                  $xfer += $output->writeString($iter143);
                 }
               }
               $output->writeListEnd();
@@ -16463,24 +16951,24 @@ class ClientService_next_row_as_arrays_result {
         case 0:
           if ($ftype == TType::LST) {
             $this->success = array();
-            $_size137 = 0;
-            $_etype140 = 0;
-            $xfer += $input->readListBegin($_etype140, $_size137);
-            for ($_i141 = 0; $_i141 < $_size137; ++$_i141)
+            $_size144 = 0;
+            $_etype147 = 0;
+            $xfer += $input->readListBegin($_etype147, $_size144);
+            for ($_i148 = 0; $_i148 < $_size144; ++$_i148)
             {
-              $elem142 = null;
-              $elem142 = array();
-              $_size143 = 0;
-              $_etype146 = 0;
-              $xfer += $input->readListBegin($_etype146, $_size143);
-              for ($_i147 = 0; $_i147 < $_size143; ++$_i147)
+              $elem149 = null;
+              $elem149 = array();
+              $_size150 = 0;
+              $_etype153 = 0;
+              $xfer += $input->readListBegin($_etype153, $_size150);
+              for ($_i154 = 0; $_i154 < $_size150; ++$_i154)
               {
-                $elem148 = null;
-                $xfer += $input->readString($elem148);
-                $elem142 []= $elem148;
+                $elem155 = null;
+                $xfer += $input->readString($elem155);
+                $elem149 []= $elem155;
               }
               $xfer += $input->readListEnd();
-              $this->success []= $elem142;
+              $this->success []= $elem149;
             }
             $xfer += $input->readListEnd();
           } else {
@@ -16516,14 +17004,14 @@ class ClientService_next_row_as_arrays_result {
       {
         $output->writeListBegin(TType::LST, count($this->success));
         {
-          foreach ($this->success as $iter149)
+          foreach ($this->success as $iter156)
           {
             {
-              $output->writeListBegin(TType::STRING, count($iter149));
+              $output->writeListBegin(TType::STRING, count($iter156));
               {
-                foreach ($iter149 as $iter150)
+                foreach ($iter156 as $iter157)
                 {
-                  $xfer += $output->writeString($iter150);
+                  $xfer += $output->writeString($iter157);
                 }
               }
               $output->writeListEnd();
@@ -17080,15 +17568,15 @@ class ClientService_get_row_result {
         case 0:
           if ($ftype == TType::LST) {
             $this->success = array();
-            $_size151 = 0;
-            $_etype154 = 0;
-            $xfer += $input->readListBegin($_etype154, $_size151);
-            for ($_i155 = 0; $_i155 < $_size151; ++$_i155)
+            $_size158 = 0;
+            $_etype161 = 0;
+            $xfer += $input->readListBegin($_etype161, $_size158);
+            for ($_i162 = 0; $_i162 < $_size158; ++$_i162)
             {
-              $elem156 = null;
-              $elem156 = new \Hypertable_ThriftGen\Cell();
-              $xfer += $elem156->read($input);
-              $this->success []= $elem156;
+              $elem163 = null;
+              $elem163 = new \Hypertable_ThriftGen\Cell();
+              $xfer += $elem163->read($input);
+              $this->success []= $elem163;
             }
             $xfer += $input->readListEnd();
           } else {
@@ -17124,9 +17612,9 @@ class ClientService_get_row_result {
       {
         $output->writeListBegin(TType::STRUCT, count($this->success));
         {
-          foreach ($this->success as $iter157)
+          foreach ($this->success as $iter164)
           {
-            $xfer += $iter157->write($output);
+            $xfer += $iter164->write($output);
           }
         }
         $output->writeListEnd();
@@ -17332,24 +17820,24 @@ class ClientService_get_row_as_arrays_result {
         case 0:
           if ($ftype == TType::LST) {
             $this->success = array();
-            $_size158 = 0;
-            $_etype161 = 0;
-            $xfer += $input->readListBegin($_etype161, $_size158);
-            for ($_i162 = 0; $_i162 < $_size158; ++$_i162)
+            $_size165 = 0;
+            $_etype168 = 0;
+            $xfer += $input->readListBegin($_etype168, $_size165);
+            for ($_i169 = 0; $_i169 < $_size165; ++$_i169)
             {
-              $elem163 = null;
-              $elem163 = array();
-              $_size164 = 0;
-              $_etype167 = 0;
-              $xfer += $input->readListBegin($_etype167, $_size164);
-              for ($_i168 = 0; $_i168 < $_size164; ++$_i168)
+              $elem170 = null;
+              $elem170 = array();
+              $_size171 = 0;
+              $_etype174 = 0;
+              $xfer += $input->readListBegin($_etype174, $_size171);
+              for ($_i175 = 0; $_i175 < $_size171; ++$_i175)
               {
-                $elem169 = null;
-                $xfer += $input->readString($elem169);
-                $elem163 []= $elem169;
+                $elem176 = null;
+                $xfer += $input->readString($elem176);
+                $elem170 []= $elem176;
               }
               $xfer += $input->readListEnd();
-              $this->success []= $elem163;
+              $this->success []= $elem170;
             }
             $xfer += $input->readListEnd();
           } else {
@@ -17385,14 +17873,14 @@ class ClientService_get_row_as_arrays_result {
       {
         $output->writeListBegin(TType::LST, count($this->success));
         {
-          foreach ($this->success as $iter170)
+          foreach ($this->success as $iter177)
           {
             {
-              $output->writeListBegin(TType::STRING, count($iter170));
+              $output->writeListBegin(TType::STRING, count($iter177));
               {
-                foreach ($iter170 as $iter171)
+                foreach ($iter177 as $iter178)
                 {
-                  $xfer += $output->writeString($iter171);
+                  $xfer += $output->writeString($iter178);
                 }
               }
               $output->writeListEnd();
@@ -18069,15 +18557,15 @@ class ClientService_get_cells_result {
         case 0:
           if ($ftype == TType::LST) {
             $this->success = array();
-            $_size172 = 0;
-            $_etype175 = 0;
-            $xfer += $input->readListBegin($_etype175, $_size172);
-            for ($_i176 = 0; $_i176 < $_size172; ++$_i176)
+            $_size179 = 0;
+            $_etype182 = 0;
+            $xfer += $input->readListBegin($_etype182, $_size179);
+            for ($_i183 = 0; $_i183 < $_size179; ++$_i183)
             {
-              $elem177 = null;
-              $elem177 = new \Hypertable_ThriftGen\Cell();
-              $xfer += $elem177->read($input);
-              $this->success []= $elem177;
+              $elem184 = null;
+              $elem184 = new \Hypertable_ThriftGen\Cell();
+              $xfer += $elem184->read($input);
+              $this->success []= $elem184;
             }
             $xfer += $input->readListEnd();
           } else {
@@ -18113,9 +18601,9 @@ class ClientService_get_cells_result {
       {
         $output->writeListBegin(TType::STRUCT, count($this->success));
         {
-          foreach ($this->success as $iter178)
+          foreach ($this->success as $iter185)
           {
-            $xfer += $iter178->write($output);
+            $xfer += $iter185->write($output);
           }
         }
         $output->writeListEnd();
@@ -18326,24 +18814,24 @@ class ClientService_get_cells_as_arrays_result {
         case 0:
           if ($ftype == TType::LST) {
             $this->success = array();
-            $_size179 = 0;
-            $_etype182 = 0;
-            $xfer += $input->readListBegin($_etype182, $_size179);
-            for ($_i183 = 0; $_i183 < $_size179; ++$_i183)
+            $_size186 = 0;
+            $_etype189 = 0;
+            $xfer += $input->readListBegin($_etype189, $_size186);
+            for ($_i190 = 0; $_i190 < $_size186; ++$_i190)
             {
-              $elem184 = null;
-              $elem184 = array();
-              $_size185 = 0;
-              $_etype188 = 0;
-              $xfer += $input->readListBegin($_etype188, $_size185);
-              for ($_i189 = 0; $_i189 < $_size185; ++$_i189)
+              $elem191 = null;
+              $elem191 = array();
+              $_size192 = 0;
+              $_etype195 = 0;
+              $xfer += $input->readListBegin($_etype195, $_size192);
+              for ($_i196 = 0; $_i196 < $_size192; ++$_i196)
               {
-                $elem190 = null;
-                $xfer += $input->readString($elem190);
-                $elem184 []= $elem190;
+                $elem197 = null;
+                $xfer += $input->readString($elem197);
+                $elem191 []= $elem197;
               }
               $xfer += $input->readListEnd();
-              $this->success []= $elem184;
+              $this->success []= $elem191;
             }
             $xfer += $input->readListEnd();
           } else {
@@ -18379,14 +18867,14 @@ class ClientService_get_cells_as_arrays_result {
       {
         $output->writeListBegin(TType::LST, count($this->success));
         {
-          foreach ($this->success as $iter191)
+          foreach ($this->success as $iter198)
           {
             {
-              $output->writeListBegin(TType::STRING, count($iter191));
+              $output->writeListBegin(TType::STRING, count($iter198));
               {
-                foreach ($iter191 as $iter192)
+                foreach ($iter198 as $iter199)
                 {
-                  $xfer += $output->writeString($iter192);
+                  $xfer += $output->writeString($iter199);
                 }
               }
               $output->writeListEnd();
@@ -19148,15 +19636,15 @@ class ClientService_shared_mutator_set_cells_args {
         case 4:
           if ($ftype == TType::LST) {
             $this->cells = array();
-            $_size193 = 0;
-            $_etype196 = 0;
-            $xfer += $input->readListBegin($_etype196, $_size193);
-            for ($_i197 = 0; $_i197 < $_size193; ++$_i197)
+            $_size200 = 0;
+            $_etype203 = 0;
+            $xfer += $input->readListBegin($_etype203, $_size200);
+            for ($_i204 = 0; $_i204 < $_size200; ++$_i204)
             {
-              $elem198 = null;
-              $elem198 = new \Hypertable_ThriftGen\Cell();
-              $xfer += $elem198->read($input);
-              $this->cells []= $elem198;
+              $elem205 = null;
+              $elem205 = new \Hypertable_ThriftGen\Cell();
+              $xfer += $elem205->read($input);
+              $this->cells []= $elem205;
             }
             $xfer += $input->readListEnd();
           } else {
@@ -19202,9 +19690,9 @@ class ClientService_shared_mutator_set_cells_args {
       {
         $output->writeListBegin(TType::STRUCT, count($this->cells));
         {
-          foreach ($this->cells as $iter199)
+          foreach ($this->cells as $iter206)
           {
-            $xfer += $iter199->write($output);
+            $xfer += $iter206->write($output);
           }
         }
         $output->writeListEnd();
@@ -19402,15 +19890,15 @@ class ClientService_offer_cells_args {
         case 4:
           if ($ftype == TType::LST) {
             $this->cells = array();
-            $_size200 = 0;
-            $_etype203 = 0;
-            $xfer += $input->readListBegin($_etype203, $_size200);
-            for ($_i204 = 0; $_i204 < $_size200; ++$_i204)
+            $_size207 = 0;
+            $_etype210 = 0;
+            $xfer += $input->readListBegin($_etype210, $_size207);
+            for ($_i211 = 0; $_i211 < $_size207; ++$_i211)
             {
-              $elem205 = null;
-              $elem205 = new \Hypertable_ThriftGen\Cell();
-              $xfer += $elem205->read($input);
-              $this->cells []= $elem205;
+              $elem212 = null;
+              $elem212 = new \Hypertable_ThriftGen\Cell();
+              $xfer += $elem212->read($input);
+              $this->cells []= $elem212;
             }
             $xfer += $input->readListEnd();
           } else {
@@ -19456,9 +19944,9 @@ class ClientService_offer_cells_args {
       {
         $output->writeListBegin(TType::STRUCT, count($this->cells));
         {
-          foreach ($this->cells as $iter206)
+          foreach ($this->cells as $iter213)
           {
-            $xfer += $iter206->write($output);
+            $xfer += $iter213->write($output);
           }
         }
         $output->writeListEnd();
@@ -19659,24 +20147,24 @@ class ClientService_shared_mutator_set_cells_as_arrays_args {
         case 4:
           if ($ftype == TType::LST) {
             $this->cells = array();
-            $_size207 = 0;
-            $_etype210 = 0;
-            $xfer += $input->readListBegin($_etype210, $_size207);
-            for ($_i211 = 0; $_i211 < $_size207; ++$_i211)
+            $_size214 = 0;
+            $_etype217 = 0;
+            $xfer += $input->readListBegin($_etype217, $_size214);
+            for ($_i218 = 0; $_i218 < $_size214; ++$_i218)
             {
-              $elem212 = null;
-              $elem212 = array();
-              $_size213 = 0;
-              $_etype216 = 0;
-              $xfer += $input->readListBegin($_etype216, $_size213);
-              for ($_i217 = 0; $_i217 < $_size213; ++$_i217)
+              $elem219 = null;
+              $elem219 = array();
+              $_size220 = 0;
+              $_etype223 = 0;
+              $xfer += $input->readListBegin($_etype223, $_size220);
+              for ($_i224 = 0; $_i224 < $_size220; ++$_i224)
               {
-                $elem218 = null;
-                $xfer += $input->readString($elem218);
-                $elem212 []= $elem218;
+                $elem225 = null;
+                $xfer += $input->readString($elem225);
+                $elem219 []= $elem225;
               }
               $xfer += $input->readListEnd();
-              $this->cells []= $elem212;
+              $this->cells []= $elem219;
             }
             $xfer += $input->readListEnd();
           } else {
@@ -19722,14 +20210,14 @@ class ClientService_shared_mutator_set_cells_as_arrays_args {
       {
         $output->writeListBegin(TType::LST, count($this->cells));
         {
-          foreach ($this->cells as $iter219)
+          foreach ($this->cells as $iter226)
           {
             {
-              $output->writeListBegin(TType::STRING, count($iter219));
+              $output->writeListBegin(TType::STRING, count($iter226));
               {
-                foreach ($iter219 as $iter220)
+                foreach ($iter226 as $iter227)
                 {
-                  $xfer += $output->writeString($iter220);
+                  $xfer += $output->writeString($iter227);
                 }
               }
               $output->writeListEnd();
@@ -19934,24 +20422,24 @@ class ClientService_offer_cells_as_arrays_args {
         case 4:
           if ($ftype == TType::LST) {
             $this->cells = array();
-            $_size221 = 0;
-            $_etype224 = 0;
-            $xfer += $input->readListBegin($_etype224, $_size221);
-            for ($_i225 = 0; $_i225 < $_size221; ++$_i225)
+            $_size228 = 0;
+            $_etype231 = 0;
+            $xfer += $input->readListBegin($_etype231, $_size228);
+            for ($_i232 = 0; $_i232 < $_size228; ++$_i232)
             {
-              $elem226 = null;
-              $elem226 = array();
-              $_size227 = 0;
-              $_etype230 = 0;
-              $xfer += $input->readListBegin($_etype230, $_size227);
-              for ($_i231 = 0; $_i231 < $_size227; ++$_i231)
+              $elem233 = null;
+              $elem233 = array();
+              $_size234 = 0;
+              $_etype237 = 0;
+              $xfer += $input->readListBegin($_etype237, $_size234);
+              for ($_i238 = 0; $_i238 < $_size234; ++$_i238)
               {
-                $elem232 = null;
-                $xfer += $input->readString($elem232);
-                $elem226 []= $elem232;
+                $elem239 = null;
+                $xfer += $input->readString($elem239);
+                $elem233 []= $elem239;
               }
               $xfer += $input->readListEnd();
-              $this->cells []= $elem226;
+              $this->cells []= $elem233;
             }
             $xfer += $input->readListEnd();
           } else {
@@ -19997,14 +20485,14 @@ class ClientService_offer_cells_as_arrays_args {
       {
         $output->writeListBegin(TType::LST, count($this->cells));
         {
-          foreach ($this->cells as $iter233)
+          foreach ($this->cells as $iter240)
           {
             {
-              $output->writeListBegin(TType::STRING, count($iter233));
+              $output->writeListBegin(TType::STRING, count($iter240));
               {
-                foreach ($iter233 as $iter234)
+                foreach ($iter240 as $iter241)
                 {
-                  $xfer += $output->writeString($iter234);
+                  $xfer += $output->writeString($iter241);
                 }
               }
               $output->writeListEnd();
@@ -20667,14 +21155,14 @@ class ClientService_shared_mutator_set_cell_as_array_args {
         case 4:
           if ($ftype == TType::LST) {
             $this->cell = array();
-            $_size235 = 0;
-            $_etype238 = 0;
-            $xfer += $input->readListBegin($_etype238, $_size235);
-            for ($_i239 = 0; $_i239 < $_size235; ++$_i239)
+            $_size242 = 0;
+            $_etype245 = 0;
+            $xfer += $input->readListBegin($_etype245, $_size242);
+            for ($_i246 = 0; $_i246 < $_size242; ++$_i246)
             {
-              $elem240 = null;
-              $xfer += $input->readString($elem240);
-              $this->cell []= $elem240;
+              $elem247 = null;
+              $xfer += $input->readString($elem247);
+              $this->cell []= $elem247;
             }
             $xfer += $input->readListEnd();
           } else {
@@ -20720,9 +21208,9 @@ class ClientService_shared_mutator_set_cell_as_array_args {
       {
         $output->writeListBegin(TType::STRING, count($this->cell));
         {
-          foreach ($this->cell as $iter241)
+          foreach ($this->cell as $iter248)
           {
-            $xfer += $output->writeString($iter241);
+            $xfer += $output->writeString($iter248);
           }
         }
         $output->writeListEnd();
@@ -20919,14 +21407,14 @@ class ClientService_offer_cell_as_array_args {
         case 4:
           if ($ftype == TType::LST) {
             $this->cell = array();
-            $_size242 = 0;
-            $_etype245 = 0;
-            $xfer += $input->readListBegin($_etype245, $_size242);
-            for ($_i246 = 0; $_i246 < $_size242; ++$_i246)
+            $_size249 = 0;
+            $_etype252 = 0;
+            $xfer += $input->readListBegin($_etype252, $_size249);
+            for ($_i253 = 0; $_i253 < $_size249; ++$_i253)
             {
-              $elem247 = null;
-              $xfer += $input->readString($elem247);
-              $this->cell []= $elem247;
+              $elem254 = null;
+              $xfer += $input->readString($elem254);
+              $this->cell []= $elem254;
             }
             $xfer += $input->readListEnd();
           } else {
@@ -20972,9 +21460,9 @@ class ClientService_offer_cell_as_array_args {
       {
         $output->writeListBegin(TType::STRING, count($this->cell));
         {
-          foreach ($this->cell as $iter248)
+          foreach ($this->cell as $iter255)
           {
-            $xfer += $output->writeString($iter248);
+            $xfer += $output->writeString($iter255);
           }
         }
         $output->writeListEnd();
@@ -23404,14 +23892,14 @@ class ClientService_mutator_set_cell_as_array_args {
         case 2:
           if ($ftype == TType::LST) {
             $this->cell = array();
-            $_size249 = 0;
-            $_etype252 = 0;
-            $xfer += $input->readListBegin($_etype252, $_size249);
-            for ($_i253 = 0; $_i253 < $_size249; ++$_i253)
+            $_size256 = 0;
+            $_etype259 = 0;
+            $xfer += $input->readListBegin($_etype259, $_size256);
+            for ($_i260 = 0; $_i260 < $_size256; ++$_i260)
             {
-              $elem254 = null;
-              $xfer += $input->readString($elem254);
-              $this->cell []= $elem254;
+              $elem261 = null;
+              $xfer += $input->readString($elem261);
+              $this->cell []= $elem261;
             }
             $xfer += $input->readListEnd();
           } else {
@@ -23444,9 +23932,9 @@ class ClientService_mutator_set_cell_as_array_args {
       {
         $output->writeListBegin(TType::STRING, count($this->cell));
         {
-          foreach ($this->cell as $iter255)
+          foreach ($this->cell as $iter262)
           {
-            $xfer += $output->writeString($iter255);
+            $xfer += $output->writeString($iter262);
           }
         }
         $output->writeListEnd();
@@ -23623,14 +24111,14 @@ class ClientService_set_cell_as_array_args {
         case 3:
           if ($ftype == TType::LST) {
             $this->cell = array();
-            $_size256 = 0;
-            $_etype259 = 0;
-            $xfer += $input->readListBegin($_etype259, $_size256);
-            for ($_i260 = 0; $_i260 < $_size256; ++$_i260)
+            $_size263 = 0;
+            $_etype266 = 0;
+            $xfer += $input->readListBegin($_etype266, $_size263);
+            for ($_i267 = 0; $_i267 < $_size263; ++$_i267)
             {
-              $elem261 = null;
-              $xfer += $input->readString($elem261);
-              $this->cell []= $elem261;
+              $elem268 = null;
+              $xfer += $input->readString($elem268);
+              $this->cell []= $elem268;
             }
             $xfer += $input->readListEnd();
           } else {
@@ -23668,9 +24156,9 @@ class ClientService_set_cell_as_array_args {
       {
         $output->writeListBegin(TType::STRING, count($this->cell));
         {
-          foreach ($this->cell as $iter262)
+          foreach ($this->cell as $iter269)
           {
-            $xfer += $output->writeString($iter262);
+            $xfer += $output->writeString($iter269);
           }
         }
         $output->writeListEnd();
@@ -23830,15 +24318,15 @@ class ClientService_mutator_set_cells_args {
         case 2:
           if ($ftype == TType::LST) {
             $this->cells = array();
-            $_size263 = 0;
-            $_etype266 = 0;
-            $xfer += $input->readListBegin($_etype266, $_size263);
-            for ($_i267 = 0; $_i267 < $_size263; ++$_i267)
+            $_size270 = 0;
+            $_etype273 = 0;
+            $xfer += $input->readListBegin($_etype273, $_size270);
+            for ($_i274 = 0; $_i274 < $_size270; ++$_i274)
             {
-              $elem268 = null;
-              $elem268 = new \Hypertable_ThriftGen\Cell();
-              $xfer += $elem268->read($input);
-              $this->cells []= $elem268;
+              $elem275 = null;
+              $elem275 = new \Hypertable_ThriftGen\Cell();
+              $xfer += $elem275->read($input);
+              $this->cells []= $elem275;
             }
             $xfer += $input->readListEnd();
           } else {
@@ -23871,9 +24359,9 @@ class ClientService_mutator_set_cells_args {
       {
         $output->writeListBegin(TType::STRUCT, count($this->cells));
         {
-          foreach ($this->cells as $iter269)
+          foreach ($this->cells as $iter276)
           {
-            $xfer += $iter269->write($output);
+            $xfer += $iter276->write($output);
           }
         }
         $output->writeListEnd();
@@ -24051,15 +24539,15 @@ class ClientService_set_cells_args {
         case 3:
           if ($ftype == TType::LST) {
             $this->cells = array();
-            $_size270 = 0;
-            $_etype273 = 0;
-            $xfer += $input->readListBegin($_etype273, $_size270);
-            for ($_i274 = 0; $_i274 < $_size270; ++$_i274)
+            $_size277 = 0;
+            $_etype280 = 0;
+            $xfer += $input->readListBegin($_etype280, $_size277);
+            for ($_i281 = 0; $_i281 < $_size277; ++$_i281)
             {
-              $elem275 = null;
-              $elem275 = new \Hypertable_ThriftGen\Cell();
-              $xfer += $elem275->read($input);
-              $this->cells []= $elem275;
+              $elem282 = null;
+              $elem282 = new \Hypertable_ThriftGen\Cell();
+              $xfer += $elem282->read($input);
+              $this->cells []= $elem282;
             }
             $xfer += $input->readListEnd();
           } else {
@@ -24097,9 +24585,9 @@ class ClientService_set_cells_args {
       {
         $output->writeListBegin(TType::STRUCT, count($this->cells));
         {
-          foreach ($this->cells as $iter276)
+          foreach ($this->cells as $iter283)
           {
-            $xfer += $iter276->write($output);
+            $xfer += $iter283->write($output);
           }
         }
         $output->writeListEnd();
@@ -24262,24 +24750,24 @@ class ClientService_mutator_set_cells_as_arrays_args {
         case 2:
           if ($ftype == TType::LST) {
             $this->cells = array();
-            $_size277 = 0;
-            $_etype280 = 0;
-            $xfer += $input->readListBegin($_etype280, $_size277);
-            for ($_i281 = 0; $_i281 < $_size277; ++$_i281)
+            $_size284 = 0;
+            $_etype287 = 0;
+            $xfer += $input->readListBegin($_etype287, $_size284);
+            for ($_i288 = 0; $_i288 < $_size284; ++$_i288)
             {
-              $elem282 = null;
-              $elem282 = array();
-              $_size283 = 0;
-              $_etype286 = 0;
-              $xfer += $input->readListBegin($_etype286, $_size283);
-              for ($_i287 = 0; $_i287 < $_size283; ++$_i287)
+              $elem289 = null;
+              $elem289 = array();
+              $_size290 = 0;
+              $_etype293 = 0;
+              $xfer += $input->readListBegin($_etype293, $_size290);
+              for ($_i294 = 0; $_i294 < $_size290; ++$_i294)
               {
-                $elem288 = null;
-                $xfer += $input->readString($elem288);
-                $elem282 []= $elem288;
+                $elem295 = null;
+                $xfer += $input->readString($elem295);
+                $elem289 []= $elem295;
               }
               $xfer += $input->readListEnd();
-              $this->cells []= $elem282;
+              $this->cells []= $elem289;
             }
             $xfer += $input->readListEnd();
           } else {
@@ -24312,14 +24800,14 @@ class ClientService_mutator_set_cells_as_arrays_args {
       {
         $output->writeListBegin(TType::LST, count($this->cells));
         {
-          foreach ($this->cells as $iter289)
+          foreach ($this->cells as $iter296)
           {
             {
-              $output->writeListBegin(TType::STRING, count($iter289));
+              $output->writeListBegin(TType::STRING, count($iter296));
               {
-                foreach ($iter289 as $iter290)
+                foreach ($iter296 as $iter297)
                 {
-                  $xfer += $output->writeString($iter290);
+                  $xfer += $output->writeString($iter297);
                 }
               }
               $output->writeListEnd();
@@ -24504,24 +24992,24 @@ class ClientService_set_cells_as_arrays_args {
         case 3:
           if ($ftype == TType::LST) {
             $this->cells = array();
-            $_size291 = 0;
-            $_etype294 = 0;
-            $xfer += $input->readListBegin($_etype294, $_size291);
-            for ($_i295 = 0; $_i295 < $_size291; ++$_i295)
+            $_size298 = 0;
+            $_etype301 = 0;
+            $xfer += $input->readListBegin($_etype301, $_size298);
+            for ($_i302 = 0; $_i302 < $_size298; ++$_i302)
             {
-              $elem296 = null;
-              $elem296 = array();
-              $_size297 = 0;
-              $_etype300 = 0;
-              $xfer += $input->readListBegin($_etype300, $_size297);
-              for ($_i301 = 0; $_i301 < $_size297; ++$_i301)
+              $elem303 = null;
+              $elem303 = array();
+              $_size304 = 0;
+              $_etype307 = 0;
+              $xfer += $input->readListBegin($_etype307, $_size304);
+              for ($_i308 = 0; $_i308 < $_size304; ++$_i308)
               {
-                $elem302 = null;
-                $xfer += $input->readString($elem302);
-                $elem296 []= $elem302;
+                $elem309 = null;
+                $xfer += $input->readString($elem309);
+                $elem303 []= $elem309;
               }
               $xfer += $input->readListEnd();
-              $this->cells []= $elem296;
+              $this->cells []= $elem303;
             }
             $xfer += $input->readListEnd();
           } else {
@@ -24559,14 +25047,14 @@ class ClientService_set_cells_as_arrays_args {
       {
         $output->writeListBegin(TType::LST, count($this->cells));
         {
-          foreach ($this->cells as $iter303)
+          foreach ($this->cells as $iter310)
           {
             {
-              $output->writeListBegin(TType::STRING, count($iter303));
+              $output->writeListBegin(TType::STRING, count($iter310));
               {
-                foreach ($iter303 as $iter304)
+                foreach ($iter310 as $iter311)
                 {
-                  $xfer += $output->writeString($iter304);
+                  $xfer += $output->writeString($iter311);
                 }
               }
               $output->writeListEnd();
@@ -25789,14 +26277,14 @@ class ClientService_async_mutator_set_cell_as_array_args {
         case 2:
           if ($ftype == TType::LST) {
             $this->cell = array();
-            $_size305 = 0;
-            $_etype308 = 0;
-            $xfer += $input->readListBegin($_etype308, $_size305);
-            for ($_i309 = 0; $_i309 < $_size305; ++$_i309)
+            $_size312 = 0;
+            $_etype315 = 0;
+            $xfer += $input->readListBegin($_etype315, $_size312);
+            for ($_i316 = 0; $_i316 < $_size312; ++$_i316)
             {
-              $elem310 = null;
-              $xfer += $input->readString($elem310);
-              $this->cell []= $elem310;
+              $elem317 = null;
+              $xfer += $input->readString($elem317);
+              $this->cell []= $elem317;
             }
             $xfer += $input->readListEnd();
           } else {
@@ -25829,9 +26317,9 @@ class ClientService_async_mutator_set_cell_as_array_args {
       {
         $output->writeListBegin(TType::STRING, count($this->cell));
         {
-          foreach ($this->cell as $iter311)
+          foreach ($this->cell as $iter318)
           {
-            $xfer += $output->writeString($iter311);
+            $xfer += $output->writeString($iter318);
           }
         }
         $output->writeListEnd();
@@ -25990,14 +26478,14 @@ class ClientService_set_cell_as_array_async_args {
         case 2:
           if ($ftype == TType::LST) {
             $this->cell = array();
-            $_size312 = 0;
-            $_etype315 = 0;
-            $xfer += $input->readListBegin($_etype315, $_size312);
-            for ($_i316 = 0; $_i316 < $_size312; ++$_i316)
+            $_size319 = 0;
+            $_etype322 = 0;
+            $xfer += $input->readListBegin($_etype322, $_size319);
+            for ($_i323 = 0; $_i323 < $_size319; ++$_i323)
             {
-              $elem317 = null;
-              $xfer += $input->readString($elem317);
-              $this->cell []= $elem317;
+              $elem324 = null;
+              $xfer += $input->readString($elem324);
+              $this->cell []= $elem324;
             }
             $xfer += $input->readListEnd();
           } else {
@@ -26030,9 +26518,9 @@ class ClientService_set_cell_as_array_async_args {
       {
         $output->writeListBegin(TType::STRING, count($this->cell));
         {
-          foreach ($this->cell as $iter318)
+          foreach ($this->cell as $iter325)
           {
-            $xfer += $output->writeString($iter318);
+            $xfer += $output->writeString($iter325);
           }
         }
         $output->writeListEnd();
@@ -26192,15 +26680,15 @@ class ClientService_async_mutator_set_cells_args {
         case 2:
           if ($ftype == TType::LST) {
             $this->cells = array();
-            $_size319 = 0;
-            $_etype322 = 0;
-            $xfer += $input->readListBegin($_etype322, $_size319);
-            for ($_i323 = 0; $_i323 < $_size319; ++$_i323)
+            $_size326 = 0;
+            $_etype329 = 0;
+            $xfer += $input->readListBegin($_etype329, $_size326);
+            for ($_i330 = 0; $_i330 < $_size326; ++$_i330)
             {
-              $elem324 = null;
-              $elem324 = new \Hypertable_ThriftGen\Cell();
-              $xfer += $elem324->read($input);
-              $this->cells []= $elem324;
+              $elem331 = null;
+              $elem331 = new \Hypertable_ThriftGen\Cell();
+              $xfer += $elem331->read($input);
+              $this->cells []= $elem331;
             }
             $xfer += $input->readListEnd();
           } else {
@@ -26233,9 +26721,9 @@ class ClientService_async_mutator_set_cells_args {
       {
         $output->writeListBegin(TType::STRUCT, count($this->cells));
         {
-          foreach ($this->cells as $iter325)
+          foreach ($this->cells as $iter332)
           {
-            $xfer += $iter325->write($output);
+            $xfer += $iter332->write($output);
           }
         }
         $output->writeListEnd();
@@ -26395,15 +26883,15 @@ class ClientService_set_cells_async_args {
         case 2:
           if ($ftype == TType::LST) {
             $this->cells = array();
-            $_size326 = 0;
-            $_etype329 = 0;
-            $xfer += $input->readListBegin($_etype329, $_size326);
-            for ($_i330 = 0; $_i330 < $_size326; ++$_i330)
+            $_size333 = 0;
+            $_etype336 = 0;
+            $xfer += $input->readListBegin($_etype336, $_size333);
+            for ($_i337 = 0; $_i337 < $_size333; ++$_i337)
             {
-              $elem331 = null;
-              $elem331 = new \Hypertable_ThriftGen\Cell();
-              $xfer += $elem331->read($input);
-              $this->cells []= $elem331;
+              $elem338 = null;
+              $elem338 = new \Hypertable_ThriftGen\Cell();
+              $xfer += $elem338->read($input);
+              $this->cells []= $elem338;
             }
             $xfer += $input->readListEnd();
           } else {
@@ -26436,9 +26924,9 @@ class ClientService_set_cells_async_args {
       {
         $output->writeListBegin(TType::STRUCT, count($this->cells));
         {
-          foreach ($this->cells as $iter332)
+          foreach ($this->cells as $iter339)
           {
-            $xfer += $iter332->write($output);
+            $xfer += $iter339->write($output);
           }
         }
         $output->writeListEnd();
@@ -26601,24 +27089,24 @@ class ClientService_async_mutator_set_cells_as_arrays_args {
         case 2:
           if ($ftype == TType::LST) {
             $this->cells = array();
-            $_size333 = 0;
-            $_etype336 = 0;
-            $xfer += $input->readListBegin($_etype336, $_size333);
-            for ($_i337 = 0; $_i337 < $_size333; ++$_i337)
+            $_size340 = 0;
+            $_etype343 = 0;
+            $xfer += $input->readListBegin($_etype343, $_size340);
+            for ($_i344 = 0; $_i344 < $_size340; ++$_i344)
             {
-              $elem338 = null;
-              $elem338 = array();
-              $_size339 = 0;
-              $_etype342 = 0;
-              $xfer += $input->readListBegin($_etype342, $_size339);
-              for ($_i343 = 0; $_i343 < $_size339; ++$_i343)
+              $elem345 = null;
+              $elem345 = array();
+              $_size346 = 0;
+              $_etype349 = 0;
+              $xfer += $input->readListBegin($_etype349, $_size346);
+              for ($_i350 = 0; $_i350 < $_size346; ++$_i350)
               {
-                $elem344 = null;
-                $xfer += $input->readString($elem344);
-                $elem338 []= $elem344;
+                $elem351 = null;
+                $xfer += $input->readString($elem351);
+                $elem345 []= $elem351;
               }
               $xfer += $input->readListEnd();
-              $this->cells []= $elem338;
+              $this->cells []= $elem345;
             }
             $xfer += $input->readListEnd();
           } else {
@@ -26651,14 +27139,14 @@ class ClientService_async_mutator_set_cells_as_arrays_args {
       {
         $output->writeListBegin(TType::LST, count($this->cells));
         {
-          foreach ($this->cells as $iter345)
+          foreach ($this->cells as $iter352)
           {
             {
-              $output->writeListBegin(TType::STRING, count($iter345));
+              $output->writeListBegin(TType::STRING, count($iter352));
               {
-                foreach ($iter345 as $iter346)
+                foreach ($iter352 as $iter353)
                 {
-                  $xfer += $output->writeString($iter346);
+                  $xfer += $output->writeString($iter353);
                 }
               }
               $output->writeListEnd();
@@ -26825,24 +27313,24 @@ class ClientService_set_cells_as_arrays_async_args {
         case 2:
           if ($ftype == TType::LST) {
             $this->cells = array();
-            $_size347 = 0;
-            $_etype350 = 0;
-            $xfer += $input->readListBegin($_etype350, $_size347);
-            for ($_i351 = 0; $_i351 < $_size347; ++$_i351)
+            $_size354 = 0;
+            $_etype357 = 0;
+            $xfer += $input->readListBegin($_etype357, $_size354);
+            for ($_i358 = 0; $_i358 < $_size354; ++$_i358)
             {
-              $elem352 = null;
-              $elem352 = array();
-              $_size353 = 0;
-              $_etype356 = 0;
-              $xfer += $input->readListBegin($_etype356, $_size353);
-              for ($_i357 = 0; $_i357 < $_size353; ++$_i357)
+              $elem359 = null;
+              $elem359 = array();
+              $_size360 = 0;
+              $_etype363 = 0;
+              $xfer += $input->readListBegin($_etype363, $_size360);
+              for ($_i364 = 0; $_i364 < $_size360; ++$_i364)
               {
-                $elem358 = null;
-                $xfer += $input->readString($elem358);
-                $elem352 []= $elem358;
+                $elem365 = null;
+                $xfer += $input->readString($elem365);
+                $elem359 []= $elem365;
               }
               $xfer += $input->readListEnd();
-              $this->cells []= $elem352;
+              $this->cells []= $elem359;
             }
             $xfer += $input->readListEnd();
           } else {
@@ -26875,14 +27363,14 @@ class ClientService_set_cells_as_arrays_async_args {
       {
         $output->writeListBegin(TType::LST, count($this->cells));
         {
-          foreach ($this->cells as $iter359)
+          foreach ($this->cells as $iter366)
           {
             {
-              $output->writeListBegin(TType::STRING, count($iter359));
+              $output->writeListBegin(TType::STRING, count($iter366));
               {
-                foreach ($iter359 as $iter360)
+                foreach ($iter366 as $iter367)
                 {
-                  $xfer += $output->writeString($iter360);
+                  $xfer += $output->writeString($iter367);
                 }
               }
               $output->writeListEnd();
@@ -30154,14 +30642,14 @@ class ClientService_get_tables_result {
         case 0:
           if ($ftype == TType::LST) {
             $this->success = array();
-            $_size361 = 0;
-            $_etype364 = 0;
-            $xfer += $input->readListBegin($_etype364, $_size361);
-            for ($_i365 = 0; $_i365 < $_size361; ++$_i365)
+            $_size368 = 0;
+            $_etype371 = 0;
+            $xfer += $input->readListBegin($_etype371, $_size368);
+            for ($_i372 = 0; $_i372 < $_size368; ++$_i372)
             {
-              $elem366 = null;
-              $xfer += $input->readString($elem366);
-              $this->success []= $elem366;
+              $elem373 = null;
+              $xfer += $input->readString($elem373);
+              $this->success []= $elem373;
             }
             $xfer += $input->readListEnd();
           } else {
@@ -30197,9 +30685,9 @@ class ClientService_get_tables_result {
       {
         $output->writeListBegin(TType::STRING, count($this->success));
         {
-          foreach ($this->success as $iter367)
+          foreach ($this->success as $iter374)
           {
-            $xfer += $output->writeString($iter367);
+            $xfer += $output->writeString($iter374);
           }
         }
         $output->writeListEnd();
@@ -30356,15 +30844,15 @@ class ClientService_namespace_get_listing_result {
         case 0:
           if ($ftype == TType::LST) {
             $this->success = array();
-            $_size368 = 0;
-            $_etype371 = 0;
-            $xfer += $input->readListBegin($_etype371, $_size368);
-            for ($_i372 = 0; $_i372 < $_size368; ++$_i372)
+            $_size375 = 0;
+            $_etype378 = 0;
+            $xfer += $input->readListBegin($_etype378, $_size375);
+            for ($_i379 = 0; $_i379 < $_size375; ++$_i379)
             {
-              $elem373 = null;
-              $elem373 = new \Hypertable_ThriftGen\NamespaceListing();
-              $xfer += $elem373->read($input);
-              $this->success []= $elem373;
+              $elem380 = null;
+              $elem380 = new \Hypertable_ThriftGen\NamespaceListing();
+              $xfer += $elem380->read($input);
+              $this->success []= $elem380;
             }
             $xfer += $input->readListEnd();
           } else {
@@ -30400,9 +30888,9 @@ class ClientService_namespace_get_listing_result {
       {
         $output->writeListBegin(TType::STRUCT, count($this->success));
         {
-          foreach ($this->success as $iter374)
+          foreach ($this->success as $iter381)
           {
-            $xfer += $iter374->write($output);
+            $xfer += $iter381->write($output);
           }
         }
         $output->writeListEnd();
@@ -30559,15 +31047,15 @@ class ClientService_get_listing_result {
         case 0:
           if ($ftype == TType::LST) {
             $this->success = array();
-            $_size375 = 0;
-            $_etype378 = 0;
-            $xfer += $input->readListBegin($_etype378, $_size375);
-            for ($_i379 = 0; $_i379 < $_size375; ++$_i379)
+            $_size382 = 0;
+            $_etype385 = 0;
+            $xfer += $input->readListBegin($_etype385, $_size382);
+            for ($_i386 = 0; $_i386 < $_size382; ++$_i386)
             {
-              $elem380 = null;
-              $elem380 = new \Hypertable_ThriftGen\NamespaceListing();
-              $xfer += $elem380->read($input);
-              $this->success []= $elem380;
+              $elem387 = null;
+              $elem387 = new \Hypertable_ThriftGen\NamespaceListing();
+              $xfer += $elem387->read($input);
+              $this->success []= $elem387;
             }
             $xfer += $input->readListEnd();
           } else {
@@ -30603,9 +31091,9 @@ class ClientService_get_listing_result {
       {
         $output->writeListBegin(TType::STRUCT, count($this->success));
         {
-          foreach ($this->success as $iter381)
+          foreach ($this->success as $iter388)
           {
-            $xfer += $iter381->write($output);
+            $xfer += $iter388->write($output);
           }
         }
         $output->writeListEnd();
@@ -30785,15 +31273,15 @@ class ClientService_table_get_splits_result {
         case 0:
           if ($ftype == TType::LST) {
             $this->success = array();
-            $_size382 = 0;
-            $_etype385 = 0;
-            $xfer += $input->readListBegin($_etype385, $_size382);
-            for ($_i386 = 0; $_i386 < $_size382; ++$_i386)
+            $_size389 = 0;
+            $_etype392 = 0;
+            $xfer += $input->readListBegin($_etype392, $_size389);
+            for ($_i393 = 0; $_i393 < $_size389; ++$_i393)
             {
-              $elem387 = null;
-              $elem387 = new \Hypertable_ThriftGen\TableSplit();
-              $xfer += $elem387->read($input);
-              $this->success []= $elem387;
+              $elem394 = null;
+              $elem394 = new \Hypertable_ThriftGen\TableSplit();
+              $xfer += $elem394->read($input);
+              $this->success []= $elem394;
             }
             $xfer += $input->readListEnd();
           } else {
@@ -30829,9 +31317,9 @@ class ClientService_table_get_splits_result {
       {
         $output->writeListBegin(TType::STRUCT, count($this->success));
         {
-          foreach ($this->success as $iter388)
+          foreach ($this->success as $iter395)
           {
-            $xfer += $iter388->write($output);
+            $xfer += $iter395->write($output);
           }
         }
         $output->writeListEnd();
@@ -31011,15 +31499,15 @@ class ClientService_get_table_splits_result {
         case 0:
           if ($ftype == TType::LST) {
             $this->success = array();
-            $_size389 = 0;
-            $_etype392 = 0;
-            $xfer += $input->readListBegin($_etype392, $_size389);
-            for ($_i393 = 0; $_i393 < $_size389; ++$_i393)
+            $_size396 = 0;
+            $_etype399 = 0;
+            $xfer += $input->readListBegin($_etype399, $_size396);
+            for ($_i400 = 0; $_i400 < $_size396; ++$_i400)
             {
-              $elem394 = null;
-              $elem394 = new \Hypertable_ThriftGen\TableSplit();
-              $xfer += $elem394->read($input);
-              $this->success []= $elem394;
+              $elem401 = null;
+              $elem401 = new \Hypertable_ThriftGen\TableSplit();
+              $xfer += $elem401->read($input);
+              $this->success []= $elem401;
             }
             $xfer += $input->readListEnd();
           } else {
@@ -31055,9 +31543,9 @@ class ClientService_get_table_splits_result {
       {
         $output->writeListBegin(TType::STRUCT, count($this->success));
         {
-          foreach ($this->success as $iter395)
+          foreach ($this->success as $iter402)
           {
-            $xfer += $iter395->write($output);
+            $xfer += $iter402->write($output);
           }
         }
         $output->writeListEnd();

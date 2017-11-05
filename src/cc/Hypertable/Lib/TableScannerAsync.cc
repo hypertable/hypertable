@@ -43,8 +43,7 @@ TableScannerAsync::TableScannerAsync(Comm *comm,
       ApplicationQueueInterfacePtr &app_queue, Table *table,
       RangeLocatorPtr &range_locator, const ScanSpec &scan_spec, 
       uint32_t timeout_ms, ResultCallback *cb, int flags)
-  : m_bytes_scanned(0), m_current_scanner(0), m_outstanding(0), 
-    m_error(Error::OK), m_cancelled(false), m_use_index(false)
+  : m_error(Error::OK), m_stopwatch(true)
 {
   unique_lock<mutex> lock(m_mutex);
   ScanSpecBuilder primary_spec(scan_spec);
@@ -682,6 +681,8 @@ void TableScannerAsync::maybe_callback_error(int scanner_id, bool next) {
   }
 
   if (m_outstanding == 0) {
+    m_stopwatch.stop();
+    m_profile_data.elapsed_time_millis = m_stopwatch.elapsed_millis();
     eos = true;
   }
 
@@ -706,6 +707,8 @@ void TableScannerAsync::maybe_callback_ok(int scanner_id, bool next, bool do_cal
   }
 
   if (m_outstanding == 0) {
+    m_stopwatch.stop();
+    m_profile_data.elapsed_time_millis = m_stopwatch.elapsed_millis();
     eos = true;
   }
 

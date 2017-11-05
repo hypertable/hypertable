@@ -31,12 +31,14 @@ module Hypertable
       CELLS = 2
       SCANNER = 3
       MUTATOR = 4
+      SCAN_PROFILE_DATA = 5
 
       FIELDS = {
         RESULTS => {:type => ::Thrift::Types::LIST, :name => 'results', :element => {:type => ::Thrift::Types::STRING}, :optional => true},
         CELLS => {:type => ::Thrift::Types::LIST, :name => 'cells', :element => {:type => ::Thrift::Types::STRUCT, :class => ::Hypertable::ThriftGen::Cell}, :optional => true},
         SCANNER => {:type => ::Thrift::Types::I64, :name => 'scanner', :optional => true},
-        MUTATOR => {:type => ::Thrift::Types::I64, :name => 'mutator', :optional => true}
+        MUTATOR => {:type => ::Thrift::Types::I64, :name => 'mutator', :optional => true},
+        SCAN_PROFILE_DATA => {:type => ::Thrift::Types::STRUCT, :name => 'scan_profile_data', :class => ::Hypertable::ThriftGen::ScanProfileData, :optional => true}
       }
 
       def struct_fields; FIELDS; end
@@ -54,12 +56,14 @@ module Hypertable
       CELLS = 2
       SCANNER = 3
       MUTATOR = 4
+      SCAN_PROFILE_DATA = 5
 
       FIELDS = {
         RESULTS => {:type => ::Thrift::Types::LIST, :name => 'results', :element => {:type => ::Thrift::Types::STRING}, :optional => true},
         CELLS => {:type => ::Thrift::Types::LIST, :name => 'cells', :element => {:type => ::Thrift::Types::LIST, :element => {:type => ::Thrift::Types::STRING}}, :optional => true},
         SCANNER => {:type => ::Thrift::Types::I64, :name => 'scanner', :optional => true},
-        MUTATOR => {:type => ::Thrift::Types::I64, :name => 'mutator', :optional => true}
+        MUTATOR => {:type => ::Thrift::Types::I64, :name => 'mutator', :optional => true},
+        SCAN_PROFILE_DATA => {:type => ::Thrift::Types::STRUCT, :name => 'scan_profile_data', :class => ::Hypertable::ThriftGen::ScanProfileData, :optional => true}
       }
 
       def struct_fields; FIELDS; end
@@ -77,12 +81,14 @@ module Hypertable
       CELLS = 2
       SCANNER = 3
       MUTATOR = 4
+      SCAN_PROFILE_DATA = 5
 
       FIELDS = {
         RESULTS => {:type => ::Thrift::Types::LIST, :name => 'results', :element => {:type => ::Thrift::Types::STRING}, :optional => true},
         CELLS => {:type => ::Thrift::Types::LIST, :name => 'cells', :element => {:type => ::Thrift::Types::LIST, :element => {:type => ::Thrift::Types::STRING}}, :optional => true},
         SCANNER => {:type => ::Thrift::Types::I64, :name => 'scanner', :optional => true},
-        MUTATOR => {:type => ::Thrift::Types::I64, :name => 'mutator', :optional => true}
+        MUTATOR => {:type => ::Thrift::Types::I64, :name => 'mutator', :optional => true},
+        SCAN_PROFILE_DATA => {:type => ::Thrift::Types::STRUCT, :name => 'scan_profile_data', :class => ::Hypertable::ThriftGen::ScanProfileData, :optional => true}
       }
 
       def struct_fields; FIELDS; end

@@ -38,6 +38,11 @@ void HqlResult::__set_mutator(const int64_t val) {
 __isset.mutator = true;
 }
 
+void HqlResult::__set_scan_profile_data(const  ::Hypertable::ThriftGen::ScanProfileData& val) {
+  this->scan_profile_data = val;
+__isset.scan_profile_data = true;
+}
+
 uint32_t HqlResult::read(::apache::thrift::protocol::TProtocol* iprot) {
 
   apache::thrift::protocol::TInputRecursionTracker tracker(*iprot);
@@ -115,6 +120,14 @@ uint32_t HqlResult::read(::apache::thrift::protocol::TProtocol* iprot) {
           xfer += iprot->skip(ftype);
         }
         break;
+      case 5:
+        if (ftype == ::apache::thrift::protocol::T_STRUCT) {
+          xfer += this->scan_profile_data.read(iprot);
+          this->__isset.scan_profile_data = true;
+        } else {
+          xfer += iprot->skip(ftype);
+        }
+        break;
       default:
         xfer += iprot->skip(ftype);
         break;
@@ -168,6 +181,11 @@ uint32_t HqlResult::write(::apache::thrift::protocol::TProtocol* oprot) const {
     xfer += oprot->writeI64(this->mutator);
     xfer += oprot->writeFieldEnd();
   }
+  if (this->__isset.scan_profile_data) {
+    xfer += oprot->writeFieldBegin("scan_profile_data", ::apache::thrift::protocol::T_STRUCT, 5);
+    xfer += this->scan_profile_data.write(oprot);
+    xfer += oprot->writeFieldEnd();
+  }
   xfer += oprot->writeFieldStop();
   xfer += oprot->writeStructEnd();
   return xfer;
@@ -179,6 +197,7 @@ void swap(HqlResult &a, HqlResult &b) {
   swap(a.cells, b.cells);
   swap(a.scanner, b.scanner);
   swap(a.mutator, b.mutator);
+  swap(a.scan_profile_data, b.scan_profile_data);
   swap(a.__isset, b.__isset);
 }
 
@@ -187,6 +206,7 @@ HqlResult::HqlResult(const HqlResult& other12) {
   cells = other12.cells;
   scanner = other12.scanner;
   mutator = other12.mutator;
+  scan_profile_data = other12.scan_profile_data;
   __isset = other12.__isset;
 }
 HqlResult& HqlResult::operator=(const HqlResult& other13) {
@@ -194,6 +214,7 @@ HqlResult& HqlResult::operator=(const HqlResult& other13) {
   cells = other13.cells;
   scanner = other13.scanner;
   mutator = other13.mutator;
+  scan_profile_data = other13.scan_profile_data;
   __isset = other13.__isset;
   return *this;
 }
@@ -204,6 +225,7 @@ void HqlResult::printTo(std::ostream& out) const {
   out << ", " << "cells="; (__isset.cells ? (out << to_string(cells)) : (out << "<null>"));
   out << ", " << "scanner="; (__isset.scanner ? (out << to_string(scanner)) : (out << "<null>"));
   out << ", " << "mutator="; (__isset.mutator ? (out << to_string(mutator)) : (out << "<null>"));
+  out << ", " << "scan_profile_data="; (__isset.scan_profile_data ? (out << to_string(scan_profile_data)) : (out << "<null>"));
   out << ")";
 }
 
@@ -230,6 +252,11 @@ __isset.scanner = true;
 void HqlResult2::__set_mutator(const int64_t val) {
   this->mutator = val;
 __isset.mutator = true;
+}
+
+void HqlResult2::__set_scan_profile_data(const  ::Hypertable::ThriftGen::ScanProfileData& val) {
+  this->scan_profile_data = val;
+__isset.scan_profile_data = true;
 }
 
 uint32_t HqlResult2::read(::apache::thrift::protocol::TProtocol* iprot) {
@@ -321,6 +348,14 @@ uint32_t HqlResult2::read(::apache::thrift::protocol::TProtocol* iprot) {
           xfer += iprot->skip(ftype);
         }
         break;
+      case 5:
+        if (ftype == ::apache::thrift::protocol::T_STRUCT) {
+          xfer += this->scan_profile_data.read(iprot);
+          this->__isset.scan_profile_data = true;
+        } else {
+          xfer += iprot->skip(ftype);
+        }
+        break;
       default:
         xfer += iprot->skip(ftype);
         break;
@@ -382,6 +417,11 @@ uint32_t HqlResult2::write(::apache::thrift::protocol::TProtocol* oprot) const {
     xfer += oprot->writeI64(this->mutator);
     xfer += oprot->writeFieldEnd();
   }
+  if (this->__isset.scan_profile_data) {
+    xfer += oprot->writeFieldBegin("scan_profile_data", ::apache::thrift::protocol::T_STRUCT, 5);
+    xfer += this->scan_profile_data.write(oprot);
+    xfer += oprot->writeFieldEnd();
+  }
   xfer += oprot->writeFieldStop();
   xfer += oprot->writeStructEnd();
   return xfer;
@@ -393,6 +433,7 @@ void swap(HqlResult2 &a, HqlResult2 &b) {
   swap(a.cells, b.cells);
   swap(a.scanner, b.scanner);
   swap(a.mutator, b.mutator);
+  swap(a.scan_profile_data, b.scan_profile_data);
   swap(a.__isset, b.__isset);
 }
 
@@ -401,6 +442,7 @@ HqlResult2::HqlResult2(const HqlResult2& other32) {
   cells = other32.cells;
   scanner = other32.scanner;
   mutator = other32.mutator;
+  scan_profile_data = other32.scan_profile_data;
   __isset = other32.__isset;
 }
 HqlResult2& HqlResult2::operator=(const HqlResult2& other33) {
@@ -408,6 +450,7 @@ HqlResult2& HqlResult2::operator=(const HqlResult2& other33) {
   cells = other33.cells;
   scanner = other33.scanner;
   mutator = other33.mutator;
+  scan_profile_data = other33.scan_profile_data;
   __isset = other33.__isset;
   return *this;
 }
@@ -418,6 +461,7 @@ void HqlResult2::printTo(std::ostream& out) const {
   out << ", " << "cells="; (__isset.cells ? (out << to_string(cells)) : (out << "<null>"));
   out << ", " << "scanner="; (__isset.scanner ? (out << to_string(scanner)) : (out << "<null>"));
   out << ", " << "mutator="; (__isset.mutator ? (out << to_string(mutator)) : (out << "<null>"));
+  out << ", " << "scan_profile_data="; (__isset.scan_profile_data ? (out << to_string(scan_profile_data)) : (out << "<null>"));
   out << ")";
 }
 
@@ -444,6 +488,11 @@ __isset.scanner = true;
 void HqlResultAsArrays::__set_mutator(const int64_t val) {
   this->mutator = val;
 __isset.mutator = true;
+}
+
+void HqlResultAsArrays::__set_scan_profile_data(const  ::Hypertable::ThriftGen::ScanProfileData& val) {
+  this->scan_profile_data = val;
+__isset.scan_profile_data = true;
 }
 
 uint32_t HqlResultAsArrays::read(::apache::thrift::protocol::TProtocol* iprot) {
@@ -535,6 +584,14 @@ uint32_t HqlResultAsArrays::read(::apache::thrift::protocol::TProtocol* iprot) {
           xfer += iprot->skip(ftype);
         }
         break;
+      case 5:
+        if (ftype == ::apache::thrift::protocol::T_STRUCT) {
+          xfer += this->scan_profile_data.read(iprot);
+          this->__isset.scan_profile_data = true;
+        } else {
+          xfer += iprot->skip(ftype);
+        }
+        break;
       default:
         xfer += iprot->skip(ftype);
         break;
@@ -596,6 +653,11 @@ uint32_t HqlResultAsArrays::write(::apache::thrift::protocol::TProtocol* oprot) 
     xfer += oprot->writeI64(this->mutator);
     xfer += oprot->writeFieldEnd();
   }
+  if (this->__isset.scan_profile_data) {
+    xfer += oprot->writeFieldBegin("scan_profile_data", ::apache::thrift::protocol::T_STRUCT, 5);
+    xfer += this->scan_profile_data.write(oprot);
+    xfer += oprot->writeFieldEnd();
+  }
   xfer += oprot->writeFieldStop();
   xfer += oprot->writeStructEnd();
   return xfer;
@@ -607,6 +669,7 @@ void swap(HqlResultAsArrays &a, HqlResultAsArrays &b) {
   swap(a.cells, b.cells);
   swap(a.scanner, b.scanner);
   swap(a.mutator, b.mutator);
+  swap(a.scan_profile_data, b.scan_profile_data);
   swap(a.__isset, b.__isset);
 }
 
@@ -615,6 +678,7 @@ HqlResultAsArrays::HqlResultAsArrays(const HqlResultAsArrays& other52) {
   cells = other52.cells;
   scanner = other52.scanner;
   mutator = other52.mutator;
+  scan_profile_data = other52.scan_profile_data;
   __isset = other52.__isset;
 }
 HqlResultAsArrays& HqlResultAsArrays::operator=(const HqlResultAsArrays& other53) {
@@ -622,6 +686,7 @@ HqlResultAsArrays& HqlResultAsArrays::operator=(const HqlResultAsArrays& other53
   cells = other53.cells;
   scanner = other53.scanner;
   mutator = other53.mutator;
+  scan_profile_data = other53.scan_profile_data;
   __isset = other53.__isset;
   return *this;
 }
@@ -632,6 +697,7 @@ void HqlResultAsArrays::printTo(std::ostream& out) const {
   out << ", " << "cells="; (__isset.cells ? (out << to_string(cells)) : (out << "<null>"));
   out << ", " << "scanner="; (__isset.scanner ? (out << to_string(scanner)) : (out << "<null>"));
   out << ", " << "mutator="; (__isset.mutator ? (out << to_string(mutator)) : (out << "<null>"));
+  out << ", " << "scan_profile_data="; (__isset.scan_profile_data ? (out << to_string(scan_profile_data)) : (out << "<null>"));
   out << ")";
 }
 

@@ -968,6 +968,196 @@ class ScanSpec(object):
   def __ne__(self, other):
     return not (self == other)
 
+class ScanProfileData(object):
+  """
+  Attributes:
+   - id
+   - subscanners
+   - scanblocks
+   - cells_scanned
+   - cells_returned
+   - bytes_scanned
+   - bytes_returned
+   - disk_read
+   - servers
+   - elapsed_time_millis
+  """
+
+  thrift_spec = (
+    None, # 0
+    (1, TType.I64, 'id', None, None, ), # 1
+    (2, TType.I32, 'subscanners', None, None, ), # 2
+    (3, TType.I32, 'scanblocks', None, None, ), # 3
+    (4, TType.I64, 'cells_scanned', None, None, ), # 4
+    (5, TType.I64, 'cells_returned', None, None, ), # 5
+    (6, TType.I64, 'bytes_scanned', None, None, ), # 6
+    (7, TType.I64, 'bytes_returned', None, None, ), # 7
+    (8, TType.I64, 'disk_read', None, None, ), # 8
+    (9, TType.LIST, 'servers', (TType.STRING,None), None, ), # 9
+    (10, TType.I64, 'elapsed_time_millis', None, None, ), # 10
+  )
+
+  def __init__(self, id=None, subscanners=None, scanblocks=None, cells_scanned=None, cells_returned=None, bytes_scanned=None, bytes_returned=None, disk_read=None, servers=None, elapsed_time_millis=None,):
+    self.id = id
+    self.subscanners = subscanners
+    self.scanblocks = scanblocks
+    self.cells_scanned = cells_scanned
+    self.cells_returned = cells_returned
+    self.bytes_scanned = bytes_scanned
+    self.bytes_returned = bytes_returned
+    self.disk_read = disk_read
+    self.servers = servers
+    self.elapsed_time_millis = elapsed_time_millis
+
+  def read(self, iprot):
+    if iprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and isinstance(iprot.trans, TTransport.CReadableTransport) and self.thrift_spec is not None and fastbinary is not None:
+      fastbinary.decode_binary(self, iprot.trans, (self.__class__, self.thrift_spec))
+      return
+    iprot.readStructBegin()
+    while True:
+      (fname, ftype, fid) = iprot.readFieldBegin()
+      if ftype == TType.STOP:
+        break
+      if fid == 1:
+        if ftype == TType.I64:
+          self.id = iprot.readI64()
+        else:
+          iprot.skip(ftype)
+      elif fid == 2:
+        if ftype == TType.I32:
+          self.subscanners = iprot.readI32()
+        else:
+          iprot.skip(ftype)
+      elif fid == 3:
+        if ftype == TType.I32:
+          self.scanblocks = iprot.readI32()
+        else:
+          iprot.skip(ftype)
+      elif fid == 4:
+        if ftype == TType.I64:
+          self.cells_scanned = iprot.readI64()
+        else:
+          iprot.skip(ftype)
+      elif fid == 5:
+        if ftype == TType.I64:
+          self.cells_returned = iprot.readI64()
+        else:
+          iprot.skip(ftype)
+      elif fid == 6:
+        if ftype == TType.I64:
+          self.bytes_scanned = iprot.readI64()
+        else:
+          iprot.skip(ftype)
+      elif fid == 7:
+        if ftype == TType.I64:
+          self.bytes_returned = iprot.readI64()
+        else:
+          iprot.skip(ftype)
+      elif fid == 8:
+        if ftype == TType.I64:
+          self.disk_read = iprot.readI64()
+        else:
+          iprot.skip(ftype)
+      elif fid == 9:
+        if ftype == TType.LIST:
+          self.servers = []
+          (_etype31, _size28) = iprot.readListBegin()
+          for _i32 in xrange(_size28):
+            _elem33 = iprot.readString()
+            self.servers.append(_elem33)
+          iprot.readListEnd()
+        else:
+          iprot.skip(ftype)
+      elif fid == 10:
+        if ftype == TType.I64:
+          self.elapsed_time_millis = iprot.readI64()
+        else:
+          iprot.skip(ftype)
+      else:
+        iprot.skip(ftype)
+      iprot.readFieldEnd()
+    iprot.readStructEnd()
+
+  def write(self, oprot):
+    if oprot.__class__ == TBinaryProtocol.TBinaryProtocolAccelerated and self.thrift_spec is not None and fastbinary is not None:
+      oprot.trans.write(fastbinary.encode_binary(self, (self.__class__, self.thrift_spec)))
+      return
+    oprot.writeStructBegin('ScanProfileData')
+    if self.id is not None:
+      oprot.writeFieldBegin('id', TType.I64, 1)
+      oprot.writeI64(self.id)
+      oprot.writeFieldEnd()
+    if self.subscanners is not None:
+      oprot.writeFieldBegin('subscanners', TType.I32, 2)
+      oprot.writeI32(self.subscanners)
+      oprot.writeFieldEnd()
+    if self.scanblocks is not None:
+      oprot.writeFieldBegin('scanblocks', TType.I32, 3)
+      oprot.writeI32(self.scanblocks)
+      oprot.writeFieldEnd()
+    if self.cells_scanned is not None:
+      oprot.writeFieldBegin('cells_scanned', TType.I64, 4)
+      oprot.writeI64(self.cells_scanned)
+      oprot.writeFieldEnd()
+    if self.cells_returned is not None:
+      oprot.writeFieldBegin('cells_returned', TType.I64, 5)
+      oprot.writeI64(self.cells_returned)
+      oprot.writeFieldEnd()
+    if self.bytes_scanned is not None:
+      oprot.writeFieldBegin('bytes_scanned', TType.I64, 6)
+      oprot.writeI64(self.bytes_scanned)
+      oprot.writeFieldEnd()
+    if self.bytes_returned is not None:
+      oprot.writeFieldBegin('bytes_returned', TType.I64, 7)
+      oprot.writeI64(self.bytes_returned)
+      oprot.writeFieldEnd()
+    if self.disk_read is not None:
+      oprot.writeFieldBegin('disk_read', TType.I64, 8)
+      oprot.writeI64(self.disk_read)
+      oprot.writeFieldEnd()
+    if self.servers is not None:
+      oprot.writeFieldBegin('servers', TType.LIST, 9)
+      oprot.writeListBegin(TType.STRING, len(self.servers))
+      for iter34 in self.servers:
+        oprot.writeString(iter34)
+      oprot.writeListEnd()
+      oprot.writeFieldEnd()
+    if self.elapsed_time_millis is not None:
+      oprot.writeFieldBegin('elapsed_time_millis', TType.I64, 10)
+      oprot.writeI64(self.elapsed_time_millis)
+      oprot.writeFieldEnd()
+    oprot.writeFieldStop()
+    oprot.writeStructEnd()
+
+  def validate(self):
+    return
+
+
+  def __hash__(self):
+    value = 17
+    value = (value * 31) ^ hash(self.id)
+    value = (value * 31) ^ hash(self.subscanners)
+    value = (value * 31) ^ hash(self.scanblocks)
+    value = (value * 31) ^ hash(self.cells_scanned)
+    value = (value * 31) ^ hash(self.cells_returned)
+    value = (value * 31) ^ hash(self.bytes_scanned)
+    value = (value * 31) ^ hash(self.bytes_returned)
+    value = (value * 31) ^ hash(self.disk_read)
+    value = (value * 31) ^ hash(self.servers)
+    value = (value * 31) ^ hash(self.elapsed_time_millis)
+    return value
+
+  def __repr__(self):
+    L = ['%s=%r' % (key, value)
+      for key, value in self.__dict__.iteritems()]
+    return '%s(%s)' % (self.__class__.__name__, ', '.join(L))
+
+  def __eq__(self, other):
+    return isinstance(other, self.__class__) and self.__dict__ == other.__dict__
+
+  def __ne__(self, other):
+    return not (self == other)
+
 class Key(object):
   """
   Defines a cell key
@@ -1421,11 +1611,11 @@ class Result(object):
       elif fid == 7:
         if ftype == TType.LIST:
           self.cells = []
-          (_etype31, _size28) = iprot.readListBegin()
-          for _i32 in xrange(_size28):
-            _elem33 = Cell()
-            _elem33.read(iprot)
-            self.cells.append(_elem33)
+          (_etype38, _size35) = iprot.readListBegin()
+          for _i39 in xrange(_size35):
+            _elem40 = Cell()
+            _elem40.read(iprot)
+            self.cells.append(_elem40)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -1466,8 +1656,8 @@ class Result(object):
     if self.cells is not None:
       oprot.writeFieldBegin('cells', TType.LIST, 7)
       oprot.writeListBegin(TType.STRUCT, len(self.cells))
-      for iter34 in self.cells:
-        iter34.write(oprot)
+      for iter41 in self.cells:
+        iter41.write(oprot)
       oprot.writeListEnd()
       oprot.writeFieldEnd()
     oprot.writeFieldStop()
@@ -1607,15 +1797,15 @@ class ResultAsArrays(object):
       elif fid == 7:
         if ftype == TType.LIST:
           self.cells = []
-          (_etype38, _size35) = iprot.readListBegin()
-          for _i39 in xrange(_size35):
-            _elem40 = []
-            (_etype44, _size41) = iprot.readListBegin()
-            for _i45 in xrange(_size41):
-              _elem46 = iprot.readString()
-              _elem40.append(_elem46)
+          (_etype45, _size42) = iprot.readListBegin()
+          for _i46 in xrange(_size42):
+            _elem47 = []
+            (_etype51, _size48) = iprot.readListBegin()
+            for _i52 in xrange(_size48):
+              _elem53 = iprot.readString()
+              _elem47.append(_elem53)
             iprot.readListEnd()
-            self.cells.append(_elem40)
+            self.cells.append(_elem47)
           iprot.readListEnd()
         else:
           iprot.skip(ftype)
@@ -1656,10 +1846,10 @@ class ResultAsArrays(object):
     if self.cells is not None:
       oprot.writeFieldBegin('cells', TType.LIST, 7)
       oprot.writeListBegin(TType.LIST, len(self.cells))
-      for iter47 in self.cells:
-        oprot.writeListBegin(TType.STRING, len(iter47))
-        for iter48 in iter47:
-          oprot.writeString(iter48)
+      for iter54 in self.cells:
+        oprot.writeListBegin(TType.STRING, len(iter54))
+        for iter55 in iter54:
+          oprot.writeString(iter55)
         oprot.writeListEnd()
       oprot.writeListEnd()
       oprot.writeFieldEnd()
@@ -2681,24 +2871,24 @@ class Schema(object):
       if fid == 1:
         if ftype == TType.MAP:
           self.access_groups = {}
-          (_ktype50, _vtype51, _size49 ) = iprot.readMapBegin()
-          for _i53 in xrange(_size49):
-            _key54 = iprot.readString()
-            _val55 = AccessGroupSpec()
-            _val55.read(iprot)
-            self.access_groups[_key54] = _val55
+          (_ktype57, _vtype58, _size56 ) = iprot.readMapBegin()
+          for _i60 in xrange(_size56):
+            _key61 = iprot.readString()
+            _val62 = AccessGroupSpec()
+            _val62.read(iprot)
+            self.access_groups[_key61] = _val62
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
       elif fid == 2:
         if ftype == TType.MAP:
           self.column_families = {}
-          (_ktype57, _vtype58, _size56 ) = iprot.readMapBegin()
-          for _i60 in xrange(_size56):
-            _key61 = iprot.readString()
-            _val62 = ColumnFamilySpec()
-            _val62.read(iprot)
-            self.column_families[_key61] = _val62
+          (_ktype64, _vtype65, _size63 ) = iprot.readMapBegin()
+          for _i67 in xrange(_size63):
+            _key68 = iprot.readString()
+            _val69 = ColumnFamilySpec()
+            _val69.read(iprot)
+            self.column_families[_key68] = _val69
           iprot.readMapEnd()
         else:
           iprot.skip(ftype)
@@ -2742,17 +2932,17 @@ class Schema(object):
     if self.access_groups is not None:
       oprot.writeFieldBegin('access_groups', TType.MAP, 1)
       oprot.writeMapBegin(TType.STRING, TType.STRUCT, len(self.access_groups))
-      for kiter63,viter64 in self.access_groups.items():
-        oprot.writeString(kiter63)
-        viter64.write(oprot)
+      for kiter70,viter71 in self.access_groups.items():
+        oprot.writeString(kiter70)
+        viter71.write(oprot)
       oprot.writeMapEnd()
       oprot.writeFieldEnd()
     if self.column_families is not None:
       oprot.writeFieldBegin('column_families', TType.MAP, 2)
       oprot.writeMapBegin(TType.STRING, TType.STRUCT, len(self.column_families))
-      for kiter65,viter66 in self.column_families.items():
-        oprot.writeString(kiter65)
-        viter66.write(oprot)
+      for kiter72,viter73 in self.column_families.items():
+        oprot.writeString(kiter72)
+        viter73.write(oprot)
       oprot.writeMapEnd()
       oprot.writeFieldEnd()
     if self.generation is not None:

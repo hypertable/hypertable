@@ -466,6 +466,38 @@ module Hypertable
           raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'open_scanner_async failed: unknown result')
         end
 
+        def scanner_get_profile_data(scanner)
+          send_scanner_get_profile_data(scanner)
+          return recv_scanner_get_profile_data()
+        end
+
+        def send_scanner_get_profile_data(scanner)
+          send_message('scanner_get_profile_data', Scanner_get_profile_data_args, :scanner => scanner)
+        end
+
+        def recv_scanner_get_profile_data()
+          result = receive_message(Scanner_get_profile_data_result)
+          return result.success unless result.success.nil?
+          raise result.e unless result.e.nil?
+          raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'scanner_get_profile_data failed: unknown result')
+        end
+
+        def async_scanner_get_profile_data(scanner)
+          send_async_scanner_get_profile_data(scanner)
+          return recv_async_scanner_get_profile_data()
+        end
+
+        def send_async_scanner_get_profile_data(scanner)
+          send_message('async_scanner_get_profile_data', Async_scanner_get_profile_data_args, :scanner => scanner)
+        end
+
+        def recv_async_scanner_get_profile_data()
+          result = receive_message(Async_scanner_get_profile_data_result)
+          return result.success unless result.success.nil?
+          raise result.e unless result.e.nil?
+          raise ::Thrift::ApplicationException.new(::Thrift::ApplicationException::MISSING_RESULT, 'async_scanner_get_profile_data failed: unknown result')
+        end
+
         def scanner_close(scanner)
           send_scanner_close(scanner)
           recv_scanner_close()
@@ -2285,6 +2317,28 @@ module Hypertable
             result.e = e
           end
           write_result(result, oprot, 'open_scanner_async', seqid)
+        end
+
+        def process_scanner_get_profile_data(seqid, iprot, oprot)
+          args = read_args(iprot, Scanner_get_profile_data_args)
+          result = Scanner_get_profile_data_result.new()
+          begin
+            result.success = @handler.scanner_get_profile_data(args.scanner)
+          rescue ::Hypertable::ThriftGen::ClientException => e
+            result.e = e
+          end
+          write_result(result, oprot, 'scanner_get_profile_data', seqid)
+        end
+
+        def process_async_scanner_get_profile_data(seqid, iprot, oprot)
+          args = read_args(iprot, Async_scanner_get_profile_data_args)
+          result = Async_scanner_get_profile_data_result.new()
+          begin
+            result.success = @handler.async_scanner_get_profile_data(args.scanner)
+          rescue ::Hypertable::ThriftGen::ClientException => e
+            result.e = e
+          end
+          write_result(result, oprot, 'async_scanner_get_profile_data', seqid)
         end
 
         def process_scanner_close(seqid, iprot, oprot)
@@ -4345,6 +4399,74 @@ module Hypertable
 
         FIELDS = {
           SUCCESS => {:type => ::Thrift::Types::I64, :name => 'success'},
+          E => {:type => ::Thrift::Types::STRUCT, :name => 'e', :class => ::Hypertable::ThriftGen::ClientException}
+        }
+
+        def struct_fields; FIELDS; end
+
+        def validate
+        end
+
+        ::Thrift::Struct.generate_accessors self
+      end
+
+      class Scanner_get_profile_data_args
+        include ::Thrift::Struct, ::Thrift::Struct_Union
+        SCANNER = 1
+
+        FIELDS = {
+          SCANNER => {:type => ::Thrift::Types::I64, :name => 'scanner'}
+        }
+
+        def struct_fields; FIELDS; end
+
+        def validate
+        end
+
+        ::Thrift::Struct.generate_accessors self
+      end
+
+      class Scanner_get_profile_data_result
+        include ::Thrift::Struct, ::Thrift::Struct_Union
+        SUCCESS = 0
+        E = 1
+
+        FIELDS = {
+          SUCCESS => {:type => ::Thrift::Types::STRUCT, :name => 'success', :class => ::Hypertable::ThriftGen::ScanProfileData},
+          E => {:type => ::Thrift::Types::STRUCT, :name => 'e', :class => ::Hypertable::ThriftGen::ClientException}
+        }
+
+        def struct_fields; FIELDS; end
+
+        def validate
+        end
+
+        ::Thrift::Struct.generate_accessors self
+      end
+
+      class Async_scanner_get_profile_data_args
+        include ::Thrift::Struct, ::Thrift::Struct_Union
+        SCANNER = 1
+
+        FIELDS = {
+          SCANNER => {:type => ::Thrift::Types::I64, :name => 'scanner'}
+        }
+
+        def struct_fields; FIELDS; end
+
+        def validate
+        end
+
+        ::Thrift::Struct.generate_accessors self
+      end
+
+      class Async_scanner_get_profile_data_result
+        include ::Thrift::Struct, ::Thrift::Struct_Union
+        SUCCESS = 0
+        E = 1
+
+        FIELDS = {
+          SUCCESS => {:type => ::Thrift::Types::STRUCT, :name => 'success', :class => ::Hypertable::ThriftGen::ScanProfileData},
           E => {:type => ::Thrift::Types::STRUCT, :name => 'e', :class => ::Hypertable::ThriftGen::ClientException}
         }
 

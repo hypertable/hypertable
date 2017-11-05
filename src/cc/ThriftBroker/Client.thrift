@@ -253,6 +253,18 @@ struct ScanSpec {
   20:optional string debug
 }
 
+struct ScanProfileData {
+  1: i64 id
+  2: i32 subscanners
+  3: i32 scanblocks
+  4: i64 cells_scanned
+  5: i64 cells_returned
+  6: i64 bytes_scanned
+  7: i64 bytes_returned
+  8: i64 disk_read
+  9: list<string> servers
+  10: i64 elapsed_time_millis
+}
 
 /** State flags for a key
  *
@@ -820,6 +832,19 @@ service ClientService {
                                   4:ScanSpec scan_spec)
       throws (1:ClientException e),
 
+  /**
+   * Get scan profile data
+   *
+   * @param scanner - scanner id to close
+   */
+   ScanProfileData scanner_get_profile_data(1:Scanner scanner) throws (1:ClientException e),
+
+  /**
+   * Get asynchronous scan profile data
+   *
+   * @param scanner - scanner id to close
+   */
+  ScanProfileData async_scanner_get_profile_data(1:Scanner scanner) throws (1:ClientException e),
 
   /**
    * Close a table scanner

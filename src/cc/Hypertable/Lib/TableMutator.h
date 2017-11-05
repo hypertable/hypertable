@@ -36,6 +36,7 @@
 #include <AsyncComm/ConnectionManager.h>
 
 #include <Common/Properties.h>
+#include <Common/Stopwatch.h>
 #include <Common/StringExt.h>
 #include <Common/Timer.h>
 
@@ -186,6 +187,14 @@ namespace Hypertable {
       return m_last_error;
     }
 
+    /** Get elapsed time in seconds
+     * @return Elapsed time in seconds
+     */
+    double elapsed_time() {
+      m_stopwatch.stop();
+      return m_stopwatch.elapsed();
+    }
+
   private:
 
     void auto_flush();
@@ -238,9 +247,9 @@ namespace Hypertable {
     TableMutatorAsyncPtr m_mutator;
     uint32_t             m_timeout_ms;
     uint32_t             m_flags;
-    uint32_t             m_flush_delay;
+    uint32_t             m_flush_delay {};
     int32_t     m_last_error;
-    int         m_last_op;
+    int         m_last_op {};
     KeySpec     m_last_key;
     const void *m_last_value;
     uint32_t    m_last_value_len;
@@ -248,9 +257,10 @@ namespace Hypertable {
     Cells::const_iterator m_last_cells_end;
     const static uint32_t ms_max_sync_retries = 5;
     bool       m_refresh_schema;
-    bool       m_unflushed_updates;
+    bool       m_unflushed_updates {};
     FailedMutations m_failed_mutations;
     CellsBuilderPtr m_failed_cells;
+    Stopwatch m_stopwatch;
   };
 
   /// Smart pointer to TableMutator

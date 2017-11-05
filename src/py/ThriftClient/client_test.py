@@ -3,6 +3,34 @@ import time
 from hypertable.thriftclient import *
 from hyperthrift.gen.ttypes import *
 
+def validate_scan_profile_data(label, scanner, profile_data):
+  if (len(profile_data.servers) != 1):
+    print "["+label+"] Expected profile data to have non-empty servers field\n"
+    exit(1)
+  if (profile_data.servers[0] != "rs1"):
+    print "["+label+"] Expected profile data servers to contain rs1 but got "+ \
+        profile_data.servers[0]+"\n"
+    exit(1)
+  if (scanner != 0 and profile_data.id != scanner):
+    print "["+label+"] Expected profile data to have id "+str(scanner)+ \
+        ", but got "+ str(profile_data.id)+"\n"
+    exit(1)
+  if (profile_data.bytes_scanned == 0 or profile_data.bytes_returned == 0):
+    print("["+label+"] Expected profile data to have non-zero bytes scanned and"
+          " returned but got bytes_scanned="+str(profile_data.bytes_scanned)+ \
+          " and bytes_returned="+str(profile_data.bytes_returned)+"\n")
+    exit(1)
+  if (profile_data.cells_scanned == 0 or profile_data.cells_returned == 0):
+    print("["+label+"] Expected profile data to have non-zero cells scanned and"
+          " returned but got cells_scanned="+str(profile_data.cells_scanned)+ \
+          " and cells_returned="+str(profile_data.cells_returned)+"\n")
+    exit(1)
+  if (profile_data.subscanners != 1):
+    print "["+label+"] Expected profile data to have 1 subscanner but got "+ \
+        str(profile_data.subscanners)+"\n"
+    exit(1)
+    
+
 try:
   client = ThriftClient("localhost", 15867)
   print "HQL examples"
@@ -16,6 +44,7 @@ try:
   res = client.hql_query(namespace, "show tables")
   print res
   res = client.hql_query(namespace, "select * from thrift_test")
+  validate_scan_profile_data("HqlResult", 0, res.scan_profile_data)
   print res
 
   print "mutator examples";
@@ -40,6 +69,9 @@ try:
     if (len(cells) == 0):
       break
     print cells
+
+  profile_data = client.scanner_get_profile_data(scanner)
+  validate_scan_profile_data("scanner", scanner, profile_data)
 
   client.scanner_close(scanner)
 
@@ -116,8 +148,17 @@ try:
   client.future_close(future)
 
   client.scanner_close(scanner)
+
+  profile_data = client.async_scanner_get_profile_data(color_scanner)
+  validate_scan_profile_data("color_scanner", color_scanner, profile_data)
   client.async_scanner_close(color_scanner);
+
+  profile_data = client.async_scanner_get_profile_data(location_scanner)
+  validate_scan_profile_data("location_scanner", location_scanner, profile_data)
   client.async_scanner_close(location_scanner);
+
+  profile_data = client.async_scanner_get_profile_data(energy_scanner)
+  validate_scan_profile_data("energy_scanner", energy_scanner, profile_data)
   client.async_scanner_close(energy_scanner);
 
   client.namespace_close(namespace)

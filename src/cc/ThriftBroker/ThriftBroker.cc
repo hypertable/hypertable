@@ -156,6 +156,8 @@ std::cout << std::chrono::duration_cast<std::chrono::seconds>(start_time.time_si
       cout <<"scanner="<< _res_.scanner; \
     if (_res_.__isset.mutator) \
       cout <<"mutator="<< _res_.mutator; \
+    if (_res_.__isset.scan_profile_data) \
+      cout <<"scan_profile_data="<< _res_.scan_profile_data; \
   } \
   cout << std::endl; \
 } while(0)
@@ -348,8 +350,8 @@ convert_scan_spec(const ThriftGen::ScanSpec &tss, Hypertable::ScanSpec &hss) {
     hss.columns.push_back(col.c_str());
 
   for (const auto &cp : tss.column_predicates) {
-    HT_INFOF("%s:%s %s", cp.column_family.c_str(), cp.column_qualifier.c_str(),
-             cp.__isset.value ? cp.value.c_str() : "");
+    //HT_INFOF("%s:%s %s", cp.column_family.c_str(), cp.column_qualifier.c_str(),
+    //cp.__isset.value ? cp.value.c_str() : "");
     hss.column_predicates.push_back(
       Hypertable::ColumnPredicate(
         cp.__isset.column_family ? cp.column_family.c_str() : 0,
@@ -455,6 +457,24 @@ convert_scan_spec(const ThriftGen::ScanSpec &tss, Hypertable::ScanSpecBuilder &s
         cp.__isset.value ? cp.value.c_str() : 0,
         cp.__isset.value ? cp.value.size() : 0);
 }
+
+void
+convert_scan_profile_data(const Hypertable::ProfileDataScanner &pds,
+                          ThriftGen::ScanProfileData &tspd) {
+  tspd.__set_subscanners(pds.subscanners);
+  tspd.__set_scanblocks(pds.scanblocks);
+  tspd.__set_cells_scanned(pds.cells_scanned);
+  tspd.__set_cells_returned(pds.cells_returned);
+  tspd.__set_bytes_scanned(pds.bytes_scanned);
+  tspd.__set_bytes_returned(pds.bytes_returned);
+  tspd.__set_disk_read(pds.disk_read);
+  tspd.__set_elapsed_time_millis(pds.elapsed_time_millis);
+  vector<string> servers;
+  for (auto &server : pds.servers)
+    servers.push_back(server);
+  tspd.__set_servers(servers);
+}
+
 
 void
 convert_cell(const ThriftGen::Cell &tcell, Hypertable::Cell &hcell) {
@@ -1296,6 +1316,34 @@ public:
       Hypertable::Namespace *namespace_ptr = get_namespace(ns);
       namespace_ptr->refresh_table(table_name);
     } RETHROW("namespace=" << ns << " table=" << table_name);
+    LOG_API_FINISH;
+  }
+
+  void scanner_get_profile_data(ThriftGen::ScanProfileData &result,
+                                const Scanner scanner_id) override {
+    LOG_API_START("scanner="<< scanner_id);
+
+    try {
+      TableScanner *scanner = get_scanner(scanner_id);
+      ProfileDataScanner profile_data;
+      scanner->get_profile_data(profile_data);
+      convert_scan_profile_data(profile_data, result);
+      result.id = scanner_id;
+    } RETHROW("scanner="<< scanner_id);
+    LOG_API_FINISH;
+  }
+
+  void async_scanner_get_profile_data(ThriftGen::ScanProfileData &result,
+                                const Scanner scanner_id) override {
+    LOG_API_START("scanner="<< scanner_id);
+
+    try {
+      TableScannerAsync *scanner = get_scanner_async(scanner_id);
+      ProfileDataScanner profile_data;
+      scanner->get_profile_data(profile_data);
+      convert_scan_profile_data(profile_data, result);
+      result.id = scanner_id;
+    } RETHROW("scanner="<< scanner_id);
     LOG_API_FINISH;
   }
 
@@ -2839,6 +2887,19 @@ public:
     return scanner;
   }
 
+  TableScanner *get_scanner(int64_t id) {
+    std::lock_guard<std::mutex> lock(m_mutex);
+    TableScanner *scanner {};
+    auto it = m_object_map.find(id);
+    if (it == m_object_map.end() ||
+        (scanner = dynamic_cast<TableScanner *>(it->second.get())) == nullptr) {
+      HT_ERROR_OUT << "Bad scanner id - " << id << HT_END;
+      THROW_TE(Error::THRIFTBROKER_BAD_SCANNER_ID,
+               format("Invalid scanner id: %lld", (Lld)id));
+    }
+    return scanner;
+  }
+
   bool remove_object(int64_t id) {
     // destroy client object unlocked
     bool removed = false;
@@ -3033,9 +3094,10 @@ void HqlCallback<ResultT, CellT>::on_scan(TableScannerPtr &s) {
     }
     result.__isset.cells = true;
 
-    if (g_log_slow_queries)
-      s->get_profile_data(profile_data);
-
+    s->get_profile_data(profile_data);
+    ThriftGen::ScanProfileData tspd;
+    convert_scan_profile_data(profile_data, tspd);
+    result.__set_scan_profile_data(tspd);
   }
   else {
     ScannerInfoPtr si = make_shared<ScannerInfo>(ns);

@@ -4,6 +4,41 @@ require File.dirname(__FILE__) + '/hypertable/thrift_client'
 require 'pp'
 include Hypertable::ThriftGen;
 
+def validate_scan_profile_data(label, scanner, profile_data)
+  if profile_data.servers.length != 1
+    puts "[%s] Expected profile data to have non-empty servers field" % [label]
+    exit 1
+  end
+  if profile_data.servers[0] != "rs1"
+    puts "[%s] Expected profile data servers to contain rs1 but got %s" %
+      [label, profile_data.servers[0]]
+    exit 1
+  end
+  if scanner != 0 && profile_data.id != scanner
+    puts "[%s] Expected profile data to have id %d but got %d" %
+      [label, scanner, profile_data.id]
+    exit 1
+  end
+  if profile_data.bytes_scanned == 0 || profile_data.bytes_returned == 0:
+    puts "[%s] Expected profile data to have non-zero bytes scanned and "\
+      "returned but got bytes_scanned=%d and bytes_returned=%d" %
+      [label, profile_data.bytes_scanned, profile_data.bytes_returned]
+    exit 1
+  end
+  if profile_data.cells_scanned == 0 || profile_data.cells_returned == 0:
+    puts "[%s] Expected profile data to have non-zero cells scanned and "\
+      "returned but got cells_scanned=%d and cells_returned=%d" %
+      [label, profile_data.cells_scanned, profile_data.cells_returned]
+    exit 1
+  end
+  if profile_data.subscanners != 1
+    puts "[%s] Expected profile data to have 1 subscanner but got %d" %
+      [label, profile_data.subscanners]
+    exit 1
+  end
+end
+
+
 begin
   Hypertable.with_thrift_client("127.0.0.1", 15867) do |client|
     puts "testing hql queries..."
@@ -15,12 +50,15 @@ begin
                            ('2008-11-11 11:11:11', 'k2', 'col', 'v2'), \
                            ('2008-11-11 11:11:11', 'k3', 'col', 'v3')");
     res = client.hql_query(ns, "select * from thrift_test");
+    validate_scan_profile_data("HqlResult", 0, res.scan_profile_data)
     pp res
 
     puts "testing scanner api..."
     # testing scanner api
     client.with_scanner(ns, "thrift_test", ScanSpec.new()) do |scanner|
       client.each_cell(scanner) { |cell| pp cell }
+      profile_data = client.scanner_get_profile_data(scanner)
+      validate_scan_profile_data("scanner", scanner, profile_data)
     end
     
     puts "testing asynchronous api..."
@@ -84,9 +122,19 @@ begin
           break
         end
       end
+
+      profile_data = client.async_scanner_get_profile_data(color_scanner)
+      validate_scan_profile_data("scanner", color_scanner, profile_data)
       client.async_scanner_close(color_scanner)
+
+      profile_data = client.async_scanner_get_profile_data(location_scanner)
+      validate_scan_profile_data("scanner", location_scanner, profile_data)
       client.async_scanner_close(location_scanner)
+
+      profile_data = client.async_scanner_get_profile_data(energy_scanner)
+      validate_scan_profile_data("scanner", energy_scanner, profile_data)
       client.async_scanner_close(energy_scanner)
+
       if (num_cells != expected_cells || !client.future_is_cancelled(future))
         puts "Expected #{expected_cells} got {#num_cells} and future to be cancelled"
         exit 1

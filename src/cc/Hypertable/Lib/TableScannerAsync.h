@@ -35,6 +35,8 @@
 
 #include <AsyncComm/DispatchHandlerSynchronizer.h>
 
+#include <Common/Stopwatch.h>
+
 #include <condition_variable>
 #include <mutex>
 #include <vector>
@@ -157,21 +159,22 @@ namespace Hypertable {
 
     std::vector<IntervalScannerAsyncPtr>  m_interval_scanners;
     uint32_t            m_timeout_ms;
-    int64_t             m_bytes_scanned;
+    int64_t             m_bytes_scanned {};
     typedef std::set<const char *, LtCstr> CstrRowSet;
     CstrRowSet          m_rowset;
     ResultCallback     *m_cb;
     ProfileDataScanner m_profile_data;
-    int                 m_current_scanner;
+    int                 m_current_scanner {};
     std::mutex m_mutex;
     std::mutex m_cancel_mutex;
     std::condition_variable m_cond;
-    int                 m_outstanding;
-    int                 m_error;
+    int                 m_outstanding {};
+    int                 m_error {};
     std::string              m_error_msg;
     Table              *m_table;
-    bool                m_cancelled;
-    bool                m_use_index;
+    bool                m_cancelled {};
+    bool                m_use_index {};
+    Stopwatch           m_stopwatch;
   };
 
   /// Smart pointer to TableScannerAsync

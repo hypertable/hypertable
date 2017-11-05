@@ -31,7 +31,6 @@
 
 #include <Common/Error.h>
 #include <Common/FileUtils.h>
-#include <Common/Stopwatch.h>
 
 #include <boost/progress.hpp>
 
@@ -50,7 +49,6 @@ namespace {
     CommandInterpreter &commander;
     int command {};
     unique_ptr<boost::progress_display> progress;
-    Stopwatch stopwatch;
     bool m_profile {};
 
     CommandCallback(CommandInterpreter &interp, bool profile=false)
@@ -93,13 +91,12 @@ namespace {
 
     void on_finish(TableMutatorPtr &mutator) override {
       Callback::on_finish(mutator);
-      stopwatch.stop();
 
       if (normal_mode) {
         if (progress && progress->count() < file_size)
           *progress += file_size - progress->count();
 
-        double elapsed = stopwatch.elapsed();
+        double elapsed = mutator->elapsed_time();
 
         if (command == COMMAND_LOAD_DATA)
           fprintf(stderr, "Load complete.\n");
@@ -140,9 +137,9 @@ namespace {
     void on_finish(TableScannerPtr &scanner) override {
       if (scanner && m_profile) {
         fputc('\n', stderr);
-        fprintf(stderr, "  Elapsed time:  %lld ms\n", (Lld)stopwatch.elapsed_millis());
         ProfileDataScanner profile_data;
         scanner->get_profile_data(profile_data);
+        fprintf(stderr, "  Elapsed time:  %lld ms\n", (Lld)profile_data.elapsed_time_millis);
         fprintf(stderr, " Cells scanned:  %lld\n", (Lld)profile_data.cells_scanned);
         fprintf(stderr, "Cells returned:  %lld\n", (Lld)profile_data.cells_returned);
         fprintf(stderr, " Bytes scanned:  %lld\n", (Lld)profile_data.bytes_scanned);

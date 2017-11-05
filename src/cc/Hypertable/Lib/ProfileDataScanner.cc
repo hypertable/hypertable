@@ -36,11 +36,11 @@ using namespace Hypertable::Serialization;
 using namespace std;
 
 uint8_t ProfileDataScanner::encoding_version() const {
-  return 1;
+  return 2;
 }
 
 size_t ProfileDataScanner::encoded_length_internal() const {
-  size_t length = 52;
+  size_t length = 60;
   if (!servers.empty()) {
     for (auto & str : servers)
       length += encoded_length_vstr(str);
@@ -61,11 +61,11 @@ void ProfileDataScanner::encode_internal(uint8_t **bufp) const {
     for (auto & str : servers)
       encode_vstr(bufp, str);
   }
+  encode_i64(bufp, (uint64_t)elapsed_time_millis);
 }
 
 void ProfileDataScanner::decode_internal(uint8_t version, const uint8_t **bufp,
 					 size_t *remainp) {
-  (void)version;
   subscanners = (int32_t)decode_i32(bufp, remainp);
   scanblocks = (int32_t)decode_i32(bufp, remainp);
   cells_scanned = (int64_t)decode_i64(bufp, remainp);
@@ -76,6 +76,8 @@ void ProfileDataScanner::decode_internal(uint8_t version, const uint8_t **bufp,
   size_t count = (size_t)decode_i32(bufp, remainp);
   for (size_t i=0; i<count; i++)
     servers.insert( decode_vstr(bufp, remainp) );
+  if (version >= 2)
+    elapsed_time_millis = (int64_t)decode_i64(bufp, remainp);
 }
 
 
@@ -88,6 +90,7 @@ ProfileDataScanner &ProfileDataScanner::operator+=(const ProfileDataScanner &oth
   bytes_returned += other.bytes_returned;
   disk_read += other.disk_read;
   servers.insert(other.servers.begin(), other.servers.end());
+  elapsed_time_millis += other.elapsed_time_millis;
   return *this;
 }
 
@@ -101,11 +104,13 @@ ProfileDataScanner &ProfileDataScanner::operator-=(const ProfileDataScanner &oth
   disk_read -= other.disk_read;
   for (auto &server : other.servers)
     servers.erase(server);
+  elapsed_time_millis -= other.elapsed_time_millis;
   return *this;
 }
 
 string ProfileDataScanner::to_string() {
   string str = "{ProfileDataScanner: ";
+  str += string("elapsed_time_millis=") + elapsed_time_millis + " ";
   str += string("cells_scanned=") + cells_scanned + " ";
   str += string("cells_returned=") + cells_returned + " ";
   str += string("bytes_scanned=") + bytes_scanned + " ";

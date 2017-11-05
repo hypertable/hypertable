@@ -24,12 +24,52 @@
 use Hypertable::ThriftClient;
 use Data::Dumper;
 
+sub validate_scan_profile_data {
+    my $label = shift(@_);
+    my $scanner = shift(@_);
+    my $profile_data = shift(@_);
+    if (scalar @{$profile_data->{servers}} != 1) {
+        print "[$label] Expected profile data to have non-empty servers field\n";
+        exit 1;
+    }
+    if ($profile_data->{servers}[0] != "rs1") {
+        print "[$label] Expected profile data servers to contain rs1 but got ".
+            ($profile_data->{servers}[0])."\n";
+        exit 1;
+    }
+    if ($scanner != 0 && $profile_data->id != $scanner) {
+        print "[$label] Expected profile data to have id $scanner but got ".
+            ($profile_data->id)."\n";
+        exit 1;
+    }
+    if ($profile_data->bytes_scanned == 0 || $profile_data->bytes_returned == 0) {
+        print "[$label] Expected profile data to have non-zero bytes scanned ".
+            "and returned but got bytes_scanned=".($profile_data->bytes_scanned).
+            " and bytes_returned=".($profile_data->bytes_returned)."\n";
+        exit 1;
+    }
+    if ($profile_data->cells_scanned == 0 || $profile_data->cells_returned == 0) {
+        print "[$label] Expected profile data to have non-zero cells scanned ".
+            "and returned but got cells_scanned=".($profile_data->cells_scanned).
+            " and cells_returned=".($profile_data->cells_returned)."\n";
+        exit 1;
+    }
+    if ($profile_data->subscanners != 1) {
+        print "[$label] Expected profile data to have 1 subscanner but got ".
+            ($profile_data->subscanners)."\n";
+        exit 1;
+    }
+}
+
+
 my $client = new Hypertable::ThriftClient("localhost", 15867);
 
 print "HQL examples\n";
 my $namespace = $client->namespace_open("test");
 print Dumper($client->hql_exec($namespace,"show tables"));
-print Dumper($client->hql_exec($namespace,"select * from thrift_test max_versions 1"));
+my $result = $client->hql_exec($namespace,"select * from thrift_test max_versions 1");
+print Dumper($result);
+validate_scan_profile_data("HqlResult", 0, $result->scan_profile_data);
 
 print "mutator examples\n";
 my $mutator = $client->mutator_open($namespace, "thrift_test");
@@ -70,6 +110,8 @@ while (scalar @$cells) {
   print Dumper($cells);
   $cells = $client->scanner_get_cells($scanner);
 }
+my $profile_data = $client->scanner_get_profile_data($scanner);
+validate_scan_profile_data("scanner", $scanner, $profile_data);
 $client->scanner_close($scanner);
 
 print "asynchronous examples\n";
@@ -102,8 +144,16 @@ while (1) {
 # This should not cause problems with referencing scanners
 $client->future_close($future);
 
+$profile_data = $client->async_scanner_get_profile_data($color_scanner);
+validate_scan_profile_data("color_scanner", $color_scanner, $profile_data);
 $client->async_scanner_close($color_scanner);
+
+$profile_data = $client->async_scanner_get_profile_data($location_scanner);
+validate_scan_profile_data("location_scanner", $location_scanner, $profile_data);
 $client->async_scanner_close($location_scanner);
+
+$profile_data = $client->async_scanner_get_profile_data($energy_scanner);
+validate_scan_profile_data("energy_scanner", $energy_scanner, $profile_data);
 $client->async_scanner_close($energy_scanner);;
 
 die "Expected $expected_cells cells got $num_cells." if ($num_cells != $expected_cells);

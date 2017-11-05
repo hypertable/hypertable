@@ -58,8 +58,8 @@ void TableMutator::handle_exceptions() {
 
 TableMutator::TableMutator(PropertiesPtr &props, Comm *comm, Table *table, RangeLocatorPtr &range_locator,
     uint32_t timeout_ms, uint32_t flags)
-  : m_callback(this), m_timeout_ms(timeout_ms), m_flags(flags), m_flush_delay(0),
-    m_last_error(Error::OK), m_last_op(0), m_unflushed_updates(false) {
+  : m_callback(this), m_timeout_ms(timeout_ms), m_flags(flags),
+    m_last_error(Error::OK), m_stopwatch(true) {
   HT_ASSERT(timeout_ms);
   m_queue = make_shared<TableMutatorQueue>(m_queue_mutex, m_cond);
   ApplicationQueueInterfacePtr app_queue = m_queue;
