@@ -47,7 +47,7 @@ endif ()
 if (EDITLINE_FOUND)
     CHECK_SYMBOL_EXISTS('setupterm' ${EDITLINE_INCLUDE_DIR} EDITLINE_CHECK_BUILD)
 
-    if (not EDITLINE_CHECK_BUILD)
+    if (NOT EDITLINE_CHECK_BUILD)
 
         find_library(NCURSES_LIBRARY NAMES ncurses PATHS
             /opt/local/lib
