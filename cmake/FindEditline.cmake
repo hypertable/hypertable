@@ -76,7 +76,7 @@ if (EDITLINE_FOUND)
         endif ()
 
         if (EDITLINE_FOUND)
-            message(STATUS "Found Editline: ${EDITLINE_LIBRARY}")
+            message(STATUS "Found Editline with Ncurses: ${EDITLINE_LIBRARIES}")
             try_run(EDITLINE_CHECK EDITLINE_CHECK_BUILD
                 ${HYPERTABLE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeTmp
                 ${HYPERTABLE_SOURCE_DIR}/cmake/CheckEditline.cc
@@ -100,6 +100,7 @@ if (EDITLINE_FOUND)
             EDITLINE_LIBRARY
         )
     else ()
+        message(STATUS "Found Editline: ${EDITLINE_LIBRARY}")
         mark_as_advanced(
             EDITLINE_INCLUDE_DIR
             EDITLINE_LIBRARY
