@@ -85,9 +85,8 @@ endif (${CMAKE_SYSTEM_NAME} MATCHES "SunOS")
 
 add_library(HyperCommon ${Common_SRCS} ${Fmemopen_SRCS})
 target_link_libraries(HyperCommon ${EXPAT_LIBRARIES} ${SIGAR_LIBRARIES}
-  ${BOOST_LIBS} ${READLINE_LIBRARIES} ${ZLIB_LIBRARIES} ${SNAPPY_LIBRARIES}
-  ${NCURSES_LIBRARY} ${CMAKE_THREAD_LIBS_INIT}
-    ${RE2_LIBRARIES} ${MALLOC_LIBRARY} ${Libssl_LIBRARIES})
+  ${BOOST_LIBS} ${EDITLINE_LIBRARIES} ${ZLIB_LIBRARIES} ${SNAPPY_LIBRARIES}
+  ${CMAKE_THREAD_LIBS_INIT} ${RE2_LIBRARIES} ${MALLOC_LIBRARY} ${Libssl_LIBRARIES})
 
 add_executable(ht_system_info system_info.cc)
 target_link_libraries(ht_system_info HyperCommon)
