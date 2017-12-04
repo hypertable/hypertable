@@ -35,6 +35,10 @@ find_library(EDITLINE_LIBRARY NAMES edit PATHS
     /usr/local/lib
     /usr/lib
     )
+CHECK_SYMBOL_EXISTS('tput' ${EDITLINE_INCLUDE_DIR} LIBEDIT_OUTPUT)
+message(STATUS "${LIBEDIT_OUTPUT}")
+
+
 
 find_library(NCURSES_LIBRARY NAMES ncurses PATHS
     /opt/local/lib
