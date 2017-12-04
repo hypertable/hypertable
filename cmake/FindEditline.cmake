@@ -60,7 +60,7 @@ if (EDITLINE_FOUND)
             /usr/lib
             )
         if (NCURSESW_LIBRARY)
-            set(NCURSES_LIBRARY} ${NCURSESW_LIBRARY})
+            set(NCURSES_LIBRARY ${NCURSESW_LIBRARY})
         endif ()
         
         if (NCURSES_LIBRARY)
