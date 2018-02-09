@@ -105,6 +105,7 @@ bool LocationInitializer::is_removed(const String &path, Hyperspace::SessionPtr 
 }
 
 bool LocationInitializer::remove_location() {
+  m_location.clear();
   return FileUtils::unlink(m_location_file);
 }
 
