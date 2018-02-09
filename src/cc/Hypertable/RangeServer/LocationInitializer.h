@@ -66,6 +66,9 @@ namespace Hypertable {
 
     /// Gets assigned location (proxy name) 
     String get();
+    
+    /// Remove current location
+    bool remove_location();
 
     /// Waits for completion of initialization handshake
     void wait_for_handshake();
