@@ -104,6 +104,10 @@ bool LocationInitializer::is_removed(const String &path, Hyperspace::SessionPtr 
   return removed;
 }
 
+bool LocationInitializer::remove_location() {
+  return FileUtils::unlink(m_location_file);
+}
+
 CommBuf *LocationInitializer::create_initialization_request() {
   lock_guard<mutex> lock(m_mutex);
   StatsSystem stats;
@@ -184,6 +188,11 @@ bool LocationInitializer::process_initialization_response(Event *event) {
 String LocationInitializer::get() {
   lock_guard<mutex> lock(m_mutex);
   return m_location;
+}
+
+String LocationInitializer::get_m_location_file() {
+  lock_guard<mutex> lock(m_mutex);
+  return m_location_file;
 }
 
 void LocationInitializer::wait_for_handshake() {
