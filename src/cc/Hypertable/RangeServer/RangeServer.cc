@@ -314,9 +314,15 @@ Apps::RangeServer::RangeServer(PropertiesPtr &props, ConnectionManagerPtr &conn_
   Global::location_initializer = make_shared<LocationInitializer>(m_context);
 
   if(Global::location_initializer->is_removed(Global::toplevel_dir+"/servers", m_hyperspace)) {
-    HT_ERROR_OUT << "location " << Global::location_initializer->get()
-        << " has been marked removed in hyperspace" << HT_END;
-    quick_exit(EXIT_FAILURE);
+     if(!Global::auto_re_init_location){
+           HT_ERROR_OUT << "location " << Global::location_initializer->get()
+           << " has been marked removed in hyperspace" << HT_END;
+           quick_exit(EXIT_FAILURE);
+     }
+     String old_m_loc = Global::location_initializer->get();
+     FileUtils::unlink(Global::toplevel_dir + "/servers/" + old_m_loc);
+     Global::location_initializer = make_shared<LocationInitializer>(m_context); 
+     HT_INFOF("Auto re-initiated location, old:%s new:%s", old_m_loc, Global::location_initializer->get());
   }
 
   // Create Master client
