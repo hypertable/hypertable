@@ -320,9 +320,9 @@ Apps::RangeServer::RangeServer(PropertiesPtr &props, ConnectionManagerPtr &conn_
            quick_exit(EXIT_FAILURE);
      }
      String old_m_loc = Global::location_initializer->get();
-     FileUtils::unlink(Global::toplevel_dir + "/servers/" + old_m_loc);
+     FileUtils::unlink(Global::location_initializer->m_location_file);
      Global::location_initializer = make_shared<LocationInitializer>(m_context); 
-     HT_INFOF("Auto re-initiated location, old:%s new:%s", old_m_loc, Global::location_initializer->get());
+     HT_INFOF("Auto re-initiated location, old:%s new:%s", old_m_loc.string(), Global::location_initializer->get());
   }
 
   // Create Master client
