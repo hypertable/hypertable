@@ -191,11 +191,6 @@ String LocationInitializer::get() {
   return m_location;
 }
 
-String LocationInitializer::get_m_location_file() {
-  lock_guard<mutex> lock(m_mutex);
-  return m_location_file;
-}
-
 void LocationInitializer::wait_for_handshake() {
   unique_lock<mutex> lock(m_mutex);
   m_cond.wait(lock, [this](){ return m_handshake_complete; });
