@@ -322,7 +322,7 @@ Apps::RangeServer::RangeServer(PropertiesPtr &props, ConnectionManagerPtr &conn_
 	  
      String old_m_loc = Global::location_initializer->get();
      if(Global::location_initializer->remove_location()) {
-        HT_INFOF("Auto re-initiated location, removed location: %s", old_m_loc.string());
+        HT_INFOF("Auto re-initiated location, removed location: %s", old_m_loc.c_str());
      }else{
         HT_ERROR_OUT << "Unable to auto re-initiated location" << old_m_loc << HT_END;
         quick_exit(EXIT_FAILURE);
