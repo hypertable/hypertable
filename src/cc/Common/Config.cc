@@ -447,6 +447,8 @@ void DefaultPolicy::init_options() {
      boo()->default_value(true), "Enable query cache mutex statistics")
     ("Hypertable.RangeServer.QueryCache.MaxMemory", i64()->default_value(50*M),
         "Maximum size of query cache")
+    ("Hypertable.RangeServer.Location.AutoReInitiate", boo()->default_value(false),
+     "If RS location marked removed, deletes previous location and inititate a new RS location")
     ("Hypertable.RangeServer.Range.RowSize.Unlimited", boo()->default_value(false),
      "Marks range active and unsplittable upon encountering row overflow condition. "
      "Can cause ranges to grow extremely large.  Use with caution!")
