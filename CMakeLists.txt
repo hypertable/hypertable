@@ -24,7 +24,7 @@ set(VERSION_MAJOR "0")
 set(VERSION_MINOR "9")
 set(VERSION_MICRO "8")
 set(VERSION_PATCH "11")
-#set(VERSION_MISC_SUFFIX  "pre6")
+#set(VERSION_MISC_SUFFIX  "pre12")
 
 # cmake behavior compatibility
 cmake_minimum_required(VERSION 2.8)
@@ -45,9 +45,6 @@ if (NOT CMAKE_BUILD_TYPE)
       "Options: None Debug Release RelWithDebInfo MinSizeRel." FORCE)
 endif ()
 
-if (PHPTHRIFT_ROOT)
-   message(FATAL_ERROR "PHPTHRIFT_ROOT variable no longer supported.  Use THRIFT_SOURCE_DIR instead.")
-endif ()
 
 #uname -p says i386, but we know better when its x86 apple
 if (APPLE AND "${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "i386")
@@ -99,7 +96,12 @@ SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -D_LARGEFILE_SOURCE")
 SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -D_FILE_OFFSET_BITS=64")
 SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -D_REENTRANT")
 SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC")
-
+SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3")
+SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -flto -fuse-linker-plugin -ffat-lto-objects ")
+# SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsection-anchors")
+SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -floop-interchange")
+SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -m64")
+ 
 # C++ flags
 SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wno-unknown-pragmas")
 SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pedantic")
@@ -107,7 +109,11 @@ SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_LARGEFILE_SOURCE")
 SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_FILE_OFFSET_BITS=64")
 SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D_REENTRANT")
 SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC")
-SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
+SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3")
+SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -flto -fuse-linker-plugin -ffat-lto-objects")
+# SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsection-anchors")
+SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -floop-interchange")
 
 if (ASAN)
   SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsanitize=address")
@@ -115,10 +121,12 @@ if (ASAN)
   SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address")
   SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-omit-frame-pointer")
 endif ()
- 
 
 # Uncomment the following to build dynamic libraries
-# set (BUILD_SHARED_LIBS ON)
+if (BUILD_SHARED_LIBS)
+	set (BUILD_SHARED_LIBS ON)
+	message(STATUS "Building shared libraries")
+endif ()
 
 # Locate required packages
 set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/cmake)
@@ -189,6 +197,7 @@ elseif (NOT USE_GLIBC_MALLOC AND Tcmalloc_FOUND)
     endif ()
   endif ()
 endif ()
+message(STATUS "Using MALLOC: " ${MALLOC_LIBRARY})
 
 # Use llvm instead of gcc
 if (LLVM)
