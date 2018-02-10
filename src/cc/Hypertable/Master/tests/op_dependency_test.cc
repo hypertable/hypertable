@@ -143,7 +143,7 @@ int main(int argc, char **argv) {
 
     context->response_manager->set_mml_writer(context->mml_writer);
 
-    context->op = make_unique<OperationProcessor>(context, 4);
+    context->op = std::make_unique<OperationProcessor>(context, 4);
 
     /**
      *  TEST 1
