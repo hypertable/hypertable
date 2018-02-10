@@ -181,7 +181,7 @@ namespace {
                        std::vector<MetaLog::EntityPtr> &entities) {
     OperationPtr operation;
 
-    context->op = make_unique<OperationProcessor>(context, 4);
+    context->op = std::make_unique<OperationProcessor>(context, 4);
     context->mml_writer =
       make_shared<MetaLog::Writer>(context->dfs, context->mml_definition,
                                    g_mml_dir, entities);
@@ -205,7 +205,7 @@ namespace {
     std::vector<OperationPtr> operations;
     std::vector<MetaLog::EntityPtr> tmp_entities;
 
-    context->op = make_unique<OperationProcessor>(context, 4);
+    context->op = std::make_unique<OperationProcessor>(context, 4);
 
     FailureInducer::instance->clear();
     if (failure_point != "")
