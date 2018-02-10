@@ -44,61 +44,60 @@ else ()
   set(EDITLINE_FOUND "NO")
 endif ()
 
-if (EDITLINE_FOUND)
+
+find_library(NCURSESW_LIBRARY NAMES ncursesw PATHS
+	/opt/local/lib
+	/usr/local/lib
+	/usr/lib
+	)
+if (NCURSESW_LIBRARY)
+	set(NCURSES_LIBRARY ${NCURSESW_LIBRARY})
+else ()
+	find_library(NCURSES_LIBRARY NAMES ncurses PATHS
+        /opt/local/lib
+        /usr/local/lib
+        /usr/lib
+		)
+endif ()
+
+
+if (NCURSES_LIBRARY)
+    set(EDITLINE_LIBRARIES ${EDITLINE_LIBRARY} ${NCURSES_LIBRARY})
+    set(EDITLINE_FOUND "YES")
+    message(STATUS "Found Editline with Ncurses: ${EDITLINE_LIBRARIES}")
+
+else ()
+    message(STATUS "Found Editline: ${EDITLINE_LIBRARY}")
     CHECK_SYMBOL_EXISTS('setupterm' ${EDITLINE_INCLUDE_DIR} EDITLINE_CHECK_BUILD)
-
     if (NOT EDITLINE_CHECK_BUILD)
+		set(EDITLINE_FOUND "NO")
+        message(FATAL_ERROR "Could not find suitable Editline libraries")
+	endif ()
+endif ()
 
-        find_library(NCURSES_LIBRARY NAMES ncurses PATHS
-            /opt/local/lib
-            /usr/local/lib
-            /usr/lib
-            )
-        find_library(NCURSESW_LIBRARY NAMES ncursesw PATHS
-            /opt/local/lib
-            /usr/local/lib
-            /usr/lib
-            )
-        if (NCURSESW_LIBRARY)
-            set(NCURSES_LIBRARY ${NCURSESW_LIBRARY})
-        endif ()
-        
-        if (NCURSES_LIBRARY)
-            set(EDITLINE_LIBRARIES ${EDITLINE_LIBRARY} ${NCURSES_LIBRARY})
-            set(EDITLINE_FOUND "YES")
-        else ()
-            set(EDITLINE_FOUND "NO")
-        endif ()
-
-        if (EDITLINE_FOUND)
-            message(STATUS "Found Editline with Ncurses: ${EDITLINE_LIBRARIES}")
-            try_run(EDITLINE_CHECK EDITLINE_CHECK_BUILD
+if (EDITLINE_FOUND)
+	try_run(EDITLINE_CHECK EDITLINE_CHECK_BUILD
                 ${HYPERTABLE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeTmp
                 ${HYPERTABLE_SOURCE_DIR}/cmake/CheckEditline.cc
                 CMAKE_FLAGS -DINCLUDE_DIRECTORIES=${EDITLINE_INCLUDE_DIR}
                     -DLINK_LIBRARIES=${EDITLINE_LIBRARIES}
                 OUTPUT_VARIABLE EDITLINE_TRY_OUT)
-            if (EDITLINE_CHECK_BUILD STREQUAL "FALSE")
-                message(STATUS "${EDITLINE_TRY_OUT}")
-                message(FATAL_ERROR "Please fix the Editline installation and try again.  Make sure you build libedit with --enable-widec!")
-                set(EDITLINE_LIBRARIES)
-            endif ()
-        else ()
-            if (EDITLINE_FIND_REQUIRED)
-                message(FATAL_ERROR "Could not find suitable Editline libraries")
-            endif ()
-        endif ()
-
-        mark_as_advanced(
-            NCURSES_LIBRARY
-            EDITLINE_INCLUDE_DIR
-            EDITLINE_LIBRARY
-        )
-    else ()
-        message(STATUS "Found Editline: ${EDITLINE_LIBRARY}")
-        mark_as_advanced(
-            EDITLINE_INCLUDE_DIR
-            EDITLINE_LIBRARY
-        )
+    if (EDITLINE_CHECK_BUILD STREQUAL "FALSE")
+         message(STATUS "${EDITLINE_TRY_OUT}")
+         message(FATAL_ERROR "Please fix the Editline installation and try again.  Make sure you build libedit with --enable-widec!")
+         set(EDITLINE_LIBRARIES)
     endif ()
+endif ()
+
+if (NCURSES_LIBRARY)
+	mark_as_advanced(
+        NCURSES_LIBRARY
+        EDITLINE_INCLUDE_DIR
+        EDITLINE_LIBRARY
+    )
+else ()
+	mark_as_advanced(
+		EDITLINE_INCLUDE_DIR
+		EDITLINE_LIBRARY
+    )
 endif ()
