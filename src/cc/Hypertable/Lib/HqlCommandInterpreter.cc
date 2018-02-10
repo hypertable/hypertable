@@ -82,7 +82,7 @@ namespace {
         HT_ASSERT(!progress);
         cout <<"\nLoading "<< format_number(total)
              <<" bytes of input data..." << endl;
-        progress = make_unique<boost::progress_display>(total);
+        progress = std::make_unique<boost::progress_display>(total);
       }
     }
 
