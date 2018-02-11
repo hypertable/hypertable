@@ -87,7 +87,7 @@ HOW TO BUILD FROM SOURCE
         
     Build support only for languages desired with option 
     
-        -DLANGS=pl,js,php,py2.pypy2.py3.pypy3 
+        -DLANGS=pl,js,php,py2,pypy2,py3,pypy3 
 
     Defaults to 'all' optionally comma-separated-language ext+version.
 
