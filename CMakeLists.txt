@@ -139,15 +139,37 @@ include(VersionHelper)
 set(CMAKE_INSTALL_PREFIX ${CMAKE_INSTALL_PREFIX}/${VERSION})
 set(INSTALL_DIR ${CMAKE_INSTALL_PREFIX})
 
+if (NOT LANGS OR LANGS STREQUAL "all")
+	set(LANGS ON)
+	message(STATUS "Building for all supported languages")
+else ()
+	string(TOUPPER ${LANGS} LANGS)
+	string(REPLACE "," ";" LANGS "${LANGS}")
+	foreach(lg ${LANGS})
+		SET("LANG_${lg}" ON)
+		message(STATUS "Building for language: ${lg}")
+	endforeach()
+	set(LANGS OFF)
+endif ()
+
+
+
 find_package(Threads REQUIRED)
 message(STATUS "Use thread library: ${CMAKE_THREAD_LIBS_INIT}")
-find_package(Nodejs)
-find_package(Python)
+
+if (LANGS OR LANG_JS)
+	find_package(Nodejs)
+endif ()
+
+if (LANGS OR LANG_PY2 OR LANG_PY3 OR LANG_PYPY2 OR LANG_PYPY3)
+	find_package(Python)
+endif ()
+
+find_package(SIGAR REQUIRED)
 find_package(Boost REQUIRED)
 find_package(BerkeleyDB REQUIRED)
 find_package(EXPAT REQUIRED)
 find_package(Editline REQUIRED)
-find_package(SIGAR REQUIRED)
 find_package(ZLIB REQUIRED)
 find_package(BZip2 REQUIRED)
 find_package(RE2 REQUIRED)
@@ -167,10 +189,20 @@ find_package(LibEvent REQUIRED)
 find_package(Libssh REQUIRED)
 find_package(Libssl REQUIRED)
 find_package(Thrift REQUIRED)
-find_package(RubyThrift)
-find_package(PHP5Thrift)
-find_package(PerlThrift)
-find_package(PythonThrift)
+
+if (LANGS OR LANG_RB)
+	find_package(RubyThrift)
+endif ()
+if (LANGS OR LANG_PHP)
+	find_package(PHP5Thrift)
+endif ()
+if (LANGS OR LANG_PL)
+	find_package(PerlThrift)
+endif ()
+if (LANGS OR LANG_PY2 OR LANG_PY3 OR LANG_PYPY2 OR LANG_PYPY3)
+	find_package(PythonThrift)
+endif ()
+
 
 # set malloc library (maybe)
 if (USE_JEMALLOC)
@@ -198,6 +230,7 @@ elseif (NOT USE_GLIBC_MALLOC AND Tcmalloc_FOUND)
   endif ()
 endif ()
 message(STATUS "Using MALLOC: " ${MALLOC_LIBRARY})
+
 
 # Use llvm instead of gcc
 if (LLVM)
@@ -292,24 +325,32 @@ install(PROGRAMS ${HYPERTABLE_BINARY_DIR}/ht DESTINATION bin)
 
 # Copy Thrift files
 if (THRIFT_SOURCE_DIR)
-  message(STATUS "Copying PHP files into installation")
-  file(GLOB PHPFILES ${HYPERTABLE_SOURCE_DIR}/src/php/*.php)
-  install(FILES ${PHPFILES} DESTINATION lib/php)
-  install(DIRECTORY ${THRIFT_SOURCE_DIR}/lib/php/lib/Thrift
-          DESTINATION lib/php USE_SOURCE_PERMISSIONS)
+ if (LANGS OR LANG_PHP)
+	message(STATUS "Copying PHP files into installation")
+	file(GLOB PHPFILES ${HYPERTABLE_SOURCE_DIR}/src/php/*.php)
+	install(FILES ${PHPFILES} DESTINATION lib/php)
+	install(DIRECTORY ${THRIFT_SOURCE_DIR}/lib/php/lib/Thrift
+			DESTINATION lib/php USE_SOURCE_PERMISSIONS)
+ endif ()
+ if (LANGS OR LANG_PL)
   message(STATUS "Copying Perl files into installation")
   file(GLOB PERLFILES ${THRIFT_SOURCE_DIR}/lib/perl/lib/*.pm)
   install(FILES ${PERLFILES} DESTINATION lib/perl)
   install(DIRECTORY ${THRIFT_SOURCE_DIR}/lib/perl/lib/Thrift
           DESTINATION lib/perl USE_SOURCE_PERMISSIONS)
+ endif ()
+ if (LANGS OR LANG_PY2 OR LANG_PY3 OR LANG_PYPY2 OR LANG_PYPY3)
   message(STATUS "Copying Python files into installation")
   install(DIRECTORY ${THRIFT_SOURCE_DIR}/lib/py/src/
           DESTINATION lib/py/thrift USE_SOURCE_PERMISSIONS)
+ endif ()
+ if (LANGS OR LANG_RB)
   message(STATUS "Copying Ruby files into installation")
   file(GLOB RUBYFILES ${THRIFT_SOURCE_DIR}/lib/rb/lib/*.rb)
   install(FILES ${RUBYFILES} DESTINATION lib/rb)
   install(DIRECTORY ${THRIFT_SOURCE_DIR}/lib/rb/lib/thrift
           DESTINATION lib/rb USE_SOURCE_PERMISSIONS)
+ endif ()
 endif ()
 
 # Copy C++ Thrift files
@@ -330,4 +371,8 @@ else ()
 endif ()
 
 install(PROGRAMS "${CRONOLOG_DIR}/cronolog" DESTINATION sbin)
-install(PROGRAMS "${NODEJS_EXECUTABLE}" DESTINATION sbin)
+
+if (NODEJS_FOUND)
+	install(PROGRAMS "${NODEJS_EXECUTABLE}" DESTINATION sbin)
+endif ()
+
