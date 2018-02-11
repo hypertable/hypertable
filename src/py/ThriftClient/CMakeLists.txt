@@ -33,7 +33,7 @@ add_custom_target(ThriftGenPy ALL DEPENDS ${GenPy_SRCS})
 
 if (PYTHONTHRIFT_FOUND)
   add_test(ThriftClient-python env
-      PYTHONPATH=${HYPERTABLE_BINARY_DIR}/src/py/ThriftClient
+      PYTHONPATH=${CMAKE_CURRENT_SOURCE_DIR}:${HYPERTABLE_BINARY_DIR}/src/py/ThriftClient/gen-py
       python ${CMAKE_CURRENT_SOURCE_DIR}/client_test.py)
 endif ()
 
