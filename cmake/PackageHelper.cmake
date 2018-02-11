@@ -135,8 +135,12 @@ endforeach ()
 # copy cronolog and node to the /sbin directory
 install(PROGRAMS "${CRONOLOG_DIR}/cronolog"
         DESTINATION ${CMAKE_INSTALL_PREFIX}/sbin)
-install(PROGRAMS "${NODEJS_EXECUTABLE}"
-        DESTINATION ${CMAKE_INSTALL_PREFIX}/sbin)
+
+if (NODEJS_FOUND)
+	install(PROGRAMS "${NODEJS_EXECUTABLE}"
+			DESTINATION ${CMAKE_INSTALL_PREFIX}/sbin)
+endif ()
+	
 
 # General package variables
 if (NOT CPACK_PACKAGE_NAME)
@@ -228,7 +232,8 @@ set(CPACK_RPM_PRE_INSTALL_SCRIPT_FILE ${CMAKE_INSTALL_PREFIX}/bin/ht-rpm-pre-ins
 set(CPACK_RPM_POST_INSTALL_SCRIPT_FILE ${CMAKE_INSTALL_PREFIX}/bin/ht-rpm-post-install.sh)
 
 # rpm perl dependencies stuff is dumb
-set(CPACK_RPM_SPEC_MORE_DEFINE "
+if (LANGS OR LANG_PL)
+ set(CPACK_RPM_SPEC_MORE_DEFINE "
 Provides: perl(Thrift)
 Provides: perl(Thrift::BinaryProtocol)
 Provides: perl(Thrift::FramedTransport)
@@ -238,5 +243,7 @@ Provides: perl(Hypertable::ThriftGen2::Types)
 Provides: perl(Hypertable::ThriftGen::ClientService)
 Provides: perl(Hypertable::ThriftGen::Types)
 ")
+endif ()
+
 
 include(CPack)
