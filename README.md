@@ -83,6 +83,9 @@ HOW TO BUILD FROM SOURCE
     Since PHP has no builtin package system, its thrift installation needs to
     be manually specified for ThriftBroker support:
         cmake -DTHRIFT_SOURCE_DIR=/home/user/src/thrift
+    
+    Build support only for languages desired with option -DLANGS=pl,js,php,py2.pypy2.py3.pypy3 comma-separated-language ext+version. 
+    Defaults to 'all'
 
 4.  Build Hypertable binaries.
 
