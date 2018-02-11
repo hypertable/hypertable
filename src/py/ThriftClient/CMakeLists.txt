@@ -43,7 +43,7 @@ if (NOT HT_COMPONENT_INSTALL OR PACKAGE_THRIFTBROKER)
      hypertable 
 	 DESTINATION lib/py)
   install(FILES client_test.py MANIFEST.in README.rst DESTINATION lib/py)
-  configure_file(setup.py.in ${HYPERTABLE_BINARY_DIR}/src/py/setup.py @ONLY)
-  install(FILES ${HYPERTABLE_BINARY_DIR}/src/py/setup.py DESTINATION lib/py)
+  configure_file(setup.py.in ${HYPERTABLE_BINARY_DIR}/src/py/ThriftClient/setup.py @ONLY)
+  install(FILES ${HYPERTABLE_BINARY_DIR}/src/py/ThriftClient/setup.py DESTINATION lib/py)
 
 endif ()
