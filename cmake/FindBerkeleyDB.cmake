@@ -59,15 +59,8 @@ else ()
   set(BDB_FOUND "NO")
 endif ()
 
-
-if (BDB_FOUND)
-  if (NOT BDB_FIND_QUIETLY)
-    message(STATUS "Found BerkeleyDB: ${BDB_LIBRARIES}")
-  endif ()
-else ()
-  if (BDB_FIND_REQUIRED)
-    message(FATAL_ERROR "Could not find BerkeleyDB library")
-  endif ()
+if (NOT BDB_FOUND AND BDB_FIND_REQUIRED)
+  message(FATAL_ERROR "Could not find BerkeleyDB library")
 endif ()
 
 try_run(BDB_CHECK SHOULD_COMPILE
@@ -78,7 +71,11 @@ try_run(BDB_CHECK SHOULD_COMPILE
         OUTPUT_VARIABLE BDB_TRY_OUT)
 string(REGEX REPLACE ".*\n([0-9.]+).*" "\\1" BDB_VERSION ${BDB_TRY_OUT})
 string(REGEX REPLACE ".*\n(BerkeleyDB .*)" "\\1" BDB_VERSION ${BDB_VERSION})
-message(STATUS "Berkeley DB version: ${BDB_VERSION}")
+
+  if (NOT BDB_FIND_QUIETLY)
+    message(STATUS "Found BerkeleyDB: ${BDB_LIBRARIES}")
+    message(STATUS "       version: ${BDB_VERSION}")
+  endif ()  
 
 if (NOT BDB_CHECK STREQUAL "0")
   message(FATAL_ERROR "Please fix the Berkeley DB installation, "
