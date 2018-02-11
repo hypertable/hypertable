@@ -77,15 +77,19 @@ HOW TO BUILD FROM SOURCE
     to change build parameters interactively.
 
     To build shared libraries, e.g., for scripting language extensions:
-
+    
         cmake -DBUILD_SHARED_LIBS=ON ~/src/hypertable
 
     Since PHP has no builtin package system, its thrift installation needs to
     be manually specified for ThriftBroker support:
-        cmake -DTHRIFT_SOURCE_DIR=/home/user/src/thrift
     
-    Build support only for languages desired with option -DLANGS=pl,js,php,py2.pypy2.py3.pypy3 comma-separated-language ext+version. 
-    Defaults to 'all'
+        cmake -DTHRIFT_SOURCE_DIR=/home/user/src/thrift
+        
+    Build support only for languages desired with option 
+    
+        -DLANGS=pl,js,php,py2.pypy2.py3.pypy3 
+
+    Defaults to 'all' optionally comma-separated-language ext+version.
 
 4.  Build Hypertable binaries.
 
