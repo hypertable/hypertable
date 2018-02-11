@@ -17,10 +17,10 @@
 # 02110-1301, USA.
 #
 
-HT_GLOB(GenPy_SRCS gen-py/*.py)
 
+add_custom_target(ThriftGenPy ALL)
 add_custom_command(
-  OUTPUT    ${GenPy_SRCS}
+  TARGET 	ThriftGenPy
   COMMAND   thrift
   ARGS      -r --gen py:new_style -o ${HYPERTABLE_BINARY_DIR}/src/py/ThriftClient/
             ${ThriftBroker_IDL_DIR}/Hql.thrift
@@ -29,7 +29,7 @@ add_custom_command(
   COMMENT   "thrift2py"
 )
 
-add_custom_target(ThriftGenPy ALL DEPENDS ${GenPy_SRCS})
+
 
 if (PYTHONTHRIFT_FOUND)
   add_test(ThriftClient-python env
