@@ -157,6 +157,8 @@ endif ()
 find_package(Threads REQUIRED)
 message(STATUS "Use thread library: ${CMAKE_THREAD_LIBS_INIT}")
 
+find_package(Boost REQUIRED)
+
 if (LANGS OR LANG_JS)
 	find_package(Nodejs)
 endif ()
@@ -166,7 +168,6 @@ if (LANGS OR LANG_PY2 OR LANG_PY3 OR LANG_PYPY2 OR LANG_PYPY3)
 endif ()
 
 find_package(SIGAR REQUIRED)
-find_package(Boost REQUIRED)
 find_package(BerkeleyDB REQUIRED)
 find_package(EXPAT REQUIRED)
 find_package(Editline REQUIRED)
