@@ -19,7 +19,7 @@
 # - Find PYTHON - on Major version
 #  PYTHON_INCLUDE_DIR - where to find Python.h
 #  PYTHON_LIBRARIES   - List of libraries when using python-devel
-#  PYTHON_FOUND       - True if python-devel was found
+#  PYTHON_FOUND - on Major version  - True if python-devel was found
 
 # PYTHON 2
 if (LANGS OR LANG_PY2)
@@ -46,11 +46,11 @@ if (LANGS OR LANG_PY2)
 	endif ()
 	
 	if (PYTHON2_INCLUDE_DIR AND PYTHON2_LIBRARY)
-		set(PYTHON2_FOUND TRUE)
+		set(PYTHON2_FOUND ON)
 		message(STATUS "Found Python${PYTHON_VERSION}-devel: ${PYTHON2_LIBRARY}")
 		set(PYTHON2_LIBRARY ${PYTHON2_LIBRARY} ${BOOST_PYTHON_LIB})
 	else ()
-		set(PYTHON2_FOUND FALSE)
+		set(PYTHON2_FOUND OFF)
 	endif ()
 endif ()
   
@@ -94,11 +94,11 @@ if (LANGS OR LANG_PY3)
 	    message(FATAL_ERROR "Requested for language, python3 is not available")
 	endif ()
 	if (PYTHON3_INCLUDE_DIR AND PYTHON3_LIBRARY)
-		set(PYTHON3_FOUND TRUE)
+		set(PYTHON3_FOUND ON)
 		message(STATUS "Found Python${PYTHON_VERSION}-devel: ${PYTHON3_LIBRARY}")
 		set(PYTHON3_LIBRARY ${PYTHON3_LIBRARY} ${BOOST_PYTHON_LIB})
 	else ()
-		set(PYTHON3_FOUND FALSE)
+		set(PYTHON3_FOUND OFF)
   endif ()
 endif ()
 
@@ -123,10 +123,10 @@ print(sys.prefix);
 	    message(FATAL_ERROR "Requested for language, pypy2 is not available")
 	endif ()
 	if (PYPY2_INCLUDE_DIR AND PYPY2_LIBDIR)
-		set(PYPY2_FOUND TRUE)
+		set(PYPY2_FOUND ON)
 		message(STATUS "Found PyPy2-devel: ${PYPY2_LIBDIR}")
 	else ()
-		set(PYPY2_FOUND FALSE)
+		set(PYPY2_FOUND OFF)
 	endif ()
 endif ()
 
@@ -149,10 +149,10 @@ print(sys.prefix);
 	    message(FATAL_ERROR "Requested for language, pypy3 is not available")
 	endif ()
 	if (PYPY3_INCLUDE_DIR AND PYPY3_LIBDIR)
-		set(PYPY3_FOUND TRUE)
+		set(PYPY3_FOUND ON)
 		message(STATUS "Found PyPy3-devel: ${PYPY3_LIBDIR}")
 	else ()
-		set(PYPY3_FOUND FALSE)
+		set(PYPY3_FOUND OFF)
 	endif ()
 endif ()
 
@@ -163,11 +163,11 @@ if (PYPY2_FOUND OR PYPY3_FOUND)
 	)
 	if (Pybind11_INCLUDE_DIR)
 		message(STATUS "Found Pybind11: ${Pybind11_INCLUDE_DIR}")
-		set(Pybind11_FOUND TRUE)
+		set(Pybind11_FOUND ON)
 	else ()
 		if(LANG_PYPY2 OR LANG_PYPY3) 
 			    message(FATAL_ERROR "Requested for language pypy, dependency Pybind11 is not available")
 		endif ()
-		set(Pybind11_FOUND FALSE)
+		set(Pybind11_FOUND OFF)
 	endif ()
 endif ()
