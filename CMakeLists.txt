@@ -230,7 +230,7 @@ elseif (NOT USE_GLIBC_MALLOC AND Tcmalloc_FOUND)
     endif ()
   endif ()
 endif ()
-message(STATUS "Using MALLOC: " ${MALLOC_LIBRARY})
+message(STATUS "Using MALLOC: ${MALLOC_LIBRARY} ")
 
 
 # Use llvm instead of gcc
