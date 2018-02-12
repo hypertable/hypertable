@@ -46,8 +46,8 @@ if (PYTHON3_FOUND)
 			LIBRARY DESTINATION "lib/py/hypertable"
 			ARCHIVE DESTINATION "lib/py/hypertable")
 
-	add_test(HyperPython3-reader env PYTHONPATH=${CMAKE_INSTALL_PREFIX}/lib/py bash ${CMAKE_CURRENT_SOURCE_DIR}/tests/run-reader.sh python ${CMAKE_INSTALL_PREFIX}/lib/py/hypertable/libHyperPython3.so)
-	add_test(HyperPython3-writer env PYTHONPATH=${CMAKE_INSTALL_PREFIX}/lib/py bash ${CMAKE_CURRENT_SOURCE_DIR}/tests/run-writer.sh python ${CMAKE_INSTALL_PREFIX}/lib/py/hypertable/libHyperPython3.so)
+	add_test(HyperPython3-reader env PYTHONPATH=${CMAKE_INSTALL_PREFIX}/lib/py bash ${CMAKE_CURRENT_SOURCE_DIR}/tests/run-reader.sh python3 ${CMAKE_INSTALL_PREFIX}/lib/py/hypertable/libHyperPython3.so)
+	add_test(HyperPython3-writer env PYTHONPATH=${CMAKE_INSTALL_PREFIX}/lib/py bash ${CMAKE_CURRENT_SOURCE_DIR}/tests/run-writer.sh python3 ${CMAKE_INSTALL_PREFIX}/lib/py/hypertable/libHyperPython3.so)
 endif ()
 
 
@@ -90,8 +90,8 @@ if (PYPY3_FOUND AND Pybind11_FOUND)
         LIBRARY DESTINATION "lib/py/hypertable"
         ARCHIVE DESTINATION "lib/py/hypertable")
 
-	add_test(HyperPyPy3-reader env PYTHONPATH=${CMAKE_INSTALL_PREFIX}/lib/py bash ${CMAKE_CURRENT_SOURCE_DIR}/tests/run-reader.sh pypy ${CMAKE_INSTALL_PREFIX}/lib/py/hypertable/libHyperPyPy3.so)
-	add_test(HyperPyPy3-writer env PYTHONPATH=${CMAKE_INSTALL_PREFIX}/lib/py bash ${CMAKE_CURRENT_SOURCE_DIR}/tests/run-writer.sh pypy ${CMAKE_INSTALL_PREFIX}/lib/py/hypertable/libHyperPyPy3.so)
+	add_test(HyperPyPy3-reader env PYTHONPATH=${CMAKE_INSTALL_PREFIX}/lib/py bash ${CMAKE_CURRENT_SOURCE_DIR}/tests/run-reader.sh pypy3 ${CMAKE_INSTALL_PREFIX}/lib/py/hypertable/libHyperPyPy3.so)
+	add_test(HyperPyPy3-writer env PYTHONPATH=${CMAKE_INSTALL_PREFIX}/lib/py bash ${CMAKE_CURRENT_SOURCE_DIR}/tests/run-writer.sh pypy3 ${CMAKE_INSTALL_PREFIX}/lib/py/hypertable/libHyperPyPy3.so)
 
 endif ()
 
