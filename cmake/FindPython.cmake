@@ -109,7 +109,7 @@ print(sys.prefix);
 		list(GET _PYPY_VALUES 1 PYPY2_LIBDIR)
 		set(PYPY2_LIBDIR ${PYPY2_LIBDIR}/bin/libpypy-c.so)
 	endif ()
-	if (PYPY2_INCLUDE_DIR AND PYPY3_LIBDIR)
+	if (PYPY2_INCLUDE_DIR AND PYPY2_LIBDIR)
 		set(PYPY2_FOUND TRUE)
 		message(STATUS "Found PyPy2-devel: ${PYPY2_LIBDIR}")
 	else ()
