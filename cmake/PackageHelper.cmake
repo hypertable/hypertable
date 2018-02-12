@@ -70,7 +70,7 @@ HT_INSTALL_LIBS(lib ${BOOST_LIBS} ${Thrift_LIBS}
                 ${EXPAT_LIBRARIES} ${BZIP2_LIBRARIES}
                 ${ZLIB_LIBRARIES} ${SNAPPY_LIBRARY} ${SIGAR_LIBRARY} ${Tcmalloc_LIBRARIES}
                 ${Jemalloc_LIBRARIES} ${Ceph_LIBRARIES} ${RE2_LIBRARIES}
-                ${EDITLINE_LIBRARIES})
+                ${EDITLINE_LIBRARIES} ${BOOST_PYTHON2_LIB} ${BOOST_PYTHON3_LIB} )
 
 # Apple specific
 if (APPLE)
