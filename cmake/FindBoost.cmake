@@ -190,7 +190,11 @@ if (Boost_INCLUDE_DIR)
                      ${Boost_PARENT} true)
   FIND_BOOST_LIBRARY(BOOST_IOSTREAMS_LIB iostreams ${Boost_PARENT} true)
   FIND_BOOST_LIBRARY(BOOST_FILESYSTEM_LIB filesystem ${Boost_PARENT} true)
-  FIND_BOOST_LIBRARY(BOOST_PYTHON_LIB python ${Boost_PARENT} false)
+  
+  if (LANGS OR LANG_PY2 OR LANG_PY3)
+	FIND_BOOST_LIBRARY(BOOST_PYTHON_LIB python ${Boost_PARENT} false)
+  endif()
+
   FIND_BOOST_LIBRARY(BOOST_CHRONO_LIB chrono ${Boost_PARENT} false)
 
   if(Boost_HAS_SYSTEM_LIB)
@@ -206,7 +210,11 @@ if (Boost_INCLUDE_DIR)
     message(STATUS "Boost program options lib: ${BOOST_PROGRAM_OPTIONS_LIB}")
     message(STATUS "Boost filesystem lib: ${BOOST_FILESYSTEM_LIB}")
     message(STATUS "Boost iostreams lib: ${BOOST_IOSTREAMS_LIB}")
-    message(STATUS "Boost python lib: ${BOOST_PYTHON_LIB}")
+	
+   if (LANGS OR LANG_PY2 OR LANG_PY3)
+		message(STATUS "Boost python lib: ${BOOST_PYTHON_LIB}")
+    endif()
+
     message(STATUS "Boost chrono lib: ${BOOST_CHRONO_LIB}")
 
     if(Boost_HAS_SYSTEM_LIB)
@@ -228,8 +236,10 @@ if (Boost_INCLUDE_DIR)
     set(BOOST_LIBS ${BOOST_LIBS} ${BOOST_CHRONO_LIB})
   endif ()
 
-  if (PYTHON_FOUND AND NOT ${BOOST_PYTHON_LIB} MATCHES "NOTFOUND$")
-    set(BOOST_LIBS ${BOOST_LIBS} ${BOOST_PYTHON_LIB} ${PYTHON_LIBRARY})
+  if (LANGS OR LANG_PY2 OR LANG_PY3)
+	if (PYTHON_FOUND AND NOT ${BOOST_PYTHON_LIB} MATCHES "NOTFOUND$")
+		set(BOOST_LIBS ${BOOST_LIBS} ${BOOST_PYTHON_LIB} ${PYTHON_LIBRARY})
+	endif ()
   endif ()
 
   message(STATUS "Boost libs: ${BOOST_LIBS}")
