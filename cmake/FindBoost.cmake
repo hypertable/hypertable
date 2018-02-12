@@ -236,12 +236,6 @@ if (Boost_INCLUDE_DIR)
     set(BOOST_LIBS ${BOOST_LIBS} ${BOOST_CHRONO_LIB})
   endif ()
 
-  if (LANGS OR LANG_PY2 OR LANG_PY3)
-	if (PYTHON_FOUND AND NOT ${BOOST_PYTHON_LIB} MATCHES "NOTFOUND$")
-		set(BOOST_LIBS ${BOOST_LIBS} ${BOOST_PYTHON_LIB} ${PYTHON_LIBRARY})
-	endif ()
-  endif ()
-
   message(STATUS "Boost libs: ${BOOST_LIBS}")
 
   if (EXISTS ${Boost_INCLUDE_DIR})
