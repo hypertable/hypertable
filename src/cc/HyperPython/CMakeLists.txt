@@ -25,7 +25,7 @@ set(CMAKE_CXX_FLAGS "-DHAVE_NETINET_IN_H ${CMAKE_CXX_FLAGS}")
 if (PYTHON2_FOUND)
 	add_library(HyperPython2 MODULE SerializedCells.cc)
 	target_link_libraries(HyperPython2 HyperThrift HyperCommon  Hypertable ${PYTHON2_LIBRARY} ${Thrift_LIBS} ${LibEvent_LIBS})
-						  target_include_directories(HyperPython2 PRIVATE ${PYTHON2_INCLUDE_DIR})
+	target_include_directories(HyperPython2 PRIVATE ${PYTHON2_INCLUDE_DIR})
 	
 	install(TARGETS HyperPython2
 			RUNTIME DESTINATION bin
@@ -39,7 +39,7 @@ endif ()
 if (PYTHON3_FOUND)
 	add_library(HyperPython3 MODULE SerializedCells.cc)
 	target_link_libraries(HyperPython3 HyperThrift HyperCommon  Hypertable ${PYTHON3_LIBRARY} ${Thrift_LIBS} ${LibEvent_LIBS})
-						  target_include_directories(HyperPython3 PRIVATE ${PYTHON3_INCLUDE_DIR})
+	target_include_directories(HyperPython3 PRIVATE ${PYTHON3_INCLUDE_DIR})
 	
 	install(TARGETS HyperPython3
 			RUNTIME DESTINATION bin
@@ -62,7 +62,7 @@ if (PYPY2_FOUND AND Pybind11_FOUND)
 					  -DPYPY_VERSION=1
 					  -DWITH_THREAD
 					  )
-	 target_include_directories(HyperPyPy2 PRIVATE ${Pybind11_INCLUDE_DIR} ${PYPY2_INCLUDE_DIR})
+	target_include_directories(HyperPyPy2 PRIVATE ${Pybind11_INCLUDE_DIR} ${PYPY2_INCLUDE_DIR})
 	
 	install(TARGETS HyperPyPy2
         RUNTIME DESTINATION bin
@@ -83,7 +83,7 @@ if (PYPY3_FOUND AND Pybind11_FOUND)
 					  -DPYPY_VERSION=1
 					  -DWITH_THREAD
 					  )
-	 target_include_directories(HyperPyPy3 PRIVATE ${Pybind11_INCLUDE_DIR} ${PYPY3_INCLUDE_DIR})
+	target_include_directories(HyperPyPy3 PRIVATE ${Pybind11_INCLUDE_DIR} ${PYPY3_INCLUDE_DIR})
 	
 	install(TARGETS HyperPyPy3
         RUNTIME DESTINATION bin
