@@ -22,7 +22,7 @@ add_custom_target(ThriftGenPy ALL)
 add_custom_command(
   TARGET 	ThriftGenPy
   COMMAND   thrift
-  ARGS      -r --gen py:new_style -o ${HYPERTABLE_BINARY_DIR}/src/py/ThriftClient/
+  ARGS      -r --gen py:slots,no_utf8strings -o ${HYPERTABLE_BINARY_DIR}/src/py/ThriftClient/
             ${ThriftBroker_IDL_DIR}/Hql.thrift
   DEPENDS   ${ThriftBroker_IDL_DIR}/Client.thrift
             ${ThriftBroker_IDL_DIR}/Hql.thrift
