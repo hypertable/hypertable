@@ -48,7 +48,7 @@ if (LANGS OR LANG_PY2)
 	if (PYTHON2_INCLUDE_DIR AND PYTHON2_LIBRARY)
 		set(PYTHON2_FOUND TRUE)
 		message(STATUS "Found Python${PYTHON_VERSION}-devel: ${PYTHON2_LIBRARY}")
-		set(PYTHON2_LIBRARY ${PYTHON2_LIBRARY} ${BOOST_PYTHON_LIB}
+		set(PYTHON2_LIBRARY ${PYTHON2_LIBRARY} ${BOOST_PYTHON_LIB})
 	else ()
 		set(PYTHON2_FOUND FALSE)
 	endif ()
@@ -83,7 +83,7 @@ if (LANGS OR LANG_PY3)
 	if (PYTHON3_INCLUDE_DIR AND PYTHON3_LIBRARY)
 		set(PYTHON3_FOUND TRUE)
 		message(STATUS "Found Python${PYTHON_VERSION}-devel: ${PYTHON3_LIBRARY}")
-		set(PYTHON3_LIBRARY ${PYTHON3_LIBRARY} ${BOOST_PYTHON_LIB}
+		set(PYTHON3_LIBRARY ${PYTHON3_LIBRARY} ${BOOST_PYTHON_LIB})
 	else ()
 		set(PYTHON3_FOUND FALSE)
   endif ()
@@ -114,7 +114,7 @@ print(sys.prefix);
 		message(STATUS "Found PyPy2-devel: ${PYPY2_LIBDIR}")
 	else ()
 		set(PYPY2_FOUND FALSE)
-  endif ()
+	endif ()
 endif ()
 
 # PYPY 3
@@ -140,7 +140,7 @@ print(sys.prefix);
 		message(STATUS "Found PyPy3-devel: ${PYPY3_LIBDIR}")
 	else ()
 		set(PYPY3_FOUND FALSE)
-  endif ()
+	endif ()
 endif ()
 
 if (PYPY2_FOUND OR PYPY3_FOUND)
