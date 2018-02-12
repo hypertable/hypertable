@@ -21,6 +21,7 @@
 #  PYTHON_LIBRARIES   - List of libraries when using python-devel
 #  PYTHON_FOUND - on Major version  - True if python-devel was found
 
+
 # PYTHON 2
 if (LANGS OR LANG_PY2)
 	exec_program(env ARGS python -V OUTPUT_VARIABLE PYTHON_VERSION_STRING
@@ -45,10 +46,17 @@ if (LANGS OR LANG_PY2)
 	    message(FATAL_ERROR "Requested for language, python2 is not available")
 	endif ()
 	
-	if (PYTHON2_INCLUDE_DIR AND PYTHON2_LIBRARY)
+	if (Boost_FOUND)
+		FIND_BOOST_LIBRARY(BOOST_PYTHON2_LIB python ${Boost_PARENT} false)
+	endif ()
+	if (LANG_PY2 AND NOT BOOST_PYTHON2_LIB)		
+		message(FATAL_ERROR "Language python2 require libboost_python")
+	endif ()
+	
+	if (PYTHON2_INCLUDE_DIR AND PYTHON2_LIBRARY AND BOOST_PYTHON2_LIB)
 		set(PYTHON2_FOUND ON)
+		set(PYTHON2_LIBRARY ${PYTHON2_LIBRARY} ${BOOST_PYTHON2_LIB})
 		message(STATUS "Found Python${PYTHON_VERSION}-devel: ${PYTHON2_LIBRARY}")
-		set(PYTHON2_LIBRARY ${PYTHON2_LIBRARY} ${BOOST_PYTHON_LIB})
 	else ()
 		set(PYTHON2_FOUND OFF)
 	endif ()
@@ -93,10 +101,19 @@ if (LANGS OR LANG_PY3)
 	elseif (LANG_PY3)
 	    message(FATAL_ERROR "Requested for language, python3 is not available")
 	endif ()
-	if (PYTHON3_INCLUDE_DIR AND PYTHON3_LIBRARY)
+	
+	if (Boost_FOUND)
+		FIND_BOOST_LIBRARY(BOOST_PYTHON3_LIB python3 ${Boost_PARENT} false)
+	endif ()
+	if (LANG_PY3 AND NOT BOOST_PYTHON3_LIB)		
+		message(FATAL_ERROR "Language python3 require libboost_python3")
+	endif ()
+	
+	if (PYTHON3_INCLUDE_DIR AND PYTHON3_LIBRARY AND BOOST_PYTHON3_LIB)
 		set(PYTHON3_FOUND ON)
+		FIND_BOOST_LIBRARY(BOOST_PYTHON3_LIB python${PYTHON_VERSION} ${Boost_PARENT} false)
+		set(PYTHON3_LIBRARY ${PYTHON3_LIBRARY} ${BOOST_PYTHON3_LIB})
 		message(STATUS "Found Python${PYTHON_VERSION}-devel: ${PYTHON3_LIBRARY}")
-		set(PYTHON3_LIBRARY ${PYTHON3_LIBRARY} ${BOOST_PYTHON_LIB})
 	else ()
 		set(PYTHON3_FOUND OFF)
   endif ()
