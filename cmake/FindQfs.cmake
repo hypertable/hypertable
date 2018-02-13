@@ -41,7 +41,11 @@ macro(FIND_QFS_LIB lib)
     PATHS /opt/qfs/lib/static /opt/qfs/lib /opt/local/lib /usr/local/lib
           $ENV{HOME}/src/qfs/build/lib/static
   )
-  mark_as_advanced(${lib}_LIB)
+  
+  if(${${lib}_LIB})
+	mark_as_advanced(${lib}_LIB)
+	set(Qfs_LIBRARIES ${Qfs_LIBRARIES} ${${lib}_LIB}})
+  endif ()
 endmacro(FIND_QFS_LIB lib libname)
 
 FIND_QFS_LIB(qfs_client)
@@ -57,24 +61,17 @@ find_library(Crypto_LIB NAMES crypto PATHS /opt/local/lib /usr/local/lib)
 
 if (Qfs_INCLUDE_DIR AND qfs_client_LIB)
   set(Qfs_FOUND TRUE)
-  set( Qfs_LIBRARIES ${qfs_client_LIB} ${qfs_io_LIB} ${qfs_common_LIB}
-                     ${qfs_qcdio_LIB} ${qfs_qcrs_LIB} ${qfskrb_LIB}
-                     ${Jerasure_LIB} ${gf_complete_LIB} ${Crypto_LIB})
+  mark_as_advanced(
+    Qfs_INCLUDE_DIR
+  )
+  message(STATUS "Found QFS: ${Qfs_LIBRARIES}")
 else ()
-   set(Qfs_FOUND FALSE)
-   set( Qfs_LIBRARIES)
-endif ()
-
-if (Qfs_FOUND)
-   if (NOT Qfs_FIND_QUIETLY)
-      message(STATUS "Found QFS: ${Qfs_LIBRARIES}")
-   endif ()
-else ()
-   if (Qfs_FIND_REQUIRED)
+   if (FSBROKER_QFS)
       message(FATAL_ERROR "Could NOT find QFS libraries")
    endif ()
+   set(Qfs_FOUND FALSE)
+   set(Qfs_LIBRARIES)
 endif ()
 
-mark_as_advanced(
-  Qfs_INCLUDE_DIR
-)
+
+

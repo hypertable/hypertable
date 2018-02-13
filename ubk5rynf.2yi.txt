@@ -1,0 +1,17 @@
+﻿Revert "Update SerializedCells.cc"
+
+This reverts commit 6529a7b1e3ebc3f14982875528fc4eb41be92e2e.
+
+# Please enter the commit message for your changes. Lines starting
+# with '#' will be ignored, and an empty message aborts the commit.
+# On branch master
+# Your branch and 'origin/master' have diverged,
+# and have 1 and 19 different commits each, respectively.
+#   (use "git pull" to merge the remote branch into yours)
+#
+# Changes to be committed:
+#   (use "git reset HEAD <file>..." to unstage)
+#
+#	modified:   src/cc/HyperPython/SerializedCells.cc
+#
+

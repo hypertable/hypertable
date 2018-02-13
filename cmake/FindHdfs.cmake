@@ -18,14 +18,23 @@
 
 # Legacy Hadoop helper
 
+set(Hdfs_FOUND OFF)
+
 if (JAVA_INCLUDE_PATH)
-  message(STATUS "Java headers found at: ${JAVA_INCLUDE_PATH}")
+  
+  if (NOT HADOOP_INCLUDE_PATH)
+	set(HADOOP_INCLUDE_PATH $ENV{HADOOP_INCLUDE_PATH} )
+  endif ()
+  
   if (HADOOP_INCLUDE_PATH)
     message(STATUS "Hadoop includes located at: ${HADOOP_INCLUDE_PATH}")
   else ()
     message(STATUS "Please set HADOOP_INCLUDE_PATH variable for Legacy Hadoop support")
   endif(HADOOP_INCLUDE_PATH)
 
+  if (NOT HADOOP_LIB_PATH)
+	set(HADOOP_LIB_PATH $ENV{HADOOP_LIB_PATH} )
+  endif ()
   if (HADOOP_LIB_PATH)
     message(STATUS "Hadoop libraries located at: ${HADOOP_LIB_PATH}")
   else ()
@@ -53,8 +62,10 @@ if (JAVA_INCLUDE_PATH)
     if (HDFS_DIST MATCHES "^Hadoop")
 			string(SUBSTRING ${HDFS_VERSION} 0 1 HDFS_VERSION_TOP)
 	      set(HDFS_DIST "apache${HDFS_VERSION_TOP}")
+		  set(Hdfs_FOUND ON)
 	  elseif (HDFS_DIST MATCHES "CDH" OR HDFS_DIST MATCHES "cloud") #not checked version parsing
 	      set(HDFS_DIST "cdh")
+		  set(Hdfs_FOUND ON)
 	  endif ()
 	
   else ()
@@ -68,3 +79,9 @@ if (JAVA_INCLUDE_PATH)
 else ()
   message(STATUS "Java JNI not found. Legacy Hadoop support will be disabled.")
 endif(JAVA_INCLUDE_PATH)
+
+if(NOT Hdfs_FOUND AND FSBROKER_HDFS)
+    message(FATAL_ERROR "Could NOT find HDFS libraries")
+endif ()
+
+

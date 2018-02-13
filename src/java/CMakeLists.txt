@@ -17,165 +17,89 @@
 #
 
 # Copy Maven source tree to build directory
-file(COPY java DESTINATION ${HYPERTABLE_BINARY_DIR} PATTERN pom.xml.in EXCLUDE)
+
+set(HYPERTABLE_JAVA_SOURCE_DIR  ${HYPERTABLE_SOURCE_DIR}/src/java)
+set(HYPERTABLE_JAVA_BINARY_DIR  ${HYPERTABLE_BINARY_DIR}/src/java)
+file(COPY ../java DESTINATION ${HYPERTABLE_BINARY_DIR}/src/ PATTERN "pom.xml.in" EXCLUDE)
 
 # Top-level pom.xml
-configure_file(${HYPERTABLE_SOURCE_DIR}/java/pom.xml.in ${HYPERTABLE_BINARY_DIR}/java/pom.xml @ONLY)
+configure_file(${HYPERTABLE_JAVA_SOURCE_DIR}/pom.xml.in ${HYPERTABLE_JAVA_BINARY_DIR}/pom.xml @ONLY)
 
 # runtime-dependencies/pom.xml
-configure_file(${HYPERTABLE_SOURCE_DIR}/java/runtime-dependencies/pom.xml.in
-         ${HYPERTABLE_BINARY_DIR}/java/runtime-dependencies/pom.xml @ONLY)
+configure_file(${HYPERTABLE_JAVA_SOURCE_DIR}/runtime-dependencies/pom.xml.in
+         ${HYPERTABLE_JAVA_BINARY_DIR}/runtime-dependencies/pom.xml @ONLY)
 
 # runtime-dependencies/common/pom.xml
-configure_file(${HYPERTABLE_SOURCE_DIR}/java/runtime-dependencies/common/pom.xml.in
-         ${HYPERTABLE_BINARY_DIR}/java/runtime-dependencies/common/pom.xml @ONLY)
+configure_file(${HYPERTABLE_JAVA_SOURCE_DIR}/runtime-dependencies/common/pom.xml.in
+         ${HYPERTABLE_JAVA_BINARY_DIR}/runtime-dependencies/common/pom.xml @ONLY)
 
-#add_custom_target(CleanHadoopBuild ALL rm -rf ${HYPERTABLE_BINARY_DIR}/java/hypertable-common/target/classes
-#      COMMAND rm -rf ${HYPERTABLE_BINARY_DIR}/java/hypertable-examples/target/classes
-#     )
+# hypertable-common/pom.xml
+configure_file(${HYPERTABLE_JAVA_SOURCE_DIR}/hypertable-common/pom.xml.in
+         ${HYPERTABLE_JAVA_BINARY_DIR}/hypertable-common/pom.xml @ONLY)
+
+# hypertable/pom.xml
+configure_file(${HYPERTABLE_JAVA_SOURCE_DIR}/hypertable/pom.xml.in
+         ${HYPERTABLE_JAVA_BINARY_DIR}/hypertable/pom.xml @ONLY)
+
+# hypertable-examples/pom.xml
+configure_file(${HYPERTABLE_JAVA_SOURCE_DIR}/hypertable-examples/pom.xml.in
+         ${HYPERTABLE_JAVA_BINARY_DIR}/hypertable-examples/pom.xml @ONLY)
+
+set(HADOOP_POM_VER OFF)
 if (HDFS_DIST MATCHES "^apache")
 
 	#set(APACHE1_VERSION "1.2.1")
 	#set(APACHE2_VERSION "2.4.1")
 	
 	# runtime-dependencies/${HDFS_DIST}/pom.xml
-	configure_file(${HYPERTABLE_SOURCE_DIR}/java/runtime-dependencies/${HDFS_DIST}/pom.xml.in
-		${HYPERTABLE_BINARY_DIR}/java/runtime-dependencies/${HDFS_DIST}/pom.xml @ONLY)
+	configure_file(${HYPERTABLE_JAVA_SOURCE_DIR}/runtime-dependencies/${HDFS_DIST}/pom.xml.in
+		${HYPERTABLE_JAVA_BINARY_DIR}/runtime-dependencies/${HDFS_DIST}/pom.xml @ONLY)
 			
 	# hypertable-${HDFS_DIST}/pom.xml
-	configure_file(${HYPERTABLE_SOURCE_DIR}/java/hypertable-${HDFS_DIST}/pom.xml.in
-		${HYPERTABLE_BINARY_DIR}/java/hypertable-${HDFS_DIST}/pom.xml @ONLY)
+	configure_file(${HYPERTABLE_JAVA_SOURCE_DIR}/hypertable-${HDFS_DIST}/pom.xml.in
+		${HYPERTABLE_JAVA_BINARY_DIR}/hypertable-${HDFS_DIST}/pom.xml @ONLY)
 
-    if (HDFS_VERSION MATCHES "^1.")
-	elseif (HDFS_VERSION MATCHES "^2.")
-	endif ()
+	set(HADOOP_POM_VER ${HDFS_DIST})
  
-elseif (HDFS_DIST MATCHES "cdh")    
-
+elseif (HDFS_DIST MATCHES "cdh")  
 	if (HDFS_VERSION MATCHES "^0.2")
 		set(CDH3_VERSION "0.20.2-cdh3u5")
 		# runtime-dependencies/cdh3/pom.xml
-		configure_file(${HYPERTABLE_SOURCE_DIR}/java/runtime-dependencies/cdh3/pom.xml.in
-			${HYPERTABLE_BINARY_DIR}/java/runtime-dependencies/cdh3/pom.xml @ONLY)
+		configure_file(${HYPERTABLE_JAVA_SOURCE_DIR}/runtime-dependencies/cdh3/pom.xml.in
+			${HYPERTABLE_JAVA_BINARY_DIR}/runtime-dependencies/cdh3/pom.xml @ONLY)
 		# hypertable-cdh3/pom.xml
-		configure_file(${HYPERTABLE_SOURCE_DIR}/java/hypertable-cdh3/pom.xml.in
-			${HYPERTABLE_BINARY_DIR}/java/hypertable-cdh3/pom.xml @ONLY)
+		configure_file(${HYPERTABLE_JAVA_SOURCE_DIR}/hypertable-cdh3/pom.xml.in
+			${HYPERTABLE_JAVA_BINARY_DIR}/hypertable-cdh3/pom.xml @ONLY)
 
+		set(HADOOP_POM_VER "${HDFS_DIST}3")
 	elseif (HDFS_VERSION MATCHES "^2.")
 		set(CDH4_VERSION "2.0.0-cdh4.2.1")
 
 		# runtime-dependencies/cdh4/pom.xml
-		configure_file(${HYPERTABLE_SOURCE_DIR}/java/runtime-dependencies/cdh4/pom.xml.in
-			${HYPERTABLE_BINARY_DIR}/java/runtime-dependencies/cdh4/pom.xml @ONLY				  
-                  DEPENDS RuntimeDependencies)
-
-	endif ()
-
-endif ()
-
-# hypertable-common/pom.xml
-configure_file(${HYPERTABLE_SOURCE_DIR}/java/hypertable-common/pom.xml.in
-         ${HYPERTABLE_BINARY_DIR}/java/hypertable-common/pom.xml @ONLY)
-
-# hypertable/pom.xml
-configure_file(${HYPERTABLE_SOURCE_DIR}/java/hypertable/pom.xml.in
-         ${HYPERTABLE_BINARY_DIR}/java/hypertable/pom.xml @ONLY)
-
-# hypertable-examples/pom.xml
-configure_file(${HYPERTABLE_SOURCE_DIR}/java/hypertable-examples/pom.xml.in
-         ${HYPERTABLE_BINARY_DIR}/java/hypertable-examples/pom.xml @ONLY)
-
-		 
-		 
-if (Thrift_FOUND)
-
-  set(ThriftGenJava_DIR ${HYPERTABLE_BINARY_DIR}/java/hypertable-common/src/main/java/org/hypertable/thriftgen)
-
-  set(ThriftGenJava_SRCS
-      ${ThriftGenJava_DIR}/AccessGroupOptions.java
-      ${ThriftGenJava_DIR}/AccessGroupSpec.java
-      ${ThriftGenJava_DIR}/CellInterval.java
-      ${ThriftGenJava_DIR}/Cell.java
-      ${ThriftGenJava_DIR}/ClientException.java
-      ${ThriftGenJava_DIR}/ClientService.java
-      ${ThriftGenJava_DIR}/ColumnFamilyOptions.java
-      ${ThriftGenJava_DIR}/ColumnFamilySpec.java
-      ${ThriftGenJava_DIR}/ColumnPredicate.java
-      ${ThriftGenJava_DIR}/ColumnPredicateOperation.java
-      ${ThriftGenJava_DIR}/HqlResult2.java
-      ${ThriftGenJava_DIR}/HqlResultAsArrays.java
-      ${ThriftGenJava_DIR}/HqlResult.java
-      ${ThriftGenJava_DIR}/HqlService.java
-      ${ThriftGenJava_DIR}/KeyFlag.java
-      ${ThriftGenJava_DIR}/Key.java
-      ${ThriftGenJava_DIR}/MutateSpec.java
-      ${ThriftGenJava_DIR}/MutatorFlag.java
-      ${ThriftGenJava_DIR}/NamespaceListing.java
-      ${ThriftGenJava_DIR}/ResultAsArrays.java
-      ${ThriftGenJava_DIR}/Result.java
-      ${ThriftGenJava_DIR}/ResultSerialized.java
-      ${ThriftGenJava_DIR}/RowInterval.java
-      ${ThriftGenJava_DIR}/ScanSpec.java
-      ${ThriftGenJava_DIR}/Schema.java
-      ${ThriftGenJava_DIR}/TableSplit.java
-  )
-
-  add_custom_command(
-    OUTPUT    ${ThriftGenJava_SRCS}
-    COMMAND   thrift
-    ARGS      -r -gen java -out ${HYPERTABLE_BINARY_DIR}/java/hypertable-common/src/main/java
-              ${ThriftBroker_IDL_DIR}/Hql.thrift
-    DEPENDS   ${ThriftBroker_IDL_DIR}/Client.thrift
-              ${ThriftBroker_IDL_DIR}/Hql.thrift
-    COMMENT   "thrift2java"
-  )
-endif ()
-
-
-if (HDFS_DIST MATCHES "^apache")
-
-	add_custom_target(HypertableHadoop ALL mvn -f java/pom.xml -Dmaven.test.skip=true -P ${HDFS_DIST} package
-            DEPENDS ${ThriftGenJava_SRCS})
-
- 
-elseif (HDFS_DIST MATCHES "cdh")    
-
-	if (HDFS_VERSION MATCHES "^0.2")
-		set(CDH3_VERSION "0.20.2-cdh3u5")
-
-		add_custom_target(HypertableHadoop ALL mvn -f java/pom.xml -Dmaven.test.skip=true -P ${HDFS_DIST}3 package
-                  DEPENDS ${ThriftGenJava_SRCS})
-
-	elseif (HDFS_VERSION MATCHES "^2.")
-		set(CDH4_VERSION "2.0.0-cdh4.2.1")
-
-		# runtime-dependencies/cdh4/pom.xml
-		configure_file(${HYPERTABLE_SOURCE_DIR}/java/runtime-dependencies/cdh4/pom.xml.in
-			${HYPERTABLE_BINARY_DIR}/java/runtime-dependencies/cdh4/pom.xml @ONLY				  
-                  DEPENDS RuntimeDependencies)
-			
-
-	endif ()
-endif ()
-
-add_custom_target(CleanBuild0 ALL rm -rf ${HYPERTABLE_BINARY_DIR}/java/hypertable-common/target/classes
-                  COMMAND rm -rf ${HYPERTABLE_BINARY_DIR}/java/hypertable-examples/target/classes
-                  DEPENDS HypertableHadoop)
-
-add_custom_target(RuntimeDependencies ALL mvn -f java/runtime-dependencies/pom.xml -Dmaven.test.skip=true package
-                  DEPENDS HypertableHadoop)
+		configure_file(${HYPERTABLE_JAVA_SOURCE_DIR}/runtime-dependencies/cdh4/pom.xml.in
+			${HYPERTABLE_JAVA_BINARY_DIR}/runtime-dependencies/cdh4/pom.xml @ONLY)
 				  
-add_custom_target(java)
-add_dependencies(java RuntimeDependencies)
+		configure_file(${HYPERTABLE_JAVA_SOURCE_DIR}/hypertable-cdh3/pom.xml.in
+			${HYPERTABLE_JAVA_BINARY_DIR}/hypertable-cdh3/pom.xml @ONLY)
 
+		set(HADOOP_POM_VER "${HDFS_DIST}4")
+	
+	endif ()
+endif ()
+if (HADOOP_POM_VER)
+	add_custom_target(java ALL mvn -f pom.xml -Dmaven.test.skip=true -P ${HADOOP_POM_VER} package)
+else ()
+	add_custom_target(java ALL mvn -f pom.xml -Dmaven.test.skip=true package)
+endif ()
 
+if (Thrift_FOUND)
+	add_dependencies(java ThriftGenJava)
+endif ()
 
-
-
+# add_custom_target(CleanJavaBuild ALL rm -rf ${HYPERTABLE_JAVA_BINARY_DIR}/
+#				  COMMAND rm -rf ${HYPERTABLE_JAVA_BINARY_DIR}/)
 
 # Common jars
-install(FILES ${MAVEN_REPOSITORY}/org/apache/thrift/libthrift/${Thrift_VERSION}/libthrift-${Thrift_VERSION}.jar
-              DESTINATION lib/java/common)
 install(FILES ${MAVEN_REPOSITORY}/commons-cli/commons-cli/1.2/commons-cli-1.2.jar
               DESTINATION lib/java/common)
 install(FILES ${MAVEN_REPOSITORY}/commons-collections/commons-collections/3.2.1/commons-collections-3.2.1.jar
@@ -213,9 +137,9 @@ if (HDFS_DIST MATCHES "^apache")
 		# Apache Hadoop 1 jars
 		install(FILES ${MAVEN_REPOSITORY}/org/apache/hadoop/hadoop-core/${HDFS_VERSION}/hadoop-core-${HDFS_VERSION}.jar
               DESTINATION lib/java/apache1)
-		install(FILES ${HYPERTABLE_BINARY_DIR}/java/hypertable/target/hypertable-${VERSION}-apache1.jar
+		install(FILES ${HYPERTABLE_JAVA_BINARY_DIR}/hypertable/target/hypertable-${VERSION}-apache1.jar
               DESTINATION lib/java/apache1)
-		install(FILES ${HYPERTABLE_BINARY_DIR}/java/hypertable-examples/target/hypertable-examples-${VERSION}-apache1.jar
+		install(FILES ${HYPERTABLE_JAVA_BINARY_DIR}/hypertable-examples/target/hypertable-examples-${VERSION}-apache1.jar
               DESTINATION lib/java/apache1)
 
 	elseif (HDFS_VERSION MATCHES "^2.")
@@ -233,9 +157,9 @@ if (HDFS_DIST MATCHES "^apache")
               DESTINATION lib/java/apache2)
 		install(FILES ${MAVEN_REPOSITORY}/org/apache/hadoop/hadoop-mapreduce-client-core/${HDFS_VERSION}/hadoop-mapreduce-client-core-${HDFS_VERSION}.jar
               DESTINATION lib/java/apache2)
-		install(FILES ${HYPERTABLE_BINARY_DIR}/java/hypertable/target/hypertable-${VERSION}-apache2.jar
+		install(FILES ${HYPERTABLE_JAVA_BINARY_DIR}/hypertable/target/hypertable-${VERSION}-apache2.jar
               DESTINATION lib/java/apache2)
-		install(FILES ${HYPERTABLE_BINARY_DIR}/java/hypertable-examples/target/hypertable-examples-${VERSION}-apache2.jar
+		install(FILES ${HYPERTABLE_JAVA_BINARY_DIR}/hypertable-examples/target/hypertable-examples-${VERSION}-apache2.jar
               DESTINATION lib/java/apache2)
 	endif ()
  
@@ -248,9 +172,9 @@ elseif (HDFS_DIST MATCHES "cdh")
 		# CDH3 jars
 		install(FILES ${MAVEN_REPOSITORY}/org/apache/hadoop/hadoop-core/${CDH3_VERSION}/hadoop-core-${CDH3_VERSION}.jar
               DESTINATION lib/java/cdh3)
-		install(FILES ${HYPERTABLE_BINARY_DIR}/java/hypertable/target/hypertable-${VERSION}-cdh3.jar
+		install(FILES ${HYPERTABLE_JAVA_BINARY_DIR}/hypertable/target/hypertable-${VERSION}-cdh3.jar
               DESTINATION lib/java/cdh3)
-		install(FILES ${HYPERTABLE_BINARY_DIR}/java/hypertable-examples/target/hypertable-examples-${VERSION}-cdh3.jar
+		install(FILES ${HYPERTABLE_JAVA_BINARY_DIR}/hypertable-examples/target/hypertable-examples-${VERSION}-cdh3.jar
               DESTINATION lib/java/cdh3)
 		install(FILES ${MAVEN_REPOSITORY}/org/apache/hadoop/thirdparty/guava/guava/r09-jarjar/guava-r09-jarjar.jar
               DESTINATION lib/java/cdh3)

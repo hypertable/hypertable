@@ -13,9 +13,19 @@ add_subdirectory(cc/FsBroker/local)
 add_subdirectory(py/ganglia)
 add_subdirectory(rb/Monitoring)
 
+if (LANGS OR LANG_PY2 OR LANG_PY3 OR LANG_PYPY2 OR LANG_PYPY3)
+  if (PYTHONTHRIFT_FOUND AND (PYTHON2_FOUND OR PYTHON3_FOUND OR PYPY2_FOUND OR PYPY3_FOUND))
+    add_subdirectory(cc/HyperPython)
+  endif ()
+endif ()
+
+# THRIFT CLIENTS
 if (Thrift_FOUND)
   add_subdirectory(cc/ThriftBroker)
   
+  if (LANGS OR LANG_JAVA OR Hdfs_FOUND)
+    add_subdirectory(java/ThriftClient)
+  endif ()
   if (LANGS OR LANG_JS)
     add_subdirectory(js)
   endif ()
@@ -33,12 +43,8 @@ if (Thrift_FOUND)
   endif ()
 endif ()
 
-if (LANGS OR LANG_PY2 OR LANG_PY3 OR LANG_PYPY2 OR LANG_PYPY3)
-  if (PYTHONTHRIFT_FOUND AND (PYTHON2_FOUND OR PYTHON3_FOUND OR PYPY2_FOUND OR PYPY3_FOUND))
-    add_subdirectory(cc/HyperPython)
-  endif ()
-endif ()
 
+# DISTRIBUTES FILE SYSTEMS
 if (Ceph_FOUND)
    add_subdirectory(cc/FsBroker/ceph)
 endif ()
@@ -50,3 +56,6 @@ endif ()
 if (Qfs_FOUND)
    add_subdirectory(cc/FsBroker/qfs)
 endif ()
+
+add_subdirectory(java)
+

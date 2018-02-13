@@ -33,32 +33,24 @@ find_path(Ceph_INCLUDE ceph/libceph.h
   /usr/local/include
   $ENV{HOME}/ceph/src/client
 )
-mark_as_advanced(Ceph_INCLUDE)
 
 find_library(Ceph_LIB
 	NAMES ceph
 	PATHS /usr/local/lib
 	      $ENV{HOME}/ceph/src/.libs)
-mark_as_advanced(Ceph_LIB)
 
-find_library(SSL_LIB NAMES ssl
-	     PATHS /usr/local/lib)
-mark_as_advanced(SSL_LIB)
-
-if (Ceph_INCLUDE AND Ceph_LIB AND SSL_LIB)
+if (Ceph_INCLUDE AND Ceph_LIB AND Libssl_LIBRARIES)
+  mark_as_advanced(Ceph_INCLUDE)
+  mark_as_advanced(Ceph_LIB)
   set(Ceph_FOUND TRUE)
-  set(Ceph_LIBRARIES ${Ceph_LIB} ${SSL_LIB})
+  set(Ceph_LIBRARIES ${Ceph_LIB} ${Libssl_LIBRARIES})
+   message(STATUS "Found ceph: ${Ceph_LIBRARIES}")
 else ()
+   if (FSBROKER_CEPH)
+      message(FATAL_ERROR "Could NOT find ceph libraries")
+   endif ()
    set(Ceph_FOUND FALSE)
    set(Ceph_LIBRARIES)
 endif ()
 
-if (Ceph_FOUND)
-   message(STATUS "Found ceph: ${Ceph_LIBRARIES}")
-else ()
-   message(STATUS "Did not find ceph libraries")
-   if (Ceph_FIND_REQUIRED)
-      message(FATAL_ERROR "Could NOT find ceph libraries (libceph & libssl)")
-   endif ()
-endif ()
 

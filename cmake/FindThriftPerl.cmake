@@ -32,8 +32,13 @@ endif ()
 
 if (PERLTHRIFT_FOUND)
   if (NOT PERLTHRIFT_FIND_QUIETLY)
-    message(STATUS "Found thrift for perl")
+    message(STATUS "Found thrift for perl, Copying Perl files into installation")
   endif ()
+  
+  file(GLOB PERLFILES ${THRIFT_SOURCE_DIR}/lib/perl/lib/*.pm)
+  install(FILES ${PERLFILES} DESTINATION lib/perl)
+  install(DIRECTORY ${THRIFT_SOURCE_DIR}/lib/perl/lib/Thrift
+          DESTINATION lib/perl USE_SOURCE_PERMISSIONS)
 else ()
     message(STATUS "Thrift for perl not found. "
                  "ThriftBroker support for perl will be disabled")

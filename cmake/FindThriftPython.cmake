@@ -33,9 +33,12 @@ else ()
 endif ()
 
 if (PYTHONTHRIFT_FOUND)
+
   if (NOT PYTHONTHRIFT_FIND_QUIETLY)
-    message(STATUS "Found thrift for python")
+    message(STATUS "Found thrift for python, Copying Python files into installation")
   endif ()
+  install(DIRECTORY ${THRIFT_SOURCE_DIR}/lib/py/src/
+          DESTINATION lib/py/thrift USE_SOURCE_PERMISSIONS)
 else ()
   message(STATUS "Thrift for python not found. "
                  "ThriftBroker support for python will be disabled")

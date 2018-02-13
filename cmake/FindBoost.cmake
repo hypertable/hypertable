@@ -206,11 +206,6 @@ if (Boost_INCLUDE_DIR)
     message(STATUS "Boost program options lib: ${BOOST_PROGRAM_OPTIONS_LIB}")
     message(STATUS "Boost filesystem lib: ${BOOST_FILESYSTEM_LIB}")
     message(STATUS "Boost iostreams lib: ${BOOST_IOSTREAMS_LIB}")
-	
-   if (LANGS OR LANG_PY2 OR LANG_PY3)
-		message(STATUS "Boost python lib: ${BOOST_PYTHON_LIB}")
-    endif()
-
     message(STATUS "Boost chrono lib: ${BOOST_CHRONO_LIB}")
 
     if(Boost_HAS_SYSTEM_LIB)

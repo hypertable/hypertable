@@ -37,14 +37,8 @@ static addfn afn = &Hypertable::SerializedCellsWriter::add;
 static getlenfn lenfn = &Hypertable::SerializedCellsWriter::get_buffer_length;
 
 static PyObject *convert(const SerializedCellsWriter &scw) {
-	boost::python::object obj;
-#if defined(PyMemoryView_FromMemory)
-	obj(handle<>(PyMemoryView_FromMemory(
-				(void *)scw.get_buffer(), scw.get_buffer_length())));
-#elif defined(PyBuffer_FromMemory)
-	obj(handle<>(PyBuffer_FromMemory(
-				(void *)scw.get_buffer(), scw.get_buffer_length())));
-#endif
+  boost::python::object obj(handle<>(PyBuffer_FromMemory(
+                      (void *)scw.get_buffer(), scw.get_buffer_length())));
   return boost::python::incref(obj.ptr());
 }
 

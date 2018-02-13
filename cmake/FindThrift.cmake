@@ -110,3 +110,28 @@ mark_as_advanced(
   Thrift_LIB_DEPENDENCIES
   Thrift_INCLUDE_DIR
   )
+  
+  
+include_directories(${LibEvent_INCLUDE_DIR} ${Thrift_INCLUDE_DIR})
+SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DHT_WITH_THRIFT")
+SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DHT_WITH_THRIFT")
+set(ThriftBroker_IDL_DIR ${HYPERTABLE_SOURCE_DIR}/src/cc/ThriftBroker)
+
+# Copy Thrift files
+if (THRIFT_SOURCE_DIR)
+ if (LANGS OR LANG_PHP)
+	find_package(ThriftPHP5)
+ endif ()
+ if (LANGS OR LANG_PL)
+  find_package(ThriftPerl)
+ endif ()
+ if (LANGS OR LANG_PY2 OR LANG_PY3 OR LANG_PYPY2 OR LANG_PYPY3)
+  find_package(ThriftPython)
+ endif ()
+ if (LANGS OR LANG_RB)
+  find_package(ThriftRuby)
+ endif ()
+endif ()
+
+# Copy C++ Thrift files
+install(DIRECTORY ${Thrift_INCLUDE_DIR} DESTINATION include USE_SOURCE_PERMISSIONS)

@@ -31,8 +31,13 @@ endif ()
 
 if (PHPTHRIFT_FOUND)
   if (NOT PHPTHRIFT_FIND_QUIETLY)
-    message(STATUS "Found thrift for php: ${THRIFT_SOURCE_DIR}/lib/php/src")
+    message(STATUS "Found thrift for PHP, Copying PHP files into installation")
   endif ()
+  
+  file(GLOB PHPFILES ${HYPERTABLE_SOURCE_DIR}/src/php/*.php)
+  install(FILES ${PHPFILES} DESTINATION lib/php)
+  install(DIRECTORY ${THRIFT_SOURCE_DIR}/lib/php/lib/Thrift
+		  DESTINATION lib/php USE_SOURCE_PERMISSIONS)
 else ()
   message(STATUS "PHP Thrift files not found. "
                  "ThriftBroker support for php will be disabled")

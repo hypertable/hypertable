@@ -45,22 +45,17 @@ FIND_MAPR_LIB(jvm)
 if (Mapr_INCLUDE_DIR AND MapRClient_LIB AND jvm_LIB)
   set(Mapr_FOUND TRUE)
   set(Mapr_LIBRARIES ${MapRClient_LIB} ${jvm_LIB})
+  
+  mark_as_advanced(
+    Mapr_INCLUDE_DIR
+  )
+  if (NOT Mapr_FIND_QUIETLY)
+     message(STATUS "Found MAPR: ${Mapr_LIBRARIES}")
+  endif ()
 else ()
+   if (FSBROKER_MAPR)
+      message(FATAL_ERROR "Could NOT find MAPR libraries")
+   endif ()
    set(Mapr_FOUND FALSE)
    set(Mapr_LIBRARIES)
 endif ()
-
-if (Mapr_FOUND)
-   message(STATUS "Found MAPR: ${Mapr_LIBRARIES}")
-   if (NOT Mapr_FIND_QUIETLY)
-      message(STATUS "Found MAPR: ${Mapr_LIBRARIES}")
-   endif ()
-else ()
-   if (Mapr_FIND_REQUIRED)
-      message(FATAL_ERROR "Could NOT find MAPR libraries")
-   endif ()
-endif ()
-
-mark_as_advanced(
-  Mapr_INCLUDE_DIR
-)

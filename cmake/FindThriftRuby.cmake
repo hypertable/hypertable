@@ -32,8 +32,13 @@ endif ()
 
 if (RUBYTHRIFT_FOUND)
   if (NOT RUBYTHRIFT_FIND_QUIETLY)
-    message(STATUS "Found thrift for ruby")
+    message(STATUS "Found thrift for ruby, Copying Ruby files into installation")
   endif ()
+  
+  file(GLOB RUBYFILES ${THRIFT_SOURCE_DIR}/lib/rb/lib/*.rb)
+  install(FILES ${RUBYFILES} DESTINATION lib/rb)
+  install(DIRECTORY ${THRIFT_SOURCE_DIR}/lib/rb/lib/thrift
+          DESTINATION lib/rb USE_SOURCE_PERMISSIONS)
 else ()
   message(STATUS "Thrift for ruby not found. "
                  "ThriftBroker support for ruby will be disabled")
