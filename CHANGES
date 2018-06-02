@@ -1,3 +1,24 @@
+Version 0.9.8.13:
+(2018-06-01)
+
+        Updated for Java 10.0.1, boost 1.66.0, maven 3.5.3
+	adjustments toward gcc 8.1.0 (declaration issues with apache::thrift::)
+	std::map require U__STRICT_ANSI__ flag (gcc 8.1.0) PageArenaAllocator doesn't need mapped_type 
+	fixes to warnings for memset with non-trivial type
+	ThriftClient with Zlib transport
+	new option for configuration file ThriftBroker.Transport=framed(default)/zlib
+	added --thrift-transport=framed(default)/zlib option for ht-start-*service.sh
+	added Hypertable::Thrift::Transport enum for ZLIB, FRAMED 
+	added overloader for Hypertable::Thrift::Client(Transport, std::string, int, int)
+	supporting tests for ThriftClient over zlib transport
+	libSigar, still required by hadoop/java, is now part of ThirdParty and included in libHyperThirdParty.so/a  
+	cmake new methods for more optimal build linking CommonUtil.cmake
+	new cmake options for optimizations -DHT_O_LEVEL=[1-6]
+	new build option linked with static libraries, except libc, libstdc++, libgcc_s and libboost all supported
+ 	cmake tests can be performed in dual builds on the different linking methods
+	fix for cronolog current log sym-relinking
+	
+	
 Version 0.9.8.12:
 (2018-02-26)
 
@@ -24,7 +45,7 @@ Version 0.9.8.12:
 	Steadiness to some tests and adjustments
 	Fixed RRDtool execution arg to --step=%u
 	RangeServer "Context" changed to "RangeServerContext"
-	Fixed ht_cluster SSH con steadiness and optional ../conf/ht_ssh_config 
+	Fixed ht_cluster SSH conn steadiness and optional ../conf/ht_ssh_config 
 	
 	
 Version 0.9.8.11:
