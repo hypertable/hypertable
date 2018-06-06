@@ -48,8 +48,13 @@ void test_async(Thrift::Client *client, std::ostream &out);
 void test_error(Thrift::Client *client, std::ostream &out);
 void test_multiple_open(Thrift::Client *client, std::ostream &out);
 
-int main() {
-  Thrift::Client *client = new Thrift::Client("localhost", 15867);
+int main(int argc, char** argv) {
+  Thrift::Transport ttp = Thrift::Transport::FRAMED;
+  if (argc > 1) {
+	if (strcmp(argv[1], "zlib") == 0)
+		ttp = Thrift::Transport::ZLIB;
+  }
+  Thrift::Client *client = new Thrift::Client(ttp, "localhost", 15867);
   run(client);
 }
 

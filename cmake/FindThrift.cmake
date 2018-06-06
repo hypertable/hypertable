@@ -18,34 +18,32 @@
 
 # - Find Thrift (a cross platform RPC lib/tool)
 # This module defines
-#  Thrift_VERSION, version string of ant if found
-#  Thrift_INCLUDE_DIR, where to find Thrift headers
-#  Thrift_LIBS, Thrift libraries
-#  Thrift_FOUND, If false, do not try to use ant
+#  THRIFT_VERSION, version string of ant if found
+#  THRIFT_INCLUDE_DIR, where to find Thrift headers
+#  THRIFT_LIBRARIES, Thrift libraries
+#  THRIFT_FOUND, If false, do not try to use ant
 
-exec_program(env ARGS thrift -version OUTPUT_VARIABLE Thrift_VERSION
+exec_program(env ARGS thrift -version OUTPUT_VARIABLE THRIFT_VERSION
              RETURN_VALUE Thrift_RETURN)
-
-find_path(Thrift_INCLUDE_DIR Thrift.h NO_DEFAULT_PATH PATHS
-  ${HT_DEPENDENCY_INCLUDE_DIR}/thrift
-  /usr/local/include/thrift
-  /opt/local/include/thrift
-  /usr/include/thrift
+			 
+HT_FASTLIB_SET(
+	NAME "THRIFT" 
+	REQUIRED TRUE 
+	LIB_PATHS /usr/local/lib/thrift
+	INC_PATHS ${HT_DEPENDENCY_INCLUDE_DIR}/thrift
+			  /usr/local/include/thrift
+			  /usr/include/thrift
+			  /opt/local/include/thrift
+	STATIC libthrift.a libthriftnb.a  libthriftz.a 
+	SHARED thrift thriftnb thriftz
+	INCLUDE Thrift.h
 )
 
-set(Thrift_LIB_PATHS ${HT_DEPENDENCY_LIB_DIR} /usr/local/lib /opt/local/lib /usr/lib64)
 
-find_library(Thrift_LIB NAMES thrift NO_DEFAULT_PATH PATHS ${Thrift_LIB_PATHS})
-find_library(Thrift_NB_LIB NAMES thriftnb PATHS ${Thrift_LIB_PATHS})
-
-if (Thrift_VERSION MATCHES "^Thrift version" AND LibEvent_LIBS
-    AND LibEvent_INCLUDE_DIR AND Thrift_LIB AND Thrift_NB_LIB
-    AND Thrift_INCLUDE_DIR)
-  set(Thrift_FOUND TRUE)
-  set(Thrift_LIBS ${Thrift_LIB} ${Thrift_NB_LIB})
+if (THRIFT_VERSION MATCHES "^Thrift version" AND EVENT_LIBRARIES AND THRIFT_LIBRARIES)
 
   exec_program(${CMAKE_SOURCE_DIR}/bin/src-utils/ldd.sh
-               ARGS ${Thrift_LIB}
+               ARGS ${THRIFT_LIBRARIES}
                OUTPUT_VARIABLE LDD_OUT
                RETURN_VALUE LDD_RETURN)
 
@@ -70,39 +68,56 @@ if (Thrift_VERSION MATCHES "^Thrift version" AND LibEvent_LIBS
     set(Thrift_LIB_DEPENDENCIES "${Thrift_LIB_DEPENDENCIES} ${CMAKE_MATCH_1}")
   endif ()
 
-  exec_program(${CMAKE_SOURCE_DIR}/bin/src-utils/ldd.sh
-               ARGS ${Thrift_NB_LIB}
-               OUTPUT_VARIABLE LDD_OUT
-               RETURN_VALUE LDD_RETURN)
-
-  if (LDD_RETURN STREQUAL "0")
-    string(REGEX MATCH "[ \t](/[^ ]+/libssl\\.[^ \n]+)" dummy ${LDD_OUT})
-    set(Thrift_LIB_DEPENDENCIES "${Thrift_LIB_DEPENDENCIES} ${CMAKE_MATCH_1}")
-    string(REGEX MATCH "[ \t](/[^ ]+/libcrypto\\.[^ \n]+)" dummy ${LDD_OUT})
-    set(Thrift_LIB_DEPENDENCIES "${Thrift_LIB_DEPENDENCIES} ${CMAKE_MATCH_1}")
-  endif ()
-
 else ()
-  set(Thrift_FOUND FALSE)
-  if (NOT LibEvent_LIBS OR NOT LibEvent_INCLUDE_DIR)
-    message(STATUS "libevent is required for thrift broker support")
+  set(THRIFT_FOUND FALSE)
+  if (NOT EVENT_LIBRARIES)
+    message(STATUS "    libevent is required for thrift broker support")
   endif ()
 endif ()
 
-if (Thrift_FOUND)
+if (THRIFT_FOUND)
   if (NOT Thrift_FIND_QUIETLY)
-    message(STATUS "Found thrift: ${Thrift_LIBS}")
-    message(STATUS "    compiler: ${Thrift_VERSION}")
+    message("       compiler: ${THRIFT_VERSION}")
+  endif ()
+  string(REPLACE "\n" " " THRIFT_VERSION ${THRIFT_VERSION})
+  string(REPLACE " " ";" THRIFT_VERSION ${THRIFT_VERSION})
+  list(GET THRIFT_VERSION -1 THRIFT_VERSION)
+  
+  SET (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DHT_WITH_THRIFT")
+  SET (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DHT_WITH_THRIFT")
+  set(ThriftBroker_IDL_DIR ${HYPERTABLE_SOURCE_DIR}/src/cc/ThriftBroker)
+
+  
+  if(Thrift_LIB_DEPENDENCIES)
+	# Install Thrift dependencies
+	string(REPLACE " " ";" LIB_DEPENDENCIES_LIST ${Thrift_LIB_DEPENDENCIES})
+	foreach(dep ${LIB_DEPENDENCIES_LIST})
+		HT_INSTALL_LIBS(lib ${dep})
+	endforeach ()
   endif ()
 else ()
   message(STATUS "Thrift compiler/libraries NOT found. "
           "Thrift support will be disabled (${Thrift_RETURN}, "
-          "${Thrift_INCLUDE_DIR}, ${Thrift_LIB}, ${Thrift_NB_LIB})")
+          "${THRIFT_INCLUDE_DIR}, ${THRIFT_LIBRARIES})")
 endif ()
 
-mark_as_advanced(
-  Thrift_LIB
-  Thrift_NB_LIB
-  Thrift_LIB_DEPENDENCIES
-  Thrift_INCLUDE_DIR
-  )
+  
+
+# Copy Thrift files
+if (THRIFT_SOURCE_DIR)
+ if (LANGS OR LANG_PHP)
+	find_package(ThriftPHP5)
+ endif ()
+ if (LANGS OR LANG_PL)
+  find_package(ThriftPerl)
+ endif ()
+ if (LANGS OR LANG_PY2 OR LANG_PY3 OR LANG_PYPY2 OR LANG_PYPY3)
+  find_package(ThriftPython)
+ endif ()
+ if (LANGS OR LANG_RB)
+  find_package(ThriftRuby)
+ endif ()
+endif ()
+
+# Copy C++ Thrift files
+install(DIRECTORY ${THRIFT_INCLUDE_DIR} DESTINATION include USE_SOURCE_PERMISSIONS)

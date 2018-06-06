@@ -566,7 +566,7 @@ Range::get_maintenance_data(ByteArena &arena, time_t now,
   int64_t size=0;
   int64_t starting_maintenance_generation;
 
-  memset(mdata, 0, sizeof(MaintenanceData));
+  memset(reinterpret_cast<void*>(mdata), 0, sizeof(MaintenanceData));
 
   {
     lock_guard<mutex> lock(m_schema_mutex);

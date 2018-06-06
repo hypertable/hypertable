@@ -79,9 +79,12 @@ StatusManager.cc
 Utility.cc
 )
 
-add_library(HyperFsBroker ${FsBroker_SRCS})
+# lib HyperFsBroker
+HT_ADD_LIBS(
+	TARGET HyperFsBroker 
+	SRCS ${FsBroker_SRCS}
+	TARGETS HyperCommon HyperComm)
 add_dependencies(HyperFsBroker HyperCommon HyperComm)
-target_link_libraries(HyperFsBroker HyperCommon HyperComm)
 
 if (NOT HT_COMPONENT_INSTALL)
   file(GLOB HEADERS *.h)

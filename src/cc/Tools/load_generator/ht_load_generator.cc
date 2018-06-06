@@ -102,6 +102,7 @@ namespace {
          "Generate load via Thrift interface instead of C++ client library")
         ("version", "Show version information and exit")
         ("overwrite-delete-flag", str(), "Force delete flag (DELETE_ROW, DELETE_CELL, DELETE_COLUMN_FAMILY)")
+		("thrift-transport", str()->default_value("framed"), "ThriftBroker.Transport")
         ;
       alias("delete-percentage", "DataGenerator.DeletePercentage");
       alias("max-bytes", "DataGenerator.MaxBytes");
@@ -144,7 +145,7 @@ void parse_command_line(int argc, char **argv, PropertiesPtr &props);
 
 int main(int argc, char **argv) {
   String table, load_type, spec_file, sample_fname;
-  PropertiesPtr generator_props = make_shared<Properties>();
+  PropertiesPtr generator_props = std::make_shared<Properties>();
   bool flush, to_stdout, thrift;
   ::uint64_t flush_interval=0;
   ::uint64_t shared_mutator_flush_interval=0;
@@ -370,9 +371,9 @@ generate_update_load(PropertiesPtr &props, String &tablename, bool flush,
     boost::progress_display progress_meter(key_limit ? dg.get_max_keys() : adjusted_bytes);
 
     if (config_file != "")
-      load_client_ptr = make_shared<LoadClient>(config_file, thrift);
+      load_client_ptr = std::make_shared<LoadClient>(config_file, thrift);
     else
-      load_client_ptr = make_shared<LoadClient>(thrift);
+      load_client_ptr = std::make_shared<LoadClient>(thrift);
 
     load_client_ptr->create_mutator(tablename, mutator_flags,
                                     shared_mutator_flush_interval);
@@ -545,7 +546,7 @@ generate_update_load_parallel(PropertiesPtr &props, String &tablename,
     uint32_t adjusted_bytes = 0;
     LoadRec *lrec;
 
-    client = make_shared<Hypertable::Client>(config_file);
+    client = std::make_shared<Hypertable::Client>(config_file);
     ht_namespace = client->open_namespace("/");
     table = ht_namespace->open_table(tablename);
 
@@ -719,9 +720,9 @@ void generate_query_load(PropertiesPtr &props, String &tablename,
     uint64_t last_bytes = 0;
 
     if (config_file != "")
-      load_client_ptr = make_shared<LoadClient>(config_file, thrift);
+      load_client_ptr = std::make_shared<LoadClient>(config_file, thrift);
     else
-      load_client_ptr = make_shared<LoadClient>(thrift);
+      load_client_ptr = std::make_shared<LoadClient>(thrift);
 
     for (DataGenerator::iterator iter = dg.begin(); iter != dg.end(); iter++) {
 
@@ -816,7 +817,7 @@ void generate_query_load_parallel(PropertiesPtr &props, String &tablename,
   boost::progress_display progress(max_keys * parallel);
 
   String config_file = get_str("config");
-  ClientPtr client = make_shared<Hypertable::Client>(config_file);
+  ClientPtr client = std::make_shared<Hypertable::Client>(config_file);
   NamespacePtr ht_namespace = client->open_namespace("/");
   TablePtr table = ht_namespace->open_table(tablename);
 

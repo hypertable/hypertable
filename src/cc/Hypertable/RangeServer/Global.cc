@@ -42,6 +42,7 @@ namespace Hypertable {
   LoadStatisticsPtr      Global::load_statistics;
   RangesPtr              Global::ranges;
   bool                   Global::verbose = false;
+  bool                   Global::auto_re_init_location = false;
   bool                   Global::row_size_unlimited = false;
   bool                   Global::ignore_cells_with_clock_skew = false;
   bool                   Global::range_initialization_complete = false;

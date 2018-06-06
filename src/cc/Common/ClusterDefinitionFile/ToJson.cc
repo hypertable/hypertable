@@ -120,7 +120,7 @@ namespace {
       vector<string> nodes = HostSpecification(m_uber_hostspec);
       m_nodes.reserve(nodes.size());
       for (auto & node : nodes) {
-        m_nodes.push_back(make_unique<Node>(node));
+        m_nodes.push_back(std::make_unique<Node>(node));
         node_map[node] = m_nodes.back().get();
       }
 

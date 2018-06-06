@@ -95,7 +95,7 @@ namespace Hypertable {
           HT_FATAL("Source file not specified for word stream");
         if (size == -1)
           HT_FATAL("Size not specified for word stream");
-        m_word_stream = make_shared<WordStream>(s, seed, size, order == RANDOM);
+        m_word_stream = std::make_shared<WordStream>(s, seed, size, order == RANDOM);
       }
       else {
 

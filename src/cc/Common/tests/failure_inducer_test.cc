@@ -34,7 +34,7 @@ using namespace std;
 namespace {
 
 const char *required_files[] = {
-  "./failure_inducer_test",
+  //"./failure_inducer_test",
   "./failure_inducer_test.golden",
   0
 };

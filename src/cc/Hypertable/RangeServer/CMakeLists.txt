@@ -148,12 +148,15 @@ if (USE_TCMALLOC)
 endif ()
 
 # RangeServer Lib
-add_library(HyperRanger ${RangeServer_SRCS})
-target_link_libraries(HyperRanger m HyperFsBroker Hypertable ${RE2_LIBRARIES})
+HT_ADD_LIBS(
+	TARGET HyperRanger 
+	SRCS ${RangeServer_SRCS}
+	TARGETS HyperFsBroker Hypertable
+	DEPENDENCIES m)
 
 # htRangeServer
 add_executable(htRangeServer main.cc)
-target_link_libraries(htRangeServer HyperRanger ${MALLOC_LIBRARY})
+target_link_libraries(htRangeServer HyperRanger)
 
 # ht_csdump
 add_executable(ht_csdump csdump.cc)

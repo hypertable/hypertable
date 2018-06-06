@@ -125,6 +125,7 @@ endmacro(FIND_BOOST_PARENT root includedir)
 
 macro(FIND_BOOST_LIBRARY lib libname libroot required)
   set(${lib}_NAMES
+    # "libboost_${libname}.a"
     "boost_${libname}"
     "boost_${libname}-mt"
     "boost_${libname}-gcc45-mt"
@@ -149,6 +150,7 @@ macro(FIND_BOOST_LIBRARY lib libname libroot required)
 
   mark_as_advanced(${lib})
 endmacro()
+
 
 # Assume we didn't find it.
 set(Boost_FOUND 0)
@@ -190,7 +192,7 @@ if (Boost_INCLUDE_DIR)
                      ${Boost_PARENT} true)
   FIND_BOOST_LIBRARY(BOOST_IOSTREAMS_LIB iostreams ${Boost_PARENT} true)
   FIND_BOOST_LIBRARY(BOOST_FILESYSTEM_LIB filesystem ${Boost_PARENT} true)
-  FIND_BOOST_LIBRARY(BOOST_PYTHON_LIB python ${Boost_PARENT} false)
+  
   FIND_BOOST_LIBRARY(BOOST_CHRONO_LIB chrono ${Boost_PARENT} false)
 
   if(Boost_HAS_SYSTEM_LIB)
@@ -206,7 +208,6 @@ if (Boost_INCLUDE_DIR)
     message(STATUS "Boost program options lib: ${BOOST_PROGRAM_OPTIONS_LIB}")
     message(STATUS "Boost filesystem lib: ${BOOST_FILESYSTEM_LIB}")
     message(STATUS "Boost iostreams lib: ${BOOST_IOSTREAMS_LIB}")
-    message(STATUS "Boost python lib: ${BOOST_PYTHON_LIB}")
     message(STATUS "Boost chrono lib: ${BOOST_CHRONO_LIB}")
 
     if(Boost_HAS_SYSTEM_LIB)
@@ -215,21 +216,35 @@ if (Boost_INCLUDE_DIR)
 
     message(STATUS "Boost lib dir: ${Boost_LIBRARY_DIR}")
   endif ()
-
+  
   # BOOST_LIBS is our default boost libs.
   set(BOOST_LIBS ${BOOST_IOSTREAMS_LIB} ${BOOST_PROGRAM_OPTIONS_LIB}
       ${BOOST_FILESYSTEM_LIB} ${BOOST_THREAD_LIB})
-
+	  
+#  set(libs   libiconv libicuuc libicudata libicui18n libicuio libicutu libicutest)
+#  foreach(lib ${libs})
+#	find_library(add_${lib}LIB NO_DEFAULT_PATH
+#		NAMES ${lib}.a
+#		PATHS /usr/local/lib /opt/local/lib /usr/lib /lib
+#	)
+#	set(BOOST_LIBS ${BOOST_LIBS} ${add_${lib}LIB})
+#  endforeach()
+#  
+#  set(libs thread signals unit_test_framework log math_c99 iostreams wave atomic wserialization stacktrace_addr2line math_c99f serialization 
+#			locale math_c99l test_exec_monitor exception fiber stacktrace_basic prg_exec_monitor filesystem math_tr1l date_time coroutine 
+#			program_options math_tr1f system container regex chrono random log_setup stacktrace_noop math_tr1 timer type_erasure graph context )
+#  foreach(lib ${libs})
+#	FIND_BOOST_LIBRARY(add_${lib}LIB ${lib} ${Boost_PARENT} false)
+#	set(BOOST_LIBS ${BOOST_LIBS} ${add_${lib}LIB})
+#  endforeach()
+  
+  
   if(Boost_HAS_SYSTEM_LIB)
     set(BOOST_LIBS ${BOOST_LIBS} ${BOOST_SYSTEM_LIB} ${BOOST_SYSTEM_MT_LIB})
   endif()
 
   if (NOT ${BOOST_CHRONO_LIB} MATCHES "NOTFOUND$")
     set(BOOST_LIBS ${BOOST_LIBS} ${BOOST_CHRONO_LIB})
-  endif ()
-
-  if (PYTHON_FOUND AND NOT ${BOOST_PYTHON_LIB} MATCHES "NOTFOUND$")
-    set(BOOST_LIBS ${BOOST_LIBS} ${BOOST_PYTHON_LIB} ${PYTHON_LIBRARY})
   endif ()
 
   message(STATUS "Boost libs: ${BOOST_LIBS}")
@@ -252,8 +267,94 @@ if (NOT Boost_FOUND)
   elseif (NOT Boost_FIND_QUIETLY)
     message(STATUS "Required boost libraries not found")
   endif ()
+else ()
+	HT_INSTALL_LIBS(lib ${BOOST_LIBS})
 endif ()
 
 mark_as_advanced(
   Boost_INCLUDE_DIR
 )
+
+
+## IF HYPERPYTHON NOT DEPRECATED
+if(LANG_PY_HYPERPYTHON)
+if(LANGS OR LANG_PY2)
+	FIND_BOOST_LIBRARY(BOOST_PYTHON2_LIB python ${Boost_PARENT} false)
+	if (BOOST_PYTHON2_LIB)	
+		set(BOOST_PYTHON2_LIB ${BOOST_PYTHON2_LIB})
+		HT_INSTALL_LIBS(lib ${BOOST_PYTHON2_LIB})	
+	elseif (LANG_PY2)		
+		message(FATAL_ERROR "Language python2 require libboost_python(2)")
+	endif ()
+endif ()
+
+if(LANGS OR LANG_PY3)
+	FIND_BOOST_LIBRARY(BOOST_PYTHON3_LIB python3 ${Boost_PARENT} false)
+	if (BOOST_PYTHON3_LIB)	
+		set(BOOST_PYTHON3_LIB ${BOOST_PYTHON3_LIB})
+		HT_INSTALL_LIBS(lib ${BOOST_PYTHON3_LIB})
+	elseif (LANG_PY3)		
+		message(FATAL_ERROR "Language python3 require libboost_python3")
+	endif ()
+endif ()
+endif ()
+
+#set(BOOST_LIBS "")
+
+#if(Boost_HAS_SYSTEM_LIB)
+#HT_FASTLIB_SET(
+#	NAME "boost_system" 
+#	REQUIRED TRUE 
+#	LIB_PATHS ${BOOST_DIR_SEARCH}
+#	INC_PATHS ${Boost_INCLUDE_DIR}
+#	STATIC libboost_system.a
+#	SHARED boost_system
+#)
+#set(BOOST_LIBS ${BOOST_LIBS} ${boost_system_LIBRARIES})
+#endif()
+
+#HT_FASTLIB_SET(
+#	NAME "boost_filesystem" 
+#	REQUIRED TRUE 
+#	LIB_PATHS ${BOOST_DIR_SEARCH}
+#	STATIC libboost_filesystem.a
+#	SHARED boost_filesystem
+#)
+#set(BOOST_LIBS ${BOOST_LIBS} ${boost_filesystem_LIBRARIES})
+
+#HT_FASTLIB_SET(
+#	NAME "boost_iostreams" 
+#	REQUIRED TRUE 
+#	LIB_PATHS ${BOOST_DIR_SEARCH}
+#	STATIC libboost_iostreams.a
+#	SHARED boost_iostreams
+#)
+#set(BOOST_LIBS ${BOOST_LIBS} ${boost_iostreams_LIBRARIES})
+
+#HT_FASTLIB_SET(
+#	NAME "boost_program_options" 
+#	REQUIRED TRUE 
+#	LIB_PATHS ${BOOST_DIR_SEARCH}
+#	STATIC libboost_program_options.a
+#	SHARED boost_program_options
+#)
+#set(BOOST_LIBS ${BOOST_LIBS} ${boost_program_options_LIBRARIES})
+
+#HT_FASTLIB_SET(
+#	NAME "boost_thread" 
+#	REQUIRED TRUE 
+#	LIB_PATHS ${BOOST_DIR_SEARCH}
+#	STATIC libboost_thread.a
+#	SHARED boost_thread
+#)
+#set(BOOST_LIBS ${BOOST_LIBS} ${boost_thread_LIBRARIES})
+
+#HT_FASTLIB_SET(
+#	NAME "boost_chrono" 
+#	REQUIRED TRUE 
+#	LIB_PATHS ${BOOST_DIR_SEARCH}
+#	INC_PATHS ${Boost_INCLUDE_DIR}
+#	STATIC libboost_chrono.a
+#	SHARED boost_chrono
+#)
+#set(BOOST_LIBS ${BOOST_LIBS} ${boost_chrono_LIBRARIES})

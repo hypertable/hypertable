@@ -17,7 +17,6 @@
 #
 include_directories(${Ceph_INCLUDE})
 add_executable(htFsBrokerCeph main.cc CephBroker.cc)
-target_link_libraries(htFsBrokerCeph HyperFsBroker ${Ceph_LIBRARIES}
-                      ${MALLOC_LIBRARY})
+target_link_libraries(htFsBrokerCeph HyperFsBroker ${Ceph_LIBRARIES})
 
 install(TARGETS htFsBrokerCeph RUNTIME DESTINATION bin)

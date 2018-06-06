@@ -67,9 +67,9 @@ CellStoreScanner<IndexT>::CellStoreScanner(CellStorePtr &&cellstore, ScanContext
                           scan_ctx->revision);
 
     m_interval_scanners[m_interval_max++] =
-      make_unique<CellStoreScannerIntervalBlockIndex<IndexT>>(cellstore, index,
-                                                              start_key, end_key,
-                                                              scan_ctx);
+      std::make_unique<CellStoreScannerIntervalBlockIndex<IndexT>>(cellstore, index,
+                                                                   start_key, end_key,
+                                                                   scan_ctx);
 
     /**
      * Fetch COLUMN FAMILY deletes
@@ -87,9 +87,9 @@ CellStoreScanner<IndexT>::CellStoreScanner(CellStorePtr &&cellstore, ScanContext
                           "", TIMESTAMP_MAX, scan_ctx->revision);
 
     m_interval_scanners[m_interval_max++] =
-      make_unique<CellStoreScannerIntervalBlockIndex<IndexT>>(cellstore, index,
-                                                              start_key, end_key,
-                                                              scan_ctx);
+      std::make_unique<CellStoreScannerIntervalBlockIndex<IndexT>>(cellstore, index,
+                                                                   start_key, end_key,
+                                                                   scan_ctx);
 
     if (strcmp(scan_ctx->end_key.row, cellstore->get_end_row()) > 0)
       end_key.ptr = 0;
@@ -97,9 +97,9 @@ CellStoreScanner<IndexT>::CellStoreScanner(CellStorePtr &&cellstore, ScanContext
       end_key.ptr = scan_ctx->end_serkey.ptr;
 
     if (scan_ctx->single_row)
-      m_interval_scanners[m_interval_max++] = make_unique<CellStoreScannerIntervalBlockIndex<IndexT>>(cellstore, index, scan_ctx->start_serkey, end_key, scan_ctx);
+      m_interval_scanners[m_interval_max++] = std::make_unique<CellStoreScannerIntervalBlockIndex<IndexT>>(cellstore, index, scan_ctx->start_serkey, end_key, scan_ctx);
     else
-      m_interval_scanners[m_interval_max++] = make_unique<CellStoreScannerIntervalReadahead<IndexT>>(cellstore, index, scan_ctx->start_serkey, scan_ctx->end_serkey, scan_ctx);
+      m_interval_scanners[m_interval_max++] = std::make_unique<CellStoreScannerIntervalReadahead<IndexT>>(cellstore, index, scan_ctx->start_serkey, scan_ctx->end_serkey, scan_ctx);
   }
   else {
     String tmp_str;
@@ -139,10 +139,10 @@ CellStoreScanner<IndexT>::CellStoreScanner(CellStorePtr &&cellstore, ScanContext
       readahead = false;
 
     if (readahead)
-      m_interval_scanners[m_interval_max++] = make_unique<CellStoreScannerIntervalReadahead<IndexT>>(cellstore, index, start_key, end_key, scan_ctx);
+      m_interval_scanners[m_interval_max++] = std::make_unique<CellStoreScannerIntervalReadahead<IndexT>>(cellstore, index, start_key, end_key, scan_ctx);
     else {
       HT_ASSERT(index);
-      m_interval_scanners[m_interval_max++] = make_unique<CellStoreScannerIntervalBlockIndex<IndexT>>(cellstore, index, start_key, end_key, scan_ctx);
+      m_interval_scanners[m_interval_max++] = std::make_unique<CellStoreScannerIntervalBlockIndex<IndexT>>(cellstore, index, start_key, end_key, scan_ctx);
     }
   }
 }

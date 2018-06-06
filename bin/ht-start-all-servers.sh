@@ -25,6 +25,7 @@ export HYPERTABLE_HOME=$(cd `dirname "$0"`/.. && pwd)
 RANGESERVER_OPTS=
 MASTER_OPTS=
 HYPERSPACE_OPTS=
+THRIFTBROKER_OPTS=
 
 START_RANGESERVER="true"
 START_MASTER="true"
@@ -44,6 +45,7 @@ usage() {
   echo "  --heapcheck-rangeserver  Pass --heapcheck option to ht-start-rangeserver.sh"
   echo "  --valgrind-rangeserver   Pass --valgrind option to ht-start-rangeserver.sh"
   echo "  --valgrind-thriftbroker  Pass --valgrind option to ht-start-thriftbroker.sh"
+  echo "  --thrift-transport  	   Pass  option to ht-start-thriftbroker.sh"
   echo
   echo "Starts Hypertable processes on localhost.  By default, this script will start"
   echo "all hypertable processes by running the service startup scripts in the following"
@@ -56,7 +58,7 @@ usage() {
   echo "  ht-start-thriftbroker.sh"
   echo
   echo "The required argument <fs> indicates which filesystem broker to start.  Valid"
-  echo "values include \"local\", \"hadoop\", \"ceph\", \"mapr\", and \"qfs\".  Typical usage of"
+  echo "values include \"local\", \"hadoop\", \"ceph\", \"mapr\", and \"qfs\". Typical usage of"
   echo "this script is to start Hypertable in standalone mode on the local filesystem,"
   echo "for example:"
   echo
@@ -97,7 +99,7 @@ while [ "$1" != "${1##[-+]}" ]; do
       shift
       ;;
     --valgrind-thriftbroker)
-      THRIFTBROKER_OPTS="--valgrind "
+      THRIFTBROKER_OPTS="--valgrind ${THRIFTBROKER_OPTS}"
       shift
       ;;
     --no-rangeserver)
@@ -110,6 +112,10 @@ while [ "$1" != "${1##[-+]}" ]; do
       ;;
     --no-thriftbroker)
       START_THRIFTBROKER="false"
+      shift
+      ;;
+    --thrift-*)
+      THRIFTBROKER_OPTS="$1 ${THRIFTBROKER_OPTS}"
       shift
       ;;
     *)
@@ -125,7 +131,6 @@ fi
 
 FS=$1
 shift
-
 #
 # Start Hyperspace
 #

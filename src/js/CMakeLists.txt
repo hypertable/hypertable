@@ -19,27 +19,25 @@
 
 if (NODEJS_FOUND)
 
-  HT_GLOB(GenNODEJS_SRCS node/node_modules/hypertable/lib/hypertable/*.js)
-
-  add_custom_command(
-    OUTPUT    ${GenNODEJS_SRCS}
-    COMMAND   thrift
-    ARGS      -r --gen js:node
-              -out ${CMAKE_CURRENT_SOURCE_DIR}/node/node_modules/hypertable/lib/hypertable
-              ${ThriftBroker_IDL_DIR}/Hql.thrift
-    DEPENDS   ${ThriftBroker_IDL_DIR}/Client.thrift
-              ${ThriftBroker_IDL_DIR}/Hql.thrift
-    COMMENT   "thrift2js"
-  )
-
-  add_custom_target(ThriftGenNODEJS ALL DEPENDS ${GenNODEJS_SRCS})
-
-  add_test(NAME ThriftClient-nodejs
-           WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/node
-           COMMAND ${NODEJS_EXECUTABLE} ./client_test.js)
+	add_custom_target(ThriftGenNODEJS ALL)
+	add_custom_command(
+		TARGET 		ThriftGenNODEJS
+		COMMAND   	thrift
+		ARGS      	 -r --gen js:node
+					-o ${HYPERTABLE_BINARY_DIR}/src/js/
+					${ThriftBroker_IDL_DIR}/Hql.thrift
+		DEPENDS   	${ThriftBroker_IDL_DIR}/Client.thrift
+					${ThriftBroker_IDL_DIR}/Hql.thrift
+		COMMENT   	"ThriftPyGen"
+	)
 
   if (NOT HT_COMONENT_INSTALL OR PACKAGE_THRIFTBROKER)
     install(DIRECTORY node DESTINATION lib/js)
+    install(DIRECTORY ${HYPERTABLE_BINARY_DIR}/src/js/gen-nodejs/ DESTINATION lib/js/node/node_modules/hypertable/lib/hypertable/)
   endif ()
+
+  add_test(NAME ThriftClient-nodejs
+           WORKING_DIRECTORY ${INSTALL_DIR}/lib/js/node/
+           COMMAND ${NODEJS_EXECUTABLE} ./client_test.js )
 
 endif ()

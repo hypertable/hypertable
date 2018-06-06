@@ -72,6 +72,7 @@ namespace Hypertable {
     static LoadStatisticsPtr load_statistics;
     static RangesPtr      ranges;
     static bool           verbose;
+    static bool           auto_re_init_location;
     static bool           row_size_unlimited;
     static bool           ignore_cells_with_clock_skew;
     static CommitLogPtr user_log;

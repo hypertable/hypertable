@@ -18,6 +18,13 @@
 # along with Hypertable. If not, see <http://www.gnu.org/licenses/>
 #
 
+
+if [ -f /etc/profile.d/custom_env.sh ]; then
+	source /etc/profile;
+	source ~/.bashrc;
+fi
+
+
 # The installation directory
 export HYPERTABLE_HOME=$(cd `dirname "$0"`/.. && pwd)
 . $HYPERTABLE_HOME/bin/ht-env.sh
@@ -33,6 +40,7 @@ usage() {
   echo
   echo "OPTIONS:"
   echo "  -h,--help               Display usage information"
+  echo "  --cp-group              Classes Group (FsBroker)"
   echo "  --add-to-classpath <f>  Adds <f> to classpath"
   echo "  --pidfile <f>           Write JVM process ID to file <f>"
   echo "  --debug                 Run JVM with the follwoing debug options:"
@@ -68,12 +76,14 @@ usage() {
   echo
 }
 
+# Setup CLASSPATH
+RUN_CP_GROUP=""
 
 # Parse and remove ht-java-run.sh specific arguments
 DEBUG_ARGS=
 
 # Setup CLASSPATH
-CLASSPATH="${HYPERTABLE_HOME}"
+CLASSPATH="$HYPERTABLE_HOME/lib"
 
 while [ $# -gt 1 ] ; do
   if [ "--pidfile" == "$1" ] ; then
@@ -87,6 +97,12 @@ while [ $# -gt 1 ] ; do
   elif [ "--add-to-classpath" == "$1" ] ; then
     shift
     CLASSPATH=${CLASSPATH}:$1
+    shift
+  elif [ "--cp-group" == "$1" ] ; then
+    shift
+    RUN_CP_GROUP=$1
+    shift
+  elif [ "--verbose" == "$1" ] ; then
     shift
   elif [ "--verbose" == "$1" ] ; then
     shift
@@ -104,29 +120,24 @@ if [ $# == 1 ]; then
   esac
 fi
 
-# Make sure configured for Hadoop distro
-DISTRO=
-if [ -e $HYPERTABLE_HOME/conf/hadoop-distro ]; then
-  DISTRO=`cat $HYPERTABLE_HOME/conf/hadoop-distro`
-fi
+if [ ${RUN_CP_GROUP} == "FsBroker" ]; then
 
-if [ -z "$DISTRO" ]; then
-    echo "No Hadoop distro is configured.  Run the following script to"
-    echo "configure:"
-    echo ""
-    echo "$HYPERTABLE_HOME/bin/ht-set-hadoop-distro.sh"
-    exit 1
-fi
+	# Make sure configured for Hadoop distro
+	DISTRO=
+	if [ -e $HYPERTABLE_HOME/conf/hadoop-distro ]; then
+		DISTRO=`cat $HYPERTABLE_HOME/conf/hadoop-distro`
+	fi
 
-# so that filenames w/ spaces are handled correctly in loops below
-IFS=
+	if [ -z "$DISTRO" ]; then
+		echo "No Hadoop distro is configured.  Run the following script to"
+		echo "configure:"
+		echo ""
+		echo "$HYPERTABLE_HOME/bin/ht-set-hadoop-distro.sh"
+		exit 1
+	fi
 
-DISTRO_NEEDS_SETTING=0
-JAR_COUNT=`ls -1 $HYPERTABLE_HOME/lib/java/*.jar | wc -l`
-if [ $JAR_COUNT -eq 0 ]; then
-    DISTRO_NEEDS_SETTING=1
-else
-    JAR=`ls -1 $HYPERTABLE_HOME/lib/java/*.jar | head -1`
+	DISTRO_NEEDS_SETTING=0
+	JAR="$HYPERTABLE_HOME/lib/java/htFsbroker.jar"
     SYSTEM=`uname -s`
     if [ $SYSTEM == "Linux" ]; then
         CONF_DATE=`stat -t -c '%Y' $HYPERTABLE_HOME/conf/hadoop-distro`
@@ -143,25 +154,24 @@ else
     else
         DISTRO_NEEDS_SETTING=1
     fi
+
+	if [ $DISTRO_NEEDS_SETTING -eq 1 ]; then
+		$HYPERTABLE_HOME/bin/ht-set-hadoop-distro.sh $DISTRO
+	fi
+
+
+	# add lib/java to CLASSPATH
+	CLASSPATH=${CLASSPATH}:$HYPERTABLE_HOME/lib/java/htFsbroker.jar;
+
 fi
-
-if [ $DISTRO_NEEDS_SETTING -eq 1 ]; then
-    $HYPERTABLE_HOME/bin/ht-set-hadoop-distro.sh $DISTRO
-fi
-
-
-# add lib/java to CLASSPATH
-for f in $HYPERTABLE_HOME/lib/java/*.jar; do
-  CLASSPATH=${CLASSPATH}:$f;
-done
-
-unset IFS
 
 #
 # run it
 #
+echo $JAVA_HOME/bin/java -Dht_home=$HYPERTABLE_HOME $DEBUG_ARGS -cp "$CLASSPATH" "$@"
 if [ "$JAVA_HOME" != "" ] ; then
-  exec $JAVA_HOME/bin/java $DEBUG_ARGS -classpath "$CLASSPATH" "$@"
+  exec $JAVA_HOME/bin/java -Dht_home=$HYPERTABLE_HOME $DEBUG_ARGS -cp "$CLASSPATH" "$@"
 else
-  exec java $DEBUG_ARGS -classpath "$CLASSPATH" "$@"
+  exec java -Dht_home=$HYPERTABLE_HOME $DEBUG_ARGS -cp "$CLASSPATH" "$@"
 fi
+

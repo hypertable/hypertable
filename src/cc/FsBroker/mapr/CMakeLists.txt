@@ -21,6 +21,6 @@ include_directories(${Mapr_INCLUDE_DIR} ${Jni_INCLUDE_DIR})
 
 # htFsBrokerMapr
 add_executable(htFsBrokerMapr main.cc MaprBroker.cc)
-target_link_libraries(htFsBrokerMapr HyperFsBroker ${Mapr_LIBRARIES} ${MALLOC_LIBRARY})
+target_link_libraries(htFsBrokerMapr HyperFsBroker ${Mapr_LIBRARIES})
 
 install(TARGETS htFsBrokerMapr RUNTIME DESTINATION bin)

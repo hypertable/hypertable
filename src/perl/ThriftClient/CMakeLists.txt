@@ -17,27 +17,35 @@
 # 02110-1301, USA.
 #
 
-HT_GLOB(GenPerl_SRCS gen-perl/*.pm)
-
+add_custom_target(ThriftGenPerl ALL)
 add_custom_command(
-  OUTPUT    ${GenPerl_SRCS}
-  COMMAND   ${HYPERTABLE_SOURCE_DIR}/bin/src-utils/gen-thrift-perl.sh
-  ARGS      ${CMAKE_CURRENT_SOURCE_DIR} ${ThriftBroker_IDL_DIR}/Hql.thrift
-  DEPENDS   ${ThriftBroker_IDL_DIR}/Client.thrift
-            ${ThriftBroker_IDL_DIR}/Hql.thrift
-  COMMENT   "thrift2perl"
+  TARGET   ThriftGenPerl
+  COMMAND  cp 
+  ARGS     -r  ${CMAKE_CURRENT_SOURCE_DIR}/Hypertable ${HYPERTABLE_BINARY_DIR}/src/perl/ThriftClient
 )
 
-add_custom_target(ThriftGenPerl ALL DEPENDS ${GenPerl_SRCS})
+#### GENERATE HYPERTHRIFT module
+if (THRIFT_FOUND)
+	add_custom_command(
+		TARGET 		ThriftGenPerl
+		COMMAND   	thrift
+		ARGS      	-r --gen perl -o ${HYPERTABLE_BINARY_DIR}/src/perl/ThriftClient/
+					${ThriftBroker_IDL_DIR}/Hql.thrift
+		DEPENDS   	${ThriftBroker_IDL_DIR}/Client.thrift
+					${ThriftBroker_IDL_DIR}/Hql.thrift
+		COMMENT   	"thrift2perl"
+	)
+endif ()
+
 
 if (PERLTHRIFT_FOUND)
-  add_test(ThriftClient-perl perl -I ${CMAKE_CURRENT_SOURCE_DIR}
-           -I ${CMAKE_CURRENT_SOURCE_DIR}/gen-perl
-           -I ${THRIFT_SOURCE_DIR}/lib/perl/lib
-           ${CMAKE_CURRENT_SOURCE_DIR}/client_test.pl)
+  add_test(ThriftClient-perl perl -I ${INSTALL_DIR}/lib/perl/ ${INSTALL_DIR}/lib/perl/client_test.pl)
 endif ()
 
 if (NOT HT_COMPONENT_INSTALL OR PACKAGE_THRIFTBROKER)
-  install(DIRECTORY gen-perl Hypertable DESTINATION lib/perl)
+  install(DIRECTORY Hypertable DESTINATION lib/perl)
+  install(DIRECTORY ${HYPERTABLE_BINARY_DIR}/src/perl/ThriftClient/gen-perl/Hypertable/ThriftGen 
+					${HYPERTABLE_BINARY_DIR}/src/perl/ThriftClient/gen-perl/Hypertable/ThriftGen2 
+		DESTINATION lib/perl/Hypertable)
   install(FILES client_test.pl DESTINATION lib/perl)
 endif ()

@@ -2,24 +2,24 @@
 
 import sys
 import time
-from hypertable.thriftclient import *
-from hyperthrift.gen.ttypes import *
+from hypertable.thrift_client.thriftclient import ThriftClient
+from hypertable.thrift_client.hyperthrift.gen.ttypes import *
 
-if (len(sys.argv) < 4):
-  print sys.argv[0], "<table> <row-key> <column>"
-  sys.exit(1);
+if len(sys.argv) < 4:
+    print (sys.argv[0], "<table> <row-key> <column>")
+    sys.exit(1)
 
 try:
-  client = ThriftClient("localhost", 15867)
+    client = ThriftClient("localhost", 15867)
 
-  namespace = client.namespace_open("/")
+    namespace = client.namespace_open("/")
 
-  mutator = client.mutator_open(namespace, sys.argv[1], 0, 0)
+    mutator = client.mutator_open(namespace, sys.argv[1], 0, 0)
 
-  client.mutator_set_cell(mutator, Cell(Key(sys.argv[2], sys.argv[3], None), "thrift_insert.py"))
-  client.mutator_flush(mutator);
+    client.mutator_set_cell(mutator, Cell(Key(sys.argv[2], sys.argv[3], None), "thrift_insert.py"))
+    client.mutator_flush(mutator)
 
-  client.close_namespace(namespace)
+    client.close_namespace(namespace)
 
 except ClientException, e:
-  print '%s' % (e.message)
+    print ('%s' % e.message)

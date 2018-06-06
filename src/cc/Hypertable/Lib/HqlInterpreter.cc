@@ -413,7 +413,7 @@ cmd_dump_table(NamespacePtr &ns,
 
   // verify parameters
 
-  TableDumperPtr dumper = make_shared<TableDumper>(ns, state.table_name, state.scan.builder.get());
+  TableDumperPtr dumper = std::make_shared<TableDumper>(ns, state.table_name, state.scan.builder.get());
 
   // whether it's select into file
   if (!state.scan.outfile.empty()) {

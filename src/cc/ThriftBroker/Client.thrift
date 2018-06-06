@@ -23,7 +23,7 @@ namespace java  org.hypertable.thriftgen
 namespace perl  Hypertable.ThriftGen
 namespace php   Hypertable_ThriftGen
 # python doesn't like multiple top dirs with the same name (say hypertable)
-namespace py    hyperthrift.gen
+namespace py    hypertable.thrift_client.hyperthrift.gen
 namespace rb    Hypertable.ThriftGen
 
 /** Opaque ID for a Future object 

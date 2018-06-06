@@ -418,7 +418,7 @@ void Monitoring::create_rangeserver_rrd(const String &filename) {
 
   HT_ASSERT((m_monitoring_interval/1000)>0);
 
-  sprintf(buf, "-s %u", (unsigned)(m_monitoring_interval/1000));
+  sprintf(buf, "--step=%u", (unsigned)(m_monitoring_interval/1000));
   step = String(buf);
 
   /**
@@ -482,7 +482,7 @@ void Monitoring::create_table_rrd(const String &filename) {
 
   HT_ASSERT((m_monitoring_interval/1000)>0);
 
-  sprintf(buf, "-s %u", (unsigned)(m_monitoring_interval/1000));
+  sprintf(buf, "--step=%u", (unsigned)(m_monitoring_interval/1000));
   step = String(buf);
 
   /**
@@ -820,7 +820,7 @@ void Monitoring::run_rrdtool(std::vector<String> &command) {
   int ret = ::system(cmd.c_str());
   if (ret != 0) {
     HT_WARNF("Monitor: failed to invoke `rrdtool`; make sure it's properly "
-            "installed and in your $PATH (command returned status %d)", ret);
+            "installed and in your $PATH (command %s returned status %d)", cmd.c_str(), ret);
   }
 }
 

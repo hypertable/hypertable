@@ -63,8 +63,11 @@ ${HT_HOME}/bin/ht shell --no-prompt --exec "use sys; select Location from METADA
 RETVAL=0
 
 #make sure ranges are evenly divided
-TOTAL_RANGES=`grep Location metadata.post|wc -l`
-MOVED_RANGES=`grep "rs2" metadata.post|wc -l`
+TOTAL_RANGES=`grep -c "Location" metadata.post`
+MOVED_RANGES=`grep -c "rs2" metadata.post`
+# binary to std - Binary file metadata.post matches
+# TOTAL_RANGES=`grep Location metadata.post|wc -l`
+# MOVED_RANGES=`grep "rs2" metadata.post|wc -l`
 echo "Total ranges=${TOTAL_RANGES} moved ranges=${MOVED_RANGES}"
 #somewhere between 40-50% of the ranges should be on the new server
 if (( $MOVED_RANGES >= 2*$TOTAL_RANGES/5 && $MOVED_RANGES < $TOTAL_RANGES/2))

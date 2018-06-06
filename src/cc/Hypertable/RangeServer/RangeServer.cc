@@ -115,7 +115,7 @@ Apps::RangeServer::RangeServer(PropertiesPtr &props, ConnectionManagerPtr &conn_
   m_ganglia_collector =
     std::make_shared<MetricsCollectorGanglia>("rangeserver", props);
 
-  m_context = std::make_shared<Context>();
+  m_context = std::make_shared<RangeServerContext>();
   m_context->props = props;
   m_context->comm = conn_mgr->get_comm();
   m_context->server_state = std::make_shared<ServerState>();
@@ -129,6 +129,7 @@ Apps::RangeServer::RangeServer(PropertiesPtr &props, ConnectionManagerPtr &conn_
   SubProperties cfg(props, "Hypertable.RangeServer.");
 
   m_verbose = props->get_bool("verbose");
+  Global::auto_re_init_location = cfg.get_bool("Location.AutoReInitiate", false);
   Global::row_size_unlimited = cfg.get_bool("Range.RowSize.Unlimited", false);
   Global::ignore_cells_with_clock_skew 
     = cfg.get_bool("Range.IgnoreCellsWithClockSkew");
@@ -313,9 +314,19 @@ Apps::RangeServer::RangeServer(PropertiesPtr &props, ConnectionManagerPtr &conn_
   Global::location_initializer = make_shared<LocationInitializer>(m_context);
 
   if(Global::location_initializer->is_removed(Global::toplevel_dir+"/servers", m_hyperspace)) {
-    HT_ERROR_OUT << "location " << Global::location_initializer->get()
-        << " has been marked removed in hyperspace" << HT_END;
-    quick_exit(EXIT_FAILURE);
+     if(!Global::auto_re_init_location){
+           HT_ERROR_OUT << "location " << Global::location_initializer->get()
+           << " has been marked removed in hyperspace" << HT_END;
+           quick_exit(EXIT_FAILURE);
+     }
+	  
+     String old_m_loc = Global::location_initializer->get();
+     if(Global::location_initializer->remove_location()) {
+        HT_INFOF("Auto re-initiated location, removed location: %s", old_m_loc.c_str());
+     }else{
+        HT_ERROR_OUT << "Unable to auto re-initiated location" << old_m_loc << HT_END;
+        quick_exit(EXIT_FAILURE);
+     }
   }
 
   // Create Master client

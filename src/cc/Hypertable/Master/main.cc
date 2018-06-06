@@ -138,7 +138,7 @@ int main(int argc, char **argv) {
       Hyperspace::SessionPtr hyperspace = make_shared<Hyperspace::Session>(Comm::instance(), properties);
       context = make_shared<Context>(properties, hyperspace);
       context->monitoring = make_shared<Monitoring>(context.get());
-      context->op = make_unique<OperationProcessor>(context, get_i32("workers"));
+      context->op = std::make_unique<OperationProcessor>(context, get_i32("workers"));
 
       ConnectionHandlerFactoryPtr connection_handler_factory(new HandlerFactory(context));
       context->comm->listen(listen_addr, connection_handler_factory);

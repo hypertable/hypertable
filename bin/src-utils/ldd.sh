@@ -26,7 +26,7 @@ case `uname -s` in
   *)          ldd=ldd;;
 esac
 
-file=$1
+file=${@:1}
 
 if [ "$DARWIN" == "yes" ] ; then
   $ldd "$file" > /tmp/ldd-step1-$$

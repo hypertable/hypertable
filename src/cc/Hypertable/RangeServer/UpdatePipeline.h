@@ -123,7 +123,7 @@ namespace Hypertable {
                        bool timeorder_desc);
 
     /// %Range server context
-    std::shared_ptr<Context> m_context;
+    std::shared_ptr<RangeServerContext> m_context;
 
     /// Pointer to query cache
     QueryCachePtr m_query_cache;

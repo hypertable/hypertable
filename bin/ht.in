@@ -144,8 +144,8 @@ print_version() {
   fi
   echo "  BerkeleyDB:" @BDB_VERSION@
   echo "  Boost:" @BOOST_VERSION@
-  echo "@Thrift_VERSION@" | sed 's/Thrift version/  Thrift:/g'
-  [ "@Tcmalloc_LIBRARIES@" ] && echo "  Tcmalloc: @TC_VERSION@"
+  echo "@THRIFT_VERSION@" | sed 's/Thrift version/  Thrift:/g'
+  [ "@TCMALLOC_LIBRARIES@" ] && echo "  Tcmalloc: @TC_VERSION@"
   [ "@JAVAC_VERSION@" ] && echo "  Javac: @JAVAC_VERSION@"
   [ "@GCC_VERSION@" ] && echo "  GCC/G++: @GCC_VERSION@"
 }

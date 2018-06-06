@@ -99,7 +99,13 @@ int main(int argc, char **argv) {
     Thrift::ClientPtr client;
     {
       ConsoleOutputSquelcher temp;
-      client = make_shared<Thrift::Client>(host, port, timeout_ms);
+
+	  Thrift::Transport ttp;
+	  if (strcmp(get_str("thrift-transport").c_str(), "zlib") == 0)
+		  ttp = Thrift::Transport::ZLIB;
+	  else
+		  ttp = Thrift::Transport::FRAMED;
+      client = make_shared<Thrift::Client>(ttp, host, port, timeout_ms);
     }
     
     CommandInterpreterPtr interp = make_shared<thriftbroker::CommandInterpreter>(client, nowait);

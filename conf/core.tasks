@@ -26,9 +26,9 @@ task: install_origin_config roles: source {
 # This task copies the contents of the \$HADOOP_DISTRO variable
 # (${HADOOP_DISTRO}) into the conf/hadoop-distro file of the Hypertable
 # \$HYPERTABLE_VERSION (${HYPERTABLE_VERSION}) installation.
-task: set_hadoop_distro roles: source {
+task: set_hadoop_distro {
   ssh: {
-    echo ${HADOOP_DISTRO} > ${INSTALL_DIR}/conf/hadoop-distro
+  	HT_HOME=${INSTALL_PREFIX}/${HYPERTABLE_VERSION} ${INSTALL_PREFIX}/${HYPERTABLE_VERSION}/bin/ht-set-hadoop-distro.sh ${HADOOP_DISTRO}
   }
 }
 

@@ -100,8 +100,9 @@ namespace Hypertable {
   /**
    * Provides an STL-style iterator on DataGenerator objects.
    */
-  class DataGeneratorIterator : public boost::iterator<forward_iterator_tag, Cell> {
-
+  class DataGeneratorIterator : public iterator<forward_iterator_tag, Cell> {
+  //class DataGeneratorIterator : public boost::iterator<forward_iterator_tag, Cell> { //boost 1.66.0?
+  
     friend class DataGenerator;
 
   public:

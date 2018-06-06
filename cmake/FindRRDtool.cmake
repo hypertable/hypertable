@@ -32,10 +32,15 @@ endif()
 
 if (RRDTOOL_FOUND)
   message(STATUS "Found rrdtool in ${RRDTOOL_DIR}")
+  
+  # if (NOT PACKAGE_THRIFTBROKER)
+  #	HT_INSTALL_LIBS(lib ${RRD_LIBRARIES})
+  # endif ()
+  
+  mark_as_advanced(
+     RRDTOOL_DIR
+  )	
 else ()
   message(FATAL_ERROR "Not Found rrdtool")
 endif ()
 
-mark_as_advanced(
-  RRDTOOL_DIR
-  )

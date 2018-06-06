@@ -113,7 +113,8 @@ namespace FsBroker {
     Hypertable::Status m_status;
 
     bool         m_verbose;
-    hdfsFS       m_filesystem;
+	hdfsFS       m_filesystem;
+	hdfsBuilder	*m_builder;
     bool         m_aggregate_writes;
     bool         m_readbuffering;
     String       m_namenode_host;

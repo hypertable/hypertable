@@ -24,52 +24,58 @@
 # also defined, but not for general use are
 # EDITLINE_LIBRARY, NCURSES_LIBRARY
 
-find_path(EDITLINE_INCLUDE_DIR editline/readline.h
-    /opt/local/include
-    /usr/local/include
-    /usr/include
-    )
 
-find_library(EDITLINE_LIBRARY NAMES edit PATHS
-    /opt/local/lib
-    /usr/local/lib
-    /usr/lib
-    )
+HT_FASTLIB_SET(
+	NAME "EDITLINE" 
+	REQUIRED TRUE 
+	LIB_PATHS 
+	INC_PATHS 
+	STATIC libedit.a 
+	SHARED edit
+	INCLUDE editline/readline.h
+)
 
-find_library(NCURSES_LIBRARY NAMES ncurses PATHS
-    /opt/local/lib
-    /usr/local/lib
-    /usr/lib
-    )
-
-if (EDITLINE_LIBRARY AND EDITLINE_INCLUDE_DIR AND NCURSES_LIBRARY)
-  set(EDITLINE_LIBRARIES ${EDITLINE_LIBRARY} ${NCURSES_LIBRARY})
-  set(EDITLINE_FOUND "YES")
-else ()
-  set(EDITLINE_FOUND "NO")
+HT_FASTLIB_SET(
+	NAME "NCURSESW" 
+	REQUIRED TRUE 
+	LIB_PATHS 
+	INC_PATHS 
+	STATIC libncursesw.a 
+	SHARED ncursesw
+	INCLUDE ncurses.h
+)
+if (NOT NCURSESW_LIBRARIES)
+	HT_FASTLIB_SET(
+		NAME "NCURSESW" 
+		REQUIRED TRUE 
+		LIB_PATHS 
+		INC_PATHS 
+		STATIC libncurses.a 
+		SHARED ncurses
+		INCLUDE ncurses.h
+	)
+endif ()
+HT_FASTLIB_SET(
+	NAME "TINFOW" 
+	REQUIRED FALSE 
+	LIB_PATHS 
+	INC_PATHS 
+	STATIC libtinfow.a 
+	SHARED tinfow
+	INCLUDE termcap.h
+)
+if(NOT TINFOW_LIBRARIES)
+	set(TINFOW_LIBRARIES ${NCURSESW_LIBRARIES})
 endif ()
 
-if (EDITLINE_FOUND)
-  message(STATUS "Found Editline: ${EDITLINE_LIBRARY}")
-  try_run(EDITLINE_CHECK EDITLINE_CHECK_BUILD
-          ${HYPERTABLE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeTmp
-          ${HYPERTABLE_SOURCE_DIR}/cmake/CheckEditline.cc
-          CMAKE_FLAGS -DINCLUDE_DIRECTORIES=${EDITLINE_INCLUDE_DIR}
-              -DLINK_LIBRARIES=${EDITLINE_LIBRARIES}
-            OUTPUT_VARIABLE EDITLINE_TRY_OUT)
-  if (EDITLINE_CHECK_BUILD STREQUAL "FALSE")
-    message(STATUS "${EDITLINE_TRY_OUT}")
-    message(FATAL_ERROR "Please fix the Editline installation and try again.  Make sure you build libedit with --enable-widec!")
-    set(EDITLINE_LIBRARIES)
-  endif ()
-else ()
-  if (EDITLINE_FIND_REQUIRED)
-    message(FATAL_ERROR "Could not find suitable Editline libraries")
-  endif ()
+try_run(EDITLINE_CHECK EDITLINE_CHECK_BUILD
+        ${HYPERTABLE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeTmp
+        ${HYPERTABLE_SOURCE_DIR}/cmake/CheckEditline.cc
+        CMAKE_FLAGS 
+        INCLUDE_DIRECTORIES ${EDITLINE_INCLUDE_DIR}
+        LINK_LIBRARIES ${EDITLINE_LIBRARIES} ${NCURSESW_LIBRARIES} ${TINFOW_LIBRARIES} ${BDB_LIBRARIES} pthread
+        OUTPUT_VARIABLE EDITLINE_TRY_OUT)
+if (EDITLINE_CHECK_BUILD STREQUAL "FALSE")
+	message(STATUS "${EDITLINE_TRY_OUT}")
+	message(FATAL_ERROR "Please fix the Editline installation and try again.  Make sure you build libedit with --enable-widec!")
 endif ()
-
-mark_as_advanced(
-  NCURSES_LIBRARY
-  EDITLINE_INCLUDE_DIR
-  EDITLINE_LIBRARY
-  )

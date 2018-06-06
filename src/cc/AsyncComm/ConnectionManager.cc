@@ -178,6 +178,8 @@ ConnectionManager::wait_for_connection(const CommAddress &addr,
 bool ConnectionManager::wait_for_connection(ConnectionStatePtr &conn_state,
 					    Timer &timer) {
 
+  // if (conn_state->state == State::READY)
+  //	return true;
   timer.start();
 
   {

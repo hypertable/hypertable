@@ -26,16 +26,16 @@ row09 c thrift_insert.py
 row08	a	hello, world
 row09	c	thrift_insert.py
 [test-8]
-HqlResult(mutator=None, cells=None, results=None, scanner=None)
+[None, None, None, None]
 row08	a	hello, world
 row09	c	thrift_insert.py
 row10	f	hello, world
 [test-9]
-HqlResult(mutator=None, cells=None, results=None, scanner=None)
+[None, None, None, None]
 row08	a	hello, world
 row09	c	thrift_insert.py
 row10	f	hello, world
 [test-10]
-HqlResult(mutator=None, cells=None, results=None, scanner=None)
+[None, None, None, None]
 Hypertable CRITICAL - HYPERTABLE table does not exist (foo)
 HYPERTABLE table does not exist 

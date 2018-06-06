@@ -74,7 +74,7 @@ BerkeleyDbFilesystem::BerkeleyDbFilesystem(PropertiesPtr &props,
                                            const std::string &basedir,
                                            const std::vector<Thread::id> &thread_ids,
                                            bool force_recover)
-    : m_base_dir(basedir), m_env(0) {
+    : m_base_dir(basedir), m_env((u_int32_t)0) {
 
   m_checkpoint_size_kb = props->get_i32("Hyperspace.Checkpoint.Size") / 1000;
   m_max_unused_logs = props->get_i32("Hyperspace.LogGc.MaxUnusedLogs");
@@ -385,6 +385,11 @@ BerkeleyDbFilesystem::~BerkeleyDbFilesystem() {
 }
 
 void BerkeleyDbFilesystem::db_msg_callback(const DbEnv *dbenv, const char *msg)
+{
+  HT_DEBUG_OUT << "BDB MESSAGE:" << msg << HT_END;
+}
+void BerkeleyDbFilesystem::db_msg_callback(const DbEnv *dbenv, const char *msgpfx, 
+                                           const char *msg)
 {
   HT_DEBUG_OUT << "BDB MESSAGE:" << msg << HT_END;
 }

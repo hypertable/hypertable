@@ -33,9 +33,12 @@ HsHelpText.cc
 HsClientState.cc
 )
 
-# Hyperspace library
-add_library(Hyperspace ${Hyperspace_SRCS})
-target_link_libraries(Hyperspace HyperTools)
+# lib Hyperspace
+HT_ADD_LIBS(
+	TARGET Hyperspace 
+	SRCS ${Hyperspace_SRCS}
+	TARGETS HyperTools
+)
 
 set(Master_SRCS
 StateDbKeys.cc
@@ -82,23 +85,18 @@ ServerKeepaliveHandler.cc
 main.cc
 )
 
-# Disable tcmalloc for 32-bit systems
-if (CMAKE_SYSTEM_PROCESSOR STREQUAL "i386" OR
-    CMAKE_SYSTEM_PROCESSOR STREQUAL "i586" OR
-    CMAKE_SYSTEM_PROCESSOR STREQUAL "i686")
-  set(HYPERSPACE_MALLOC_LIBRARY "")
-else ()
-  set(HYPERSPACE_MALLOC_LIBRARY ${MALLOC_LIBRARY})
-endif ()
 
 # htHyperspace
 add_executable(htHyperspace ${Master_SRCS})
-target_link_libraries(htHyperspace Hyperspace ${BDB_LIBRARIES} ${HYPERSPACE_MALLOC_LIBRARY})
+target_link_libraries(htHyperspace Hyperspace ${BDB_LIBRARIES})
 
 # BerkeleyDbFilesystem test
-add_executable(bdb_fs_test tests/bdb_fs_test.cc BerkeleyDbFilesystem.cc StateDbKeys.cc)
-target_link_libraries(bdb_fs_test ${BDB_LIBRARIES} HyperCommon)
-
+HT_ADD_TEST(
+	NAME BerkeleyDbFilesystem
+	SRCS tests/bdb_fs_test.cc BerkeleyDbFilesystem.cc StateDbKeys.cc
+	TARGETS Hypertable Hyperspace
+	EXT_DEPS ${BDB_LIBRARIES}
+)
 #
 # Copy test files
 #
@@ -106,7 +104,6 @@ set(SRC_DIR "${HYPERTABLE_SOURCE_DIR}/src/cc/Hyperspace/tests")
 set(DST_DIR "${HYPERTABLE_BINARY_DIR}/src/cc/Hyperspace")
 configure_file(${SRC_DIR}/bdb_fs_test.golden ${DST_DIR}/bdb_fs_test.golden)
 
-add_test(BerkeleyDbFilesystem bdb_fs_test)
 
 if (NOT HT_COMPONENT_INSTALL)
   file(GLOB HEADERS *.h)

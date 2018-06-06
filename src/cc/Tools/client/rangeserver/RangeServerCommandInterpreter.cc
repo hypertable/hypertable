@@ -94,7 +94,7 @@ RangeServerCommandInterpreter::RangeServerCommandInterpreter(
     m_toplevel_dir = properties->get_str("Hypertable.Directory");
     boost::trim_if(m_toplevel_dir, boost::is_any_of("/"));
     m_toplevel_dir = String("/") + m_toplevel_dir;
-    m_namemap = make_shared<NameIdMapper>(m_hyperspace, m_toplevel_dir);
+    m_namemap = std::make_shared<NameIdMapper>(m_hyperspace, m_toplevel_dir);
   }
   return;
 }

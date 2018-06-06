@@ -1,0 +1,54 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <parent>
+    <groupId>org.hypertable</groupId>
+    <artifactId>uber</artifactId>
+    <version>@VERSION@</version>
+	<relativePath>../</relativePath>
+  </parent>
+
+  <name>Hypertable Thrift Client - v@THRIFT_VERSION@ </name>
+  <artifactId>ht-thriftclient</artifactId>
+  <version>@VERSION@</version>
+  <packaging>jar</packaging>
+
+  <properties>
+    <thrift.version>v@THRIFT_VERSION@</thrift.version>
+  </properties>
+  
+  <dependencies>
+		<dependency>
+			<groupId>org.apache.thrift</groupId>
+			<artifactId>libthrift</artifactId>
+			<version>@THRIFT_VERSION@</version>
+		</dependency>
+  </dependencies>
+  
+  <build>
+    <plugins>
+      <plugin>
+        <artifactId>maven-assembly-plugin</artifactId>
+        <version>3.0.0</version>
+        <executions>
+          <execution>
+            <id>jar-with-deps</id>
+            <phase>package</phase>
+            <goals>
+              <goal>single</goal>
+            </goals>
+			<configuration>
+				<classifier>v@THRIFT_VERSION@</classifier>
+			</configuration>
+          </execution>
+        </executions>
+        <configuration>
+          <descriptors>
+            <descriptor>assembly.xml</descriptor>
+          </descriptors>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+</project>
