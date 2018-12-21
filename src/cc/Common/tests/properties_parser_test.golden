@@ -1,0 +1,206 @@
+
+Config::cmdline_desc()
+Usage:  [Options] [args]
+Options
+  --Hypertable.Config.OnFileChange.Reload2 -[OnFileChange.Reload2]  Set Config File Listener for Reloading cfg file on Change  false
+  --boo -[b]                                                        a boolean arg                                              false
+  --f64s                                                            a list of doubles                                          []
+  --false                                                           token defaults to false                                    false
+  --float64                                                         a double arg                                               3.12
+  --i16                                                             16-bit integer                                             1 
+  --i32                                                             32-bit integer                                             0 
+  --i64                                                             64-bit integer                                             1 
+  --int64s                                                          a list of 64-bit integers                                  []
+  --is_true                                                         if set token true                                          false
+  --skip1                                                           a skipped token                                            true
+  --skip2                                                           a skipped token                                            true
+  --string -[str, s]                                                a string arg                                               A Default String Value
+  --strs                                                            a list of strings                                          []
+  --true                                                            token defaults to true                                     true
+
+Config::cmdline_hidden_desc()
+
+  --app    application filename, zero pos skipped    
+  --arg-1  argument one                              
+  --args   rest of arguments                       []
+
+
+Merged New ParserConfig
+Usage:  [Options] [args]
+Options
+  --Hypertable.Config.OnFileChange.Reload2 -[OnFileChange.Reload2]  Set Config File Listener for Reloading cfg file on Change  false
+  --app                                                             application filename, zero pos skipped                       
+  --arg-1                                                           argument one                                                 
+  --args                                                            rest of arguments                                          []
+  --boo -[b]                                                        a boolean arg                                              false
+  --f64s                                                            a list of doubles                                          []
+  --false                                                           token defaults to false                                    false
+  --float64                                                         a double arg                                               3.12
+  --i16                                                             16-bit integer                                             1 
+  --i32                                                             32-bit integer                                             0 
+  --i64                                                             64-bit integer                                             1 
+  --int64s                                                          a list of 64-bit integers                                  []
+  --is_true                                                         if set token true                                          false
+  --skip1                                                           a skipped token                                            true
+  --skip2                                                           a skipped token                                            true
+  --string -[str, s]                                                a string arg                                               A Default String Value
+  --strs                                                            a list of strings                                          []
+  --true                                                            token defaults to true                                     true
+*** Raw Parsed Options:
+arg-1=[argOne]
+boo=[true, 1]
+i16=[1k]
+i32=[64K]
+i64=[1G]
+is_true=[1]
+strs=[1, 2, 3, 4, 5, 6]
+*** Parsed Options:
+Hypertable.Config.OnFileChange.Reload2=false
+arg-1=argOne
+boo=true
+false=false
+float64=3.12
+i16=1000
+i32=64000
+i64=1000000000
+is_true=true
+string=A Default String Value
+strs=[1, 2, 3, 4, 5, 6]
+true=true
+
+Config::file_desc()
+Config Properties
+  --aGroupOne.arg.1  a group arg                0 
+  --aGroupOne.arg.2  a group arg                0 
+  --aGroupOne.arg.3  a group arg                0 
+  --aGroupOne.arg.4  a group arg                0 
+  --aGroupOne.arg.5  a group arg                0 
+  --boo              a boolean arg              false
+  --f64s             a list of doubles          []
+  --float64          a double arg               3.12
+  --i16              16-bit integer             1 
+  --i32              32-bit integer             0 
+  --i64              64-bit integer             1 
+  --int64s           a list of 64-bit integers  []
+  --is_no_bool       a boolean arg              true
+  --is_one_bool      a boolean arg              false
+  --is_rest_bool     a boolean arg              true
+  --is_true_bool     a boolean arg              false
+  --is_yes_bool      a boolean arg              false
+  --missing          a string arg               a missing string in cfg file, default applies
+  --string           a string arg               A Default String Value
+  --string.qouted    a string arg               A Default String Value
+  --strs             a list of strings          []
+
+Config::file_desc()
+Config Properties
+  --aGroupOne.arg.1  a group arg                0 
+  --aGroupOne.arg.2  a group arg                0 
+  --aGroupOne.arg.3  a group arg                0 
+  --aGroupOne.arg.4  a group arg                0 
+  --aGroupOne.arg.5  a group arg                0 
+  --boo              a boolean arg              false
+  --f64s             a list of doubles          []
+  --float64          a double arg               3.12
+  --i16              16-bit integer             1 
+  --i32              32-bit integer             0 
+  --i64              64-bit integer             1 
+  --int64s           a list of 64-bit integers  []
+  --is_no_bool       a boolean arg              true
+  --is_one_bool      a boolean arg              false
+  --is_rest_bool     a boolean arg              true
+  --is_true_bool     a boolean arg              false
+  --is_yes_bool      a boolean arg              false
+  --missing          a string arg               a missing string in cfg file, default applies
+  --string           a string arg               A Default String Value
+  --string.qouted    a string arg               A Default String Value
+  --strs             a list of strings          []
+
+Config Properties
+  --aGroupOne.arg.1  a group arg                0 
+  --aGroupOne.arg.2  a group arg                0 
+  --aGroupOne.arg.3  a group arg                0 
+  --aGroupOne.arg.4  a group arg                0 
+  --aGroupOne.arg.5  a group arg                0 
+  --boo              a boolean arg              false
+  --f64s             a list of doubles          []
+  --float64          a double arg               3.12
+  --i16              16-bit integer             1 
+  --i32              32-bit integer             0 
+  --i64              64-bit integer             1 
+  --int64s           a list of 64-bit integers  []
+  --is_no_bool       a boolean arg              true
+  --is_one_bool      a boolean arg              false
+  --is_rest_bool     a boolean arg              true
+  --is_true_bool     a boolean arg              false
+  --is_yes_bool      a boolean arg              false
+  --missing          a string arg               a missing string in cfg file, default applies
+  --string           a string arg               A Default String Value
+  --string.qouted    a string arg               A Default String Value
+  --strs             a list of strings          []
+*** Raw Parsed Options:
+aGroupOne.arg.1=[1]
+aGroupOne.arg.2=[2]
+aGroupOne.arg.3=[3]
+aGroupOne.arg.4=[4]
+aGroupOne.arg.5=[5]
+boo=[true]
+f64s=[1.123, 1.123K, 1.123M, 1.123g]
+float64=[1.1234]
+i16=[64000]
+i32=[640K]
+i64=[10G]
+int64s=[1G, 2G, 3G]
+is_no_bool=[false]
+is_one_bool=[1]
+is_rest_bool=[DefaultFalse]
+is_true_bool=[True]
+is_yes_bool=[yEs]
+string=[aStringNoSpaces]
+string.qouted=[a   S t r i n g   W i t h    S p a c e s]
+strs=[StringOne, StringTwo, StringThree]
+*** Parsed Options:
+aGroupOne.arg.1=1
+aGroupOne.arg.2=2
+aGroupOne.arg.3=3
+aGroupOne.arg.4=4
+aGroupOne.arg.5=5
+boo=true
+f64s=[1.123, 1123, 1.123e+06, 1.123e+09]
+float64=1.1234
+i16=64000
+i32=640000
+i64=10000000000
+int64s=[1000000000, 2000000000, 3000000000]
+is_no_bool=false
+is_one_bool=true
+is_rest_bool=false
+is_true_bool=true
+is_yes_bool=true
+missing=a missing string in cfg file, default applies
+string=aStringNoSpaces
+string.qouted=a   S t r i n g   W i t h    S p a c e s
+strs=[StringOne, StringTwo, StringThree]
+true
+aGroupOne.arg.1=1
+aGroupOne.arg.2=2
+aGroupOne.arg.3=3
+aGroupOne.arg.4=4
+aGroupOne.arg.5=5
+boo=true
+dummy=true
+f64s=[1.123, 1123, 1.123e+06, 1.123e+09]
+float64=1.1234
+i16=64000
+i32=640000
+i64=10000000000
+int64s=[1000000000, 2000000000, 3000000000]
+is_no_bool=false
+is_one_bool=true
+is_rest_bool=false
+is_true_bool=true
+is_yes_bool=true
+missing=a missing string in cfg file, default applies (default)
+string=aStringNoSpaces
+string.qouted=a   S t r i n g   W i t h    S p a c e s
+strs=[StringOne, StringTwo, StringThree]

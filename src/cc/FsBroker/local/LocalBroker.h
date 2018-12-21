@@ -106,7 +106,7 @@ namespace FsBroker {
     StatusManager m_status_manager;
 
     String m_rootdir;
-    bool m_verbose;
+    gBoolPtr m_verbose;
     bool m_directio;
     bool m_no_removal;
   };

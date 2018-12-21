@@ -56,8 +56,9 @@ namespace {
     "getseq ............ Get a lock sequencer for a file/directory",
     "echo .............. Echo user input",
     "locate ............ Get the location of Hyperspace Master or all Replicas",
-    "dump .............. Dump contents of hyperspace"
-    "status ............ Get server status"
+    "dump .............. Dump contents of hyperspace",
+    "status ............ Get server status",
+    "cfg_reload ........ Reload configurations file"
     "",
     "Statements must be terminated with ';' to execute.  For more information on",
     "a specific statement, type 'help <statement>', where <statement> is one from",
@@ -207,6 +208,13 @@ namespace {
     "  which is the current replication master or the locations of all Hyperspace replicas",
     (const char *)0
   };
+  
+  const char *help_cfg_reload[] = {
+    "cfg_reload Null | ConfigFileFullPath",
+    "  This command reloads a new configuration file, default eg. /opt/hypertable/current/conf/hypertable.cfg"
+    "  else the specified file path",
+    (const char *)0
+  };
 
   const char *help_dump[] = {
     "dump <path> [AS_COMMANDS] [output_file]",
@@ -255,6 +263,7 @@ namespace {
     (*map)["release"] = help_release;
     (*map)["getseq"] = help_getsequencer;
     (*map)["locate"] = help_locate;
+    (*map)["cfg_reload"] = help_cfg_reload;
     (*map)["dump"] = help_dump;
     (*map)["status"] = help_status;
     return *map;

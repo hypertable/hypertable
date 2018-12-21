@@ -25,7 +25,6 @@
 #include <Hypertable/Lib/Client.h>
 #include <Hypertable/Lib/NameIdMapper.h>
 
-#include <Common/Config.h>
 #include <Common/Error.h>
 #include <Common/InetAddr.h>
 #include <Common/Logger.h>
@@ -64,12 +63,12 @@ namespace {
     "  sleep: specifies a sleep time (in seconds) during the requests to\n"
     "  reduce the load that is caused by this tool.\n";
 
-  struct AppPolicy : Config::Policy {
+  struct AppPolicy : Policy {
     static void init_options() {
       cmdline_desc(usage).add_options()
-          ("sleep", i32()->default_value(0),
+          ("sleep", i32(0),
            "Time to sleep between each request (in milliseconds)")
-          ("timeout", i32()->default_value(0),
+          ("timeout", i32(0),
            "Hypertable connection timeout (in milliseconds)")
           ;
     }
@@ -78,7 +77,7 @@ namespace {
       // we want to override the default behavior that verbose
       // turns on debugging by clearing the defaulted flag
       if (defaulted("logging-level"))
-        properties->set("logging-level", String("fatal"));
+        properties->set("logging-level", gEnumExt(Logger::Priority::FATAL));
     }
   };
 

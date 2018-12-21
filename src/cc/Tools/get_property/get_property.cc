@@ -36,14 +36,19 @@ namespace {
 
   const char *usage =
     "\n"
-    "Usage: get_property [options] <property>\n\nOptions"
+    "Usage: get_property <property> [options]\n\nOptions"
     ;
 
   struct AppPolicy : Policy {
     static void init_options() {
       cmdline_desc(usage);
-      cmdline_hidden_desc().add_options()("property", str(), "");
-      cmdline_positional_desc().add("property", -1);
+      cmdline_hidden_desc().add_options()
+      ("property", str(), "")
+      ("property", 1);  
+      // -1 is an issue to use as a property 
+      // if unknown args passed along it will pollute the 'property' arg
+      // as well it might be a case of  a name-arg recognition and not applied as any args(-1) 
+      // and more right to have one arg to be 1st arg
     }
     static void init() {
       if (has("property"))
@@ -61,20 +66,14 @@ namespace {
 int main(int argc, char **argv)
 {
   try {
+
     init_with_policy<Policies>(argc, argv);
-    if (properties->has(lookup_property)) {
-      // issue 869: in order to avoid type conversion errors we have to try
-      // all available conversion functions
-      TRY(properties->get_str(lookup_property), false)
-      TRY(properties->get_bool(lookup_property), false)
-      TRY(properties->get_i16(lookup_property), false)
-      TRY(properties->get_i32(lookup_property), false)
-      TRY(properties->get_i64(lookup_property), false)
-      TRY(properties->get_f64(lookup_property), true)
-    }
-    else {
+
+    if (properties->has(lookup_property))
+      TRY(properties->str(lookup_property), true)
+    else 
       cout << lookup_property << "-PROPERTY-DOES-NOT-EXIST";
-    }
+    
   }
   catch (Exception &e) {
     HT_ERROR_OUT << e << HT_END;

@@ -22,9 +22,10 @@
 #ifndef HYPERSPACE_CONFIG_H
 #define HYPERSPACE_CONFIG_H
 
-#include "AsyncComm/Config.h"
-#include "Tools/Lib/CommandShell.h"
 #include "Common/Config.h"
+#include "AsyncComm/Config.h"
+#include "AsyncComm/ConfigHandler.h"
+#include "Tools/Lib/CommandShell.h"
 
 namespace Hypertable { namespace Config {
   // init helpers

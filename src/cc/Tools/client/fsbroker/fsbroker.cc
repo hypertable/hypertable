@@ -30,7 +30,6 @@
 #include <Tools/Lib/CommandShell.h>
 
 #include <AsyncComm/Comm.h>
-#include <AsyncComm/Config.h>
 
 #include <Common/Error.h>
 #include <Common/Init.h>
@@ -67,8 +66,9 @@ namespace {
         ("nowait", "Don't wait for certain commands to complete (e.g. shutdown)")
         ("output-only", "Display status output and exit with status 0")
         ;
-      cmdline_hidden_desc().add_options()("address", str(), "");
-      cmdline_positional_desc().add("address", -1);
+      cmdline_hidden_desc().add_options()
+      ("address", str(), "")
+      ("address", -1);
     }
     static void init() {
       if (has("address")) {
@@ -94,23 +94,15 @@ int main(int argc, char **argv) {
   try {
     init_with_policies<Policies>(argc, argv);
     InetAddr addr;
+    
     String host = get_str("FsBroker.Host");
-    ::uint16_t port;
-    ::uint32_t timeout_ms;
-    bool nowait = has("nowait");
+    ::uint16_t port = get_i16("FsBroker.Port");
+    ::uint32_t timeout_ms  = properties->get_pref<int32_t>({"FsBroker.Timeout", "timeout"});
 
+    bool nowait = has("nowait");
     output_only = has("output-only");
     silent = has("silent") && get_bool("silent");
 
-    if (has("DfsBroker.Port"))
-      port = get_i16("DfsBroker.Port");
-    else
-      port = get_i16("FsBroker.Port");
-
-    if (has("timeout"))
-      timeout_ms = get_i32("timeout");
-    else
-      timeout_ms = get_i32("Hypertable.Request.Timeout");
 
     InetAddr::initialize(&addr, host.c_str(), port);
 

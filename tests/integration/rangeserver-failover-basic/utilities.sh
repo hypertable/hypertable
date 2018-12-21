@@ -9,7 +9,7 @@ save_failure_state() {
   \rm -f $HT_HOME/run/op.output
   touch $HT_HOME/run/debug-op
   ps auxww | fgrep -i hyper | fgrep -v java > $ARCHIVE_DIR/ps-output.txt
-  cp $HT_HOME/log/* $ARCHIVE_DIR
+  cp $HT_HOME/log/*.log $ARCHIVE_DIR
   pstack `cat $HT_HOME/run/Master.pid` > $ARCHIVE_DIR/master-stack.txt
   sleep 60
   cp $HT_HOME/run/op.output $ARCHIVE_DIR
@@ -69,17 +69,18 @@ wait_for_recovery() {
 
 gen_test_data() {
     if [ ! -s golden_dump.$MAX_KEYS.md5 ] ; then
-        $HT_HOME/bin/ht load_generator --spec-file=$SCRIPT_DIR/data.spec \
+        $HT_HOME/bin/ht load_generator update --spec-file=$SCRIPT_DIR/data.spec \
             --max-keys=$MAX_KEYS --row-seed=$ROW_SEED --table=LoadTest \
-            --stdout update | cut -f1 | tail -n +2 | sort -u > golden_dump.$MAX_KEYS.txt
+            --stdout | cut -f1 | tail -n +2 | sort -u > golden_dump.$MAX_KEYS.txt
         $DIGEST < golden_dump.$MAX_KEYS.txt > golden_dump.$MAX_KEYS.md5
         #\rm -f golden_dump.$MAX_KEYS.txt
     fi
 }
 
 dump_keys() {
-    $HT_HOME/bin/ht shell -l error --batch < $SCRIPT_DIR/dump-test-table.hql \
-        | grep -v "Waiting for connection to Hyperspace" > $1.txt
+    $HT_HOME/bin/ht shell -l crit --batch < $SCRIPT_DIR/dump-test-table.hql > $1.txt
+    # | grep -v -E "^[0-9]{10} " | cut -c 1-20 
+    # | grep -v "Waiting for connection to Hyperspace"
     if [ $? != 0 ] ; then
         echo "Problem dumping table 'LoadTest', exiting ..."
         save_failure_state

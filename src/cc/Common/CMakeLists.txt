@@ -17,8 +17,6 @@
 # 02110-1301, USA.
 #
 
-set(SRC_DIR "${HYPERTABLE_SOURCE_DIR}/src/cc/Common")
-set(DST_DIR "${HYPERTABLE_BINARY_DIR}/src/cc/Common")
 
 if (APPLE)
   set(Fmemopen_SRCS fmemopen.c)
@@ -58,6 +56,9 @@ Logger.cc
 MetricsCollectorGanglia.cc
 MetricsProcess.cc
 MurmurHash.cc
+Property.cc
+PropertyValueEnumExt.cc
+PropertiesParser.cc
 Properties.cc
 Random.cc
 Regex.cc
@@ -83,177 +84,227 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "SunOS")
   link_libraries(socket)
 endif (${CMAKE_SYSTEM_NAME} MATCHES "SunOS")
 
-add_library(HyperCommon ${Common_SRCS} ${Fmemopen_SRCS})
-target_link_libraries(HyperCommon ${EXPAT_LIBRARIES} ${SIGAR_LIBRARIES}
-  ${BOOST_LIBS} ${READLINE_LIBRARIES} ${ZLIB_LIBRARIES} ${SNAPPY_LIBRARIES}
-  ${NCURSES_LIBRARY} ${CMAKE_THREAD_LIBS_INIT}
-    ${RE2_LIBRARIES} ${MALLOC_LIBRARY} ${Libssl_LIBRARIES})
+HT_ADD_LIBS(
+	TARGET HyperCommon 
+	SRCS ${Common_SRCS} ${Fmemopen_SRCS}
+	TARGETS HyperThirdParty
+	DEPENDENCIES ${MATH_LIBRARIES} ${THREAD_LIBRARIES}
+				 ${MALLOC_LIBRARY} ${BOOST_LIBRARIES} 
+				 ${ZLIB_LIBRARIES} ${BZIP2_LIBRARIES} ${LZMA_LIBRARIES}
+				 ${TINFOW_LIBRARIES} 
+				 ${RE2_LIBRARIES} ${SSL_LIBRARIES})
 
 add_executable(ht_system_info system_info.cc)
 target_link_libraries(ht_system_info HyperCommon)
 
 add_executable(ht_wordstream ht_wordstream.cc)
 target_link_libraries(ht_wordstream HyperCommon)
+configure_file(${HYPERTABLE_SOURCE_DIR}/tests/data/words.gz
+               ${HYPERTABLE_BINARY_DIR}/src/cc/Common/words.gz COPYONLY)
 
 # tests
-add_executable(Base64_test tests/Base64_test.cc)
-target_link_libraries(Base64_test HyperCommon)
+set(SRC_DIR "${HYPERTABLE_SOURCE_DIR}/src/cc/Common")
+set(DST_DIR "${HYPERTABLE_BINARY_DIR}/src/cc/Common")
 
-add_executable(Crypto_test tests/Crypto_test.cc)
-target_link_libraries(Crypto_test HyperCommon)
-
-add_executable(directory_test tests/directory_test.cc)
-target_link_libraries(directory_test HyperCommon)
-
-add_executable(exception_test tests/exception_test.cc)
-target_link_libraries(exception_test HyperCommon)
-
-add_executable(escaper_test tests/escaper_test.cc)
-target_link_libraries(escaper_test HyperCommon)
-
-add_executable(HostSpecification_test tests/HostSpecification_test.cc)
-target_link_libraries(HostSpecification_test HyperCommon)
+HT_ADD_TEST(
+	NAME Common-Base64
+	SRCS tests/Base64_test.cc
+	TARGETS  Hypertable
+)
+HT_ADD_TEST(
+	NAME Common-Crypto
+	SRCS tests/Crypto_test.cc
+	TARGETS Hypertable 
+)
+HT_ADD_TEST(
+	NAME Common-Exception
+	SRCS tests/exception_test.cc
+	TARGETS Hypertable 
+)
+HT_ADD_TEST(
+	NAME Common-directory
+	SRCS tests/directory_test.cc
+	TARGETS Hypertable 
+	ARGS ${CMAKE_CURRENT_SOURCE_DIR}/tests/directory_test.golden
+)
+HT_ADD_TEST(
+	NAME Common-Escaper
+	SRCS tests/escaper_test.cc
+	TARGETS Hypertable 
+)
 configure_file(${SRC_DIR}/tests/HostSpecification_test.golden
                ${DST_DIR}/HostSpecification_test.golden)
-
-add_executable(ClusterDefinition_test tests/ClusterDefinition_test.cc)
-target_link_libraries(ClusterDefinition_test HyperCommon)
+HT_ADD_TEST(
+	NAME Common-HostSpecification
+	SRCS tests/HostSpecification_test.cc
+	TARGETS Hypertable 
+)
+# ClusterDefinition tests
 configure_file(${SRC_DIR}/tests/ClusterDefinition_test.golden
                ${DST_DIR}/ClusterDefinition_test.golden)
-
-add_executable(logging_test tests/logging_test.cc)
-target_link_libraries(logging_test HyperCommon)
-
+HT_ADD_TEST(
+	NAME Common-ClusterDefinition
+	SRCS tests/ClusterDefinition_test.cc
+	TARGETS Hypertable 
+)
 add_subdirectory(ClusterDefinitionFile)
-
+HT_ADD_TEST(
+	NAME Common-Logging
+	SRCS tests/logging_test.cc
+	TARGETS Hypertable 
+)
 # serialization tests
-add_executable(Serializable_test tests/Serializable_test.cc)
-target_link_libraries(Serializable_test HyperCommon)
-
-add_executable(sertest tests/sertest.cc)
-target_link_libraries(sertest HyperCommon)
-
+HT_ADD_TEST(
+	NAME Common-Serializable
+	SRCS tests/Serializable_test.cc
+	TARGETS Hypertable 
+	ARGS ${CMAKE_CURRENT_SOURCE_DIR}/tests/Serializable_test.golden
+)
+HT_ADD_TEST(
+	NAME Common-Serialization
+	SRCS tests/sertest.cc
+	TARGETS Hypertable 
+)
 # scope guard tests
-add_executable(scope_guard_test tests/scope_guard_test.cc)
-target_link_libraries(scope_guard_test HyperCommon)
-
+HT_ADD_TEST(
+	NAME Common-ScopeGuard
+	SRCS tests/scope_guard_test.cc
+	TARGETS Hypertable 
+)
 # inetaddr tests
-add_executable(inetaddr_test tests/inetaddr_test.cc)
+set(ext_deps )
 if (${CMAKE_SYSTEM_NAME} MATCHES "SunOS")
-  target_link_libraries(inetaddr_test HyperCommon nsl resolv)
-else (${CMAKE_SYSTEM_NAME} MATCHES "SunOS")
-  target_link_libraries(inetaddr_test HyperCommon)
-endif (${CMAKE_SYSTEM_NAME} MATCHES "SunOS")
+  set(ext_deps nsl resolv)
+endif ()
+HT_ADD_TEST(
+	NAME Common-InetAddr
+	SRCS tests/inetaddr_test.cc
+	TARGETS Hypertable 
+	EXT_DEPS ${ext_deps}
+)
 
 # pagearena tests
-add_executable(pagearena_test tests/pagearena_test.cc)
-target_link_libraries(pagearena_test HyperCommon ${MALLOC_LIBRARY})
-
-# mutex tests
-add_executable(mutex_test tests/mutex_test.cc)
-target_link_libraries(mutex_test HyperCommon)
-
-# properties tests
-add_executable(properties_test tests/properties_test.cc)
-target_link_libraries(properties_test HyperCommon)
-
+HT_ADD_TEST(
+	NAME Common-PageArena
+	SRCS tests/pagearena_test.cc
+	TARGETS Hypertable 
+)
 # config tests
-add_executable(config_test tests/config_test.cc)
-target_link_libraries(config_test HyperCommon)
+#HT_ADD_TEST(
+#	NAME Common-Config
+#	SRCS tests/config_test.cc
+#	TARGETS Hypertable 
+#)
 
 # crontab tests
 add_executable(crontab_test tests/crontab_test.cc)
 target_link_libraries(crontab_test HyperCommon)
+add_test(Common-Crontab env 
+		 bash -c "${CMAKE_CURRENT_BINARY_DIR}/crontab_test > crontab_test.output; diff crontab_test.output ${CMAKE_CURRENT_SOURCE_DIR}/tests/crontab_test.golden")
 
-# TimeWindow test
-add_executable(TimeWindowTest tests/TimeWindowTest.cc)
-target_link_libraries(TimeWindowTest HyperCommon)
-
+# properties tests
+add_executable(properties_test tests/properties_test.cc)
+target_link_libraries(properties_test HyperCommon)
+add_test(Common-Properties ${TEST_DIFF}
+  ${CMAKE_CURRENT_SOURCE_DIR}/tests/properties_test.golden ./properties_test)
+  
 # init tests
 add_executable(init_test tests/init_test.cc)
 target_link_libraries(init_test HyperCommon)
+add_test(Common-init ${TEST_DIFF}
+  ${CMAKE_CURRENT_SOURCE_DIR}/tests/init_test.golden
+  ./init_test --i16 1k --i32 64K --i64 1G --boo --enum_ext two)
+  
+# md5 base 64 test
+HT_ADD_TEST(
+	NAME MD5-Base64
+	SRCS tests/md5_base64_test.cc
+	TARGETS Hypertable 
+)
+# StatsSerializable test
+HT_ADD_TEST(
+	NAME Common-StatsSystem-serialize
+	SRCS tests/stats_serialize_test.cc
+	TARGETS Hypertable 
+)
+# StringCompressor test
+HT_ADD_TEST(
+	NAME Common-StringCompressor
+	SRCS tests/string_compressor_test.cc
+	TARGETS Hypertable 
+)
+# timeinline test
+HT_ADD_TEST(
+	NAME Common-TimeInline
+	SRCS tests/timeinline_test.cc
+	TARGETS Hypertable 
+)
+# FailureInducer test
+HT_ADD_TEST(
+	NAME Common-FailureInducer
+	SRCS tests/failure_inducer_test.cc
+	TARGETS Hypertable 
+)
+configure_file(${SRC_DIR}/tests/failure_inducer_test.golden
+               ${DST_DIR}/failure_inducer_test.golden)
+# TimeWindow test
+add_executable(TimeWindowTest tests/TimeWindowTest.cc)
+target_link_libraries(TimeWindowTest HyperCommon)
+add_test(Common-TimeWindow env bash -c "${CMAKE_CURRENT_BINARY_DIR}/TimeWindowTest > TimeWindowTest.output; diff TimeWindowTest.output ${CMAKE_CURRENT_SOURCE_DIR}/tests/TimeWindowTest.golden")
 
+# bloom filter test
+HT_ADD_TEST(
+	NAME Common-BloomFilter
+	SRCS tests/bloom_filter_test.cc
+	TARGETS Hypertable 
+)
+# hash test
+HT_ADD_TEST(
+	NAME Common-Hash
+	SRCS tests/hash_test.cc
+	TARGETS Hypertable 
+)
+# mutex tests
+HT_ADD_TEST(
+	NAME Common-Mutex
+	SRCS tests/mutex_test.cc
+	TARGETS Hypertable 
+)
 # filesystem tests
-add_executable(filesystem_test tests/filesystem_test.cc)
-target_link_libraries(filesystem_test HyperCommon)
+HT_ADD_TEST(
+	NAME Common-FileSystem
+	SRCS tests/filesystem_test.cc
+	TARGETS Hypertable 
+)
+
+# config properties parser tests
+configure_file(${SRC_DIR}/tests/properties_parser_test.cfg ${DST_DIR}/properties_parser_test.cfg)
+
+add_executable(properties_parser_test tests/properties_parser_test.cc)
+target_link_libraries(properties_parser_test HyperCommon)
+add_test(Common-Properties-Parser ${TEST_DIFF}
+  ${CMAKE_CURRENT_SOURCE_DIR}/tests/properties_parser_test.golden
+  ./properties_parser_test argOne --i16 1k --i32 64K --i64 1G --boo true --strs=1 -strs 2 -strs 3 --strs 4 -strs=5 --strs=6 --b=1 --is_true
+)
+  
+# container tests
+#HT_ADD_TEST(
+#	NAME Common-Container
+#	SRCS tests/container_test.cc
+#	TARGETS Hypertable 
+#)
 
 # macro expanded formatted sertest.cc for easy debugging
 # sertest-x.cc is generated by gpp included in toplevel bin/gpp
 #add_executable(sertestx tests/sertest-x.cc)
 #target_link_libraries(sertestx HyperCommon)
 
-# bloom filter test
-add_executable(bloom_filter_test tests/bloom_filter_test.cc)
-target_link_libraries(bloom_filter_test HyperCommon)
-
-# hash test
-add_executable(hash_test tests/hash_test.cc)
-target_link_libraries(hash_test HyperCommon ${MALLOC_LIBRARY})
-
-# timeinline test
-add_executable(timeinline_test tests/timeinline_test.cc)
-target_link_libraries(timeinline_test HyperCommon ${MALLOC_LIBRARY})
-
-# container tests
-add_executable(container_test tests/container_test.cc)
-target_link_libraries(container_test HyperCommon)
-
-# md5 base 64 test
-add_executable(md5_base64_test tests/md5_base64_test.cc)
-target_link_libraries(md5_base64_test HyperCommon)
-
-# StatsSerializable test
-add_executable(stats_serialize_test tests/stats_serialize_test.cc)
-target_link_libraries(stats_serialize_test HyperCommon)
-
-# StringCompressor test
-add_executable(string_compressor_test tests/string_compressor_test.cc)
-target_link_libraries(string_compressor_test HyperCommon)
-
-# FailureInducer test
-add_executable(failure_inducer_test tests/failure_inducer_test.cc)
-target_link_libraries(failure_inducer_test HyperCommon)
-configure_file(${SRC_DIR}/tests/failure_inducer_test.golden
-               ${DST_DIR}/failure_inducer_test.golden)
-
-add_test(Common-Exception exception_test)
-add_test(Common-Exception escaper_test)
-add_test(Common-HostSpecification HostSpecification_test)
-add_test(Common-ClusterDefinition ClusterDefinition_test)
-add_test(Common-Logging logging_test)
-add_test(Common-Serializable Serializable_test ${CMAKE_CURRENT_SOURCE_DIR}/tests/Serializable_test.golden)
-add_test(Common-Serialization sertest)
-add_test(Common-ScopeGuard scope_guard_test)
-add_test(Common-InetAddr inetaddr_test)
-add_test(Common-PageArena pagearena_test)
-add_test(Common-Config config_test)
-add_test(Common-Crontab env bash -c "${CMAKE_CURRENT_BINARY_DIR}/crontab_test > crontab_test.output; diff crontab_test.output ${CMAKE_CURRENT_SOURCE_DIR}/tests/crontab_test.golden")
-add_test(Common-Base64 Base64_test)
-add_test(Common-Crypto Crypto_test)
-add_test(Common-directory directory_test ${CMAKE_CURRENT_SOURCE_DIR}/tests/directory_test.golden)
-add_test(Common-Properties ${TEST_DIFF}
-  ${CMAKE_CURRENT_SOURCE_DIR}/tests/properties_test.golden ./properties_test)
-add_test(Common-init ${TEST_DIFF}
-  ${CMAKE_CURRENT_SOURCE_DIR}/tests/init_test.golden
-  ./init_test --i16 1k --i32 64K --i64 1G --boo)
-add_test(MD5-Base64 md5_base64_test)
-add_test(Common-StatsSystem-serialize stats_serialize_test)
-add_test(Common-StringCompressor string_compressor_test)
-add_test(Common-TimeInline timeinline_test)
-add_test(Common-TimeWindow env bash -c "${CMAKE_CURRENT_BINARY_DIR}/TimeWindowTest > TimeWindowTest.output; diff TimeWindowTest.output ${CMAKE_CURRENT_SOURCE_DIR}/tests/TimeWindowTest.golden")
-add_test(Common-FailureInducer failure_inducer_test)
 
 set(VERSION_H ${HYPERTABLE_BINARY_DIR}/src/cc/Common/Version.h)
-
 configure_file(Version.h.in ${VERSION_H})
-configure_file(${HYPERTABLE_SOURCE_DIR}/tests/data/words.gz
-               ${HYPERTABLE_BINARY_DIR}/src/cc/Common/words.gz COPYONLY)
-add_test(Common-BloomFilter bloom_filter_test)
-add_test(Common-Hash hash_test)
 
 if (NOT HT_COMPONENT_INSTALL)
   file(GLOB HEADERS *.h metrics)
-
   install(FILES ${HEADERS} ${VERSION_H} DESTINATION include/Common)
 
   install(TARGETS HyperCommon

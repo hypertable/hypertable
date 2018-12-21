@@ -279,8 +279,8 @@ namespace Apps {
     /// Configuration properties
     PropertiesPtr m_props;
 
-    /// Flag indicating if verbose logging is enabled
-    bool m_verbose {};
+    /// Guarded Property with Flag indicating if verbose logging is enabled
+    gBoolPtr m_verbose {};
 
     /// Flag indicating if server is starting up
     bool m_startup {true};

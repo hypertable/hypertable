@@ -55,8 +55,9 @@ namespace Hypertable {
       ZLIB=2,     ///< ZLIB compression
       LZO=3,      ///< LZO compression
       QUICKLZ=4,  ///< QuickLZ 1.5 compession
-      SNAPPY=5,   ///< Snappy compression
-      COMPRESSION_TYPE_LIMIT=6  ///< Limit of compression types
+	  SNAPPY=5,   ///< Snappy compression
+	  ZSTD=6,     ///< Zstandard compression
+      COMPRESSION_TYPE_LIMIT=7  ///< Limit of compression types
     };
 
     /// Compression codec argument vector.

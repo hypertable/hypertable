@@ -229,7 +229,7 @@ int main(int argc, char **argv) {
 
   Config::init(0, 0);
 
-  memset(&client_addr, 0, sizeof(client_addr));
+  memset(reinterpret_cast<void*>(&client_addr), 0, sizeof(client_addr));
 
   for (int i=1; i<argc; i++) {
     if (!strcmp(argv[i], "--help"))

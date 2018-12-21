@@ -238,15 +238,15 @@ bool TimerHandler::low_memory() {
       memory_used - m_query_cache_memory > Global::memory_limit_ensure_unused_current) {
 
     // adjust current limit according to the actual memory situation
-    int64_t free_memory = (int64_t)(System::mem_stat().free * Property::MiB);
+    int64_t free_memory = (int64_t)(System::mem_stat().free * MiB);
     if (Global::memory_limit_ensure_unused_current < Global::memory_limit_ensure_unused)
       Global::memory_limit_ensure_unused_current = std::min(free_memory, Global::memory_limit_ensure_unused);
 
     // low physical memory reached?
     low_physical_memory = free_memory < Global::memory_limit_ensure_unused_current;
     if (low_physical_memory)
-      HT_INFOF("Low physical memory (free %.2fMB, limit %.2fMB)", free_memory / (double)Property::MiB,
-               Global::memory_limit_ensure_unused_current / (double)Property::MiB);
+      HT_INFOF("Low physical memory (free %.2fMB, limit %.2fMB)", free_memory / (double)MiB,
+               Global::memory_limit_ensure_unused_current / (double)MiB);
   }
 
   return low_physical_memory || memory_used > Global::memory_limit;

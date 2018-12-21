@@ -1447,7 +1447,7 @@ int main(int argc, char **argv) {
     strcpy((char *)uptr, value);
     bsvalue.ptr = valuebuf;
 
-    memset(&key, 0, sizeof(key));
+	memset(reinterpret_cast<void*>(&key), 0, sizeof(key));
 
     for (size_t i=0; i<500; i++) {
       sprintf(rowbuf, "row%06d", (int)i);

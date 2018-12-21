@@ -16,70 +16,13 @@
 # along with Hypertable. If not, see <http://www.gnu.org/licenses/>
 #
 
-macro(HT_GET_SONAME var fpath)
-  exec_program(${CMAKE_SOURCE_DIR}/bin/src-utils/soname.sh ARGS ${fpath}
-               OUTPUT_VARIABLE SONAME_OUT RETURN_VALUE SONAME_RETURN)
-  set(${var})
-
-  if (SONAME_RETURN STREQUAL "0")
-    set(${var} ${SONAME_OUT})
-  endif ()
-
-  if (NOT ${var})
-    get_filename_component(${var} ${fpath} NAME)
-  endif ()
-
-  if (HT_CMAKE_DEBUG)
-    message("SONAME: ${fpath} -> ${${var}}")
-  endif ()
-
-  # check if the library is prelinked, if so, warn
-  exec_program(env ARGS objdump -h ${fpath} OUTPUT_VARIABLE ODH_OUT
-               RETURN_VALUE ODH_RETURN)
-  if (ODH_RETURN STREQUAL "0")
-    string(REGEX MATCH "prelink_undo" match ${ODH_OUT})
-    if (match)
-      message("WARNING: ${fpath} is prelinked, RPMs may require --nomd5")
-    endif ()
-  endif ()
-endmacro()
-
-# This is a workaround for install() which always preserves symlinks
-macro(HT_INSTALL_LIBS dest)
-  if (INSTALL_EXCLUDE_DEPENDENT_LIBS)
-    message(STATUS "Not installing dependent libraries")
-  else ()
-    foreach(fpath ${ARGN})
-      if (NOT ${fpath} MATCHES "(NOTFOUND|\\.a)$")
-        if (HT_CMAKE_DEBUG)
-          message(STATUS "install copy: ${fpath}")
-        endif ()
-        HT_GET_SONAME(soname ${fpath})
-        configure_file(${fpath} "${dest}/${soname}" COPYONLY)
-        install(FILES "${CMAKE_BINARY_DIR}/${dest}/${soname}" DESTINATION ${dest})
-      else ()
-         message(STATUS "Problem installing ${fpath} soname=${soname} to ${dest}")
-      endif ()
-    endforeach()
-  endif ()
-endmacro()
-
 # Dependent libraries
-HT_INSTALL_LIBS(lib ${BOOST_LIBS} ${Thrift_LIBS}
-                ${Kfs_LIBRARIES} ${Mapr_LIBRARIES} ${LibEvent_LIB}
-                ${EXPAT_LIBRARIES} ${BZIP2_LIBRARIES}
-                ${ZLIB_LIBRARIES} ${SNAPPY_LIBRARY} ${SIGAR_LIBRARY} ${Tcmalloc_LIBRARIES}
-                ${Jemalloc_LIBRARIES} ${Ceph_LIBRARIES} ${RE2_LIBRARIES}
-                ${EDITLINE_LIBRARIES})
+HT_INSTALL_LIBS(lib ${Kfs_LIBRARIES})
 
 # Apple specific
 if (APPLE)
    install(FILES "/System/Library/Frameworks/CoreFoundation.framework/Versions/Current/CoreFoundation" DESTINATION lib)
    install(FILES "/System/Library/Frameworks/IOKit.framework/Versions/Current/IOKit" DESTINATION lib)
-endif ()
-
-if (NOT PACKAGE_THRIFTBROKER)
-  HT_INSTALL_LIBS(lib ${BDB_LIBRARIES} ${RRD_LIBRARIES})
 endif ()
 
 # Need to include some "system" libraries as well
@@ -110,6 +53,7 @@ if (LDD_RETURN STREQUAL "0")
   string(REGEX MATCH "[ \t](/[^ ]+/libc\\+\\+abi\\.[^ \n]+)" dummy ${LDD_OUT})
   set(cxxabi_lib ${CMAKE_MATCH_1})
   HT_INSTALL_LIBS(lib ${gcc_s_lib} ${stdcxx_lib} ${stacktrace_lib} ${cxx_lib} ${cxxabi_lib})
+  
 else ()
   set(LDD_CMD "${CMAKE_BINARY_DIR}/CMakeFiles/CompilerIdCXX/a.out")
   set(LDD_CMD "${CMAKE_SOURCE_DIR}/bin/src-utils/ldd.sh ${LDD_CMD}")
@@ -117,26 +61,8 @@ else ()
   message(FATAL_ERROR "${LDD_OUT}")
 endif ()
 
-# Install Thrift dependencies
-string(REPLACE " " ";" Thrift_LIB_DEPENDENCIES_LIST ${Thrift_LIB_DEPENDENCIES})
-foreach(thrift_dep ${Thrift_LIB_DEPENDENCIES_LIST})
-  HT_INSTALL_LIBS(lib ${thrift_dep})
-endforeach ()
 
-# Install libssh and libssl
-HT_INSTALL_LIBS(lib ${Libssh_LIBRARIES} ${Libssl_LIBRARIES})
 
-# Install Libssh dependencies
-string(REPLACE " " ";" Libssh_LIB_DEPENDENCIES_LIST ${Libssh_LIB_DEPENDENCIES})
-foreach(thrift_dep ${Libssh_LIB_DEPENDENCIES_LIST})
-  HT_INSTALL_LIBS(lib ${thrift_dep})
-endforeach ()
-
-# copy cronolog and node to the /sbin directory
-install(PROGRAMS "${CRONOLOG_DIR}/cronolog"
-        DESTINATION ${CMAKE_INSTALL_PREFIX}/sbin)
-install(PROGRAMS "${NODEJS_EXECUTABLE}"
-        DESTINATION ${CMAKE_INSTALL_PREFIX}/sbin)
 
 # General package variables
 if (NOT CPACK_PACKAGE_NAME)
@@ -228,7 +154,8 @@ set(CPACK_RPM_PRE_INSTALL_SCRIPT_FILE ${CMAKE_INSTALL_PREFIX}/bin/ht-rpm-pre-ins
 set(CPACK_RPM_POST_INSTALL_SCRIPT_FILE ${CMAKE_INSTALL_PREFIX}/bin/ht-rpm-post-install.sh)
 
 # rpm perl dependencies stuff is dumb
-set(CPACK_RPM_SPEC_MORE_DEFINE "
+if (LANGS OR LANG_PL)
+ set(CPACK_RPM_SPEC_MORE_DEFINE "
 Provides: perl(Thrift)
 Provides: perl(Thrift::BinaryProtocol)
 Provides: perl(Thrift::FramedTransport)
@@ -238,5 +165,7 @@ Provides: perl(Hypertable::ThriftGen2::Types)
 Provides: perl(Hypertable::ThriftGen::ClientService)
 Provides: perl(Hypertable::ThriftGen::Types)
 ")
+endif ()
+
 
 include(CPack)

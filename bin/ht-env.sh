@@ -233,6 +233,7 @@ check_startlog() {
 exec_server() {
   servercmd=$1; shift
   if [ "$logger" ]; then
+    rm -f ${logfile};
     ($HEAPCHECK $VALGRIND $HYPERTABLE_HOME/bin/$servercmd --pidfile $pidfile "$@" 2>&1 |
         $logger) &> $startlog &
   else

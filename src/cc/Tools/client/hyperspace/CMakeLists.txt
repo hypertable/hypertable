@@ -19,21 +19,24 @@
 # 02110-1301, USA.
 #
 
-set(SRC_DIR "${HYPERTABLE_SOURCE_DIR}/src/cc/Tools/client/hyperspace")
-set(DST_DIR "${HYPERTABLE_BINARY_DIR}/src/cc/Tools/client/hyperspace")
-
 set(hyperspace_SRCS
 hyperspace.cc
 )
 
 # ht_hyperspace - Hyperspace client program
 add_executable(ht_hyperspace ${hyperspace_SRCS})
-target_link_libraries(ht_hyperspace Hyperspace ${READLINE_LIBRARIES} Hypertable)
+target_link_libraries(ht_hyperspace Hyperspace Hypertable)
+
+
+set(SRC_DIR "${HYPERTABLE_SOURCE_DIR}/src/cc/Tools/client/hyperspace")
+set(DST_DIR "${HYPERTABLE_BINARY_DIR}/src/cc/Tools/client/hyperspace")
 
 # hyperspaceTest
-add_executable(hyperspaceTest test/hyperspaceTest.cc)
-target_link_libraries(hyperspaceTest HyperComm)
-
+HT_ADD_TEST(
+	NAME Hyperspace
+	SRCS test/hyperspaceTest.cc
+	TARGETS Hypertable HyperComm
+)
 configure_file(${SRC_DIR}/test/hyperspaceTest.cfg ${DST_DIR}/hyperspaceTest.cfg)
 configure_file(${SRC_DIR}/test/client1.golden ${DST_DIR}/client1.golden
                COPYONLY)
@@ -42,8 +45,7 @@ configure_file(${SRC_DIR}/test/client2.golden ${DST_DIR}/client2.golden
 configure_file(${SRC_DIR}/test/client3.golden ${DST_DIR}/client3.golden
                COPYONLY)
 
-add_test(Hyperspace hyperspaceTest)
-
+			   
 if (NOT HT_COMPONENT_INSTALL)
   install(TARGETS ht_hyperspace RUNTIME DESTINATION bin)
 endif ()

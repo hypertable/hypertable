@@ -29,7 +29,6 @@
 #include <AsyncComm/ApplicationQueue.h>
 #include <AsyncComm/Comm.h>
 
-#include <Common/Config.h>
 #include <Common/Error.h>
 #include <Common/FileUtils.h>
 #include <Common/InetAddr.h>
@@ -57,13 +56,13 @@ namespace {
 struct AppPolicy : Policy {
   static void init_options() {
     cmdline_desc().add_options()
-      ("root", str()->default_value("fs/local"), "root directory for local "
+      ("root", str("fs/local"), "root directory for local "
           "broker (if relative, it's relative to the installation directory")
       ;
-    alias("port", "FsBroker.Local.Port");
+    alias("port", "FsBroker.Listen.Port");
     alias("root", "FsBroker.Local.Root");
-    alias("workers", "FsBroker.Local.Workers");
-    alias("reactors", "FsBroker.Local.Reactors");
+    alias("workers", "FsBroker.Listen.Workers");
+    alias("reactors", "FsBroker.Listen.Reactors");
   }
 };
 
@@ -75,15 +74,9 @@ typedef Meta::list<AppPolicy, FsBrokerPolicy, DefaultCommPolicy> Policies;
 int main(int argc, char **argv) {
   try {
     init_with_policies<Policies>(argc, argv);
-    int port;
-    int worker_count = get_i32("workers");
 
-    if (has("port"))
-      port = get_i16("port");
-    else if (has("DfsBroker.Port"))
-      port = get_i16("DfsBroker.Port");
-    else
-      port = get_i16("FsBroker.Port");
+    int port = get_i16("port");
+    int worker_count = get_i32("workers");
 
     Comm *comm = Comm::instance();
     ApplicationQueuePtr app_queue = make_shared<ApplicationQueue>(worker_count);

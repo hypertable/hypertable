@@ -57,7 +57,6 @@ extern "C" {
 }
 
 using namespace Hypertable;
-using namespace Hypertable::Config;
 using namespace std;
 
 namespace {
@@ -73,7 +72,7 @@ namespace {
 CommitLogReader::CommitLogReader(FilesystemPtr &fs, const string &log_dir)
   : CommitLogBase(log_dir), m_fs(fs), m_block_buffer(256),
     m_revision(TIMESTAMP_MIN), m_last_fragment_id(-1) {
-  if (get_bool("Hypertable.CommitLog.SkipErrors"))
+  if (Config::properties->get_bool("Hypertable.CommitLog.SkipErrors"))
     CommitLogBlockStream::ms_assert_on_error = false;
   load_fragments(m_log_dir, 0);
   reset();
@@ -85,7 +84,7 @@ CommitLogReader::CommitLogReader(FilesystemPtr &fs, const string &log_dir,
     m_revision(TIMESTAMP_MIN),
     m_fragment_filter(fragment_filter.begin(), fragment_filter.end()),
     m_last_fragment_id(-1) {
-  if (get_bool("Hypertable.CommitLog.SkipErrors"))
+  if (Config::properties->get_bool("Hypertable.CommitLog.SkipErrors"))
     CommitLogBlockStream::ms_assert_on_error = false;
   load_fragments(log_dir, 0);
   reset();

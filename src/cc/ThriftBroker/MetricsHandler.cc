@@ -37,7 +37,6 @@
 #include <mutex>
 
 using namespace Hypertable;
-using namespace std;
 
 
 MetricsHandler::MetricsHandler(PropertiesPtr &props, Cronolog *slow_query_log)

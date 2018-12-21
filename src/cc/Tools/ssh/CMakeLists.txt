@@ -19,7 +19,7 @@
 
 # ht_ssh - Mulit-host ssh automation tool
 add_executable(ht_ssh ht_ssh.cc SshSocketHandler.cc SshThreadsCallbacks.cc SshOutputCollector.cc)
-target_link_libraries(ht_ssh HyperCommon HyperComm ${Libssh_LIBRARIES})
+target_link_libraries(ht_ssh HyperCommon HyperComm ${SSH_LIBRARIES})
 
 if (NOT HT_COMPONENT_INSTALL)
   install(TARGETS ht_ssh RUNTIME DESTINATION bin)

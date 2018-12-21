@@ -23,6 +23,7 @@
 #define HYPERTABLE_FSBROKER_CONFIG_H
 
 #include "AsyncComm/Config.h"
+#include "AsyncComm/ConfigHandler.h"
 
 namespace Hypertable { namespace Config {
   // init helpers

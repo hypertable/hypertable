@@ -19,6 +19,9 @@
  * 02110-1301, USA.
  */
 
+#ifndef FsBroker_Lib_OpenFileMap_h
+#define FsBroker_Lib_OpenFileMap_h
+
 #include <Common/Logger.h>
 
 #include <memory>
@@ -48,12 +51,17 @@ namespace Lib {
   class OpenFileMap {
 
   public:
-
+	  
     void create(int fd, struct sockaddr_in &addr, OpenFileDataPtr &fdata) {
       std::lock_guard<std::mutex> lock(m_mutex);
       fdata->addr = addr;
       m_file_map[fd] = fdata;
     }
+
+	void create(int fd, OpenFileDataPtr  &fdata) {
+		std::lock_guard<std::mutex> lock(m_mutex);
+		m_file_map[fd] = fdata;
+	}
 
     bool get(int fd, OpenFileDataPtr &fdata) {
       std::lock_guard<std::mutex> lock(m_mutex);
@@ -118,3 +126,5 @@ namespace Lib {
   /// @}
 
 }}}
+
+#endif // FsBroker_Lib_OpenFileMap_h

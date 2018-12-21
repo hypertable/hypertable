@@ -44,6 +44,7 @@ namespace {
     "lzo",
     "quicklz",
     "snappy",
+    "zstd",
     "",
     0
   };

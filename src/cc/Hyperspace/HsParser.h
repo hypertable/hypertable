@@ -85,7 +85,8 @@ namespace Hyperspace {
       COMMAND_DUMP,
       COMMAND_MKDIRS,
       COMMAND_STATUS,
-      COMMAND_MAX
+      COMMAND_MAX,
+      COMMAND_CFG_RELOAD
     };
 
     enum {
@@ -362,6 +363,7 @@ namespace Hyperspace {
           Token C_HELP                 = as_lower_d["help"];
           Token C_LOCATE               = as_lower_d["locate"];
           Token C_STATUS               = as_lower_d["status"];
+          Token C_CFG_RELOAD           = as_lower_d["cfg_reload"];
 
           Token ESC_HELP               = as_lower_d["\\h"];
 
@@ -444,6 +446,7 @@ namespace Hyperspace {
             | getseq_statement[set_command(self.state, COMMAND_GETSEQ)]
             | echo_statement[set_command(self.state, COMMAND_ECHO)]
             | locate_statement[set_command(self.state, COMMAND_LOCATE)]
+            | cfg_reload_statement[set_command(self.state, COMMAND_CFG_RELOAD)]
             | status_statement[set_command(self.state, COMMAND_STATUS)]
             ;
 
@@ -550,6 +553,10 @@ namespace Hyperspace {
           locate_statement
             = C_LOCATE >> locate_type
             ;
+			
+          cfg_reload_statement
+            = C_CFG_RELOAD >> node_name[set_file_name(self.state)];
+            ;
 
           status_statement
             = C_STATUS
@@ -654,6 +661,7 @@ namespace Hyperspace {
           BOOST_SPIRIT_DEBUG_RULE(help_statement);
           BOOST_SPIRIT_DEBUG_RULE(locate_statement);
           BOOST_SPIRIT_DEBUG_RULE(status_statement);
+          BOOST_SPIRIT_DEBUG_RULE(cfg_reload_statement);
           BOOST_SPIRIT_DEBUG_RULE(attrset_statement);
           BOOST_SPIRIT_DEBUG_RULE(attrget_statement);
           BOOST_SPIRIT_DEBUG_RULE(attrincr_statement);
@@ -704,7 +712,7 @@ namespace Hyperspace {
           open_event_mask_value, one_create_flag_value, create_flag_value,
           one_create_event_mask_value, create_event_mask_value,
           one_create_option, attribute, lock_mode, node_name, locate_type,
-          status_statement;
+          status_statement, cfg_reload_statement;
         };
 
       ParserState &state;

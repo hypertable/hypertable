@@ -41,7 +41,7 @@ typedef std::vector< boost::shared_ptr<option_description> > OptVec;
 int main(int argc, char *argv[]) {
   init(argc, argv);
 
-  Desc desc = Config::file_desc();
+  Desc desc = file_desc();
   OptVec &options = (OptVec &)desc.options();
 
   // sort alphabetically

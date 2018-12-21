@@ -17,37 +17,38 @@
 # 02110-1301, USA.
 #
 
-HT_GLOB(GenRb_SRCS hypertable/gen-rb/client*.rb
-                   hypertable/gen-rb/hql_constants.rb
-                   hypertable/gen-rb/hql_service.rb)
-
+add_custom_target(ThriftGenRb ALL)
 add_custom_command(
-  OUTPUT    ${GenRb_SRCS}
-  COMMAND   thrift
-  ARGS      -r --gen rb -o ${CMAKE_CURRENT_SOURCE_DIR}/hypertable
-            ${ThriftBroker_IDL_DIR}/Hql.thrift
-  DEPENDS   ${ThriftBroker_IDL_DIR}/Client.thrift
-            ${ThriftBroker_IDL_DIR}/Hql.thrift
-  COMMENT   "thrift2rb"
+  TARGET   ThriftGenRb
+  COMMAND  cp 
+  ARGS     -r  ${CMAKE_CURRENT_SOURCE_DIR}/hypertable ${HYPERTABLE_BINARY_DIR}/src/rb/ThriftClient
 )
 
-add_custom_command(
-  OUTPUT    ${CMAKE_CURRENT_SOURCE_DIR}/hypertable/gen-rb/hql_types.rb
-  COMMAND   sed
-  ARGS      -i 's/hypertable\\/thrift_gen\\/client_types/client_types/g'
-            ${CMAKE_CURRENT_SOURCE_DIR}/hypertable/gen-rb/hql_types.rb
-  DEPENDS   ${GenRb_SRCS}
-  COMMENT   "rbPostProcess"
-)
-
-add_custom_target(ThriftGenRb ALL DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/hypertable/gen-rb/hql_types.rb)
-
-if (RUBYTHRIFT_FOUND)
-  add_test(ThriftClient-ruby ruby -I ${INSTALL_DIR}/lib/rb
-      ${CMAKE_CURRENT_SOURCE_DIR}/client_test.rb)
+#### GENERATE HYPERTHRIFT module
+if (THRIFT_FOUND)
+	add_custom_command(
+		TARGET 		ThriftGenRb
+		COMMAND   	thrift
+		ARGS      	-r --gen rb -o ${HYPERTABLE_BINARY_DIR}/src/rb/ThriftClient/hypertable/
+					${ThriftBroker_IDL_DIR}/Hql.thrift
+		DEPENDS   	${ThriftBroker_IDL_DIR}/Client.thrift
+					${ThriftBroker_IDL_DIR}/Hql.thrift
+		COMMENT   	"thrift2rb"
+	)
+		
+	#### minimize attr access
+	add_custom_command(
+		TARGET 	 ThriftGenRb
+		COMMAND  sed 
+		ARGS     -i 's/hypertable\\/thrift_gen\\/client_types/client_types/g'  ${HYPERTABLE_BINARY_DIR}/src/rb/ThriftClient/hypertable/gen-rb/hql_types.rb
+	)
 endif ()
 
+
+
+add_test(ThriftClient-ruby ruby -I ${INSTALL_DIR}/lib/rb ${INSTALL_DIR}/lib/rb/client_test.rb)
+
 if (NOT HT_COMPONENT_INSTALL OR PACKAGE_THRIFTBROKER)
-  install(DIRECTORY hypertable DESTINATION lib/rb)
+  install(DIRECTORY ${HYPERTABLE_BINARY_DIR}/src/rb/ThriftClient/hypertable DESTINATION lib/rb)
   install(FILES client_test.rb DESTINATION lib/rb)
 endif ()

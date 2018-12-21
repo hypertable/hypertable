@@ -36,10 +36,10 @@ namespace Hyperspace {
 
   class SessionData {
   public:
-    SessionData(const sockaddr_in &_addr, uint32_t lease_interval, uint64_t _id)
+    SessionData(const sockaddr_in &_addr, gInt32tPtr lease_interval, uint64_t _id)
       : addr(_addr), m_lease_interval(lease_interval), id(_id) {
       expire_time = std::chrono::steady_clock::now() +
-        std::chrono::milliseconds(lease_interval);
+        std::chrono::milliseconds(lease_interval->get());
     }
 
     void add_notification(Notification *notification) {
@@ -98,7 +98,7 @@ namespace Hyperspace {
       auto now = std::chrono::steady_clock::now();
       if (expire_time < now)
         return false;
-      expire_time = now + std::chrono::milliseconds(m_lease_interval);
+      expire_time = now + std::chrono::milliseconds(m_lease_interval->get());
       return true;
     }
 
@@ -146,7 +146,7 @@ namespace Hyperspace {
     std::mutex mutex;
     struct sockaddr_in addr;
     std::chrono::steady_clock::time_point expire_time;
-    uint32_t m_lease_interval {};
+    gInt32tPtr m_lease_interval {};
     uint64_t id;
     bool expired {};
     std::list<Notification *> notifications;

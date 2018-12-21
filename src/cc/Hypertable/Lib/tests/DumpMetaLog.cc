@@ -43,8 +43,9 @@ struct MyPolicy : Policy {
       ("states,s", "Dump metalog as states tree")
       ("copy", str(), "Make a copy of the metalog to <arg> until errors")
       ;
-    cmdline_hidden_desc().add_options()("path", str(), "path in FS");
-    cmdline_positional_desc().add("path", -1);
+    cmdline_hidden_desc().add_options()
+    ("path", str(), "path in FS")
+    ("path", -1);
   }
   static void init() {
     if (!has("path")) {

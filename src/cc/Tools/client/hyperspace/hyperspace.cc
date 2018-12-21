@@ -56,10 +56,20 @@ public:
   virtual void reconnected() { }
 };
 
+struct AppPolicy : Policy {
+  static void init_options() {
+    // or ht-check-hyperspace.sh should not specify SERVICE_HOSTNAME
+    cmdline_hidden_desc().add_options()
+    ("address", str(), "")  
+    ("address", -1);
+  }
+};
+  
 int main(int argc, char **argv) {
   bool silent {};
 
-  typedef Cons<HyperspaceCommandShellPolicy, DefaultCommPolicy> MyPolicy;
+  typedef Meta::list<HyperspaceCommandShellPolicy, DefaultCommPolicy,
+                     AppPolicy> Policies;
 
   try {
     Comm *comm;
@@ -68,18 +78,18 @@ int main(int argc, char **argv) {
     SessionPtr session_ptr;
     SessionHandler session_handler;
 
-    init_with_policy<MyPolicy>(argc, argv);
+    init_with_policies<Policies>(argc, argv);
     HsClientState::exit_status = 0;
     comm = Comm::instance();
 
     int32_t timeout = has("timeout") ? get_i32("timeout") : 10000;
     silent = has("silent") && get_bool("silent");
 
-    session_ptr = make_shared<Hyperspace::Session>(comm, properties);
+    session_ptr = std::make_shared<Hyperspace::Session>(comm, properties);
     session_ptr->add_callback(&session_handler);
 
     interp = session_ptr->create_hs_interpreter();
-    shell = make_shared<CommandShell>("hyperspace", "Hyperspace", interp, properties);
+    shell = std::make_shared<CommandShell>("hyperspace", "Hyperspace", interp, properties);
     interp->set_silent(shell->silent());
     interp->set_test_mode(shell->test_mode());
 

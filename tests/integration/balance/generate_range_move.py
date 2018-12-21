@@ -3,8 +3,8 @@
 import random
 import sys
 import time
-from hypertable.thriftclient import *
-from hyperthrift.gen.ttypes import *
+from hypertable.thrift_client.thriftclient import ThriftClient
+from hypertable.thrift_client.hyperthrift.gen.ttypes import *
 
 if (len(sys.argv) < 2):
   print sys.argv[0], "<duration-seconds>"

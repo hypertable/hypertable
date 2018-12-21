@@ -41,7 +41,6 @@
 
 using namespace Hypertable;
 using namespace Hypertable::FsBroker::Lib;
-using namespace Config;
 
 void ConnectionHandler::handle(EventPtr &event) {
 
@@ -62,8 +61,8 @@ void ConnectionHandler::handle(EventPtr &event) {
         if ((flags & Client::SHUTDOWN_FLAG_IMMEDIATE) != 0)
           m_app_queue->shutdown();
         m_broker->shutdown(&cb);
-        if (has("pidfile"))
-          FileUtils::unlink(get_str("pidfile"));
+        if (Config::has("pidfile"))
+          FileUtils::unlink(Config::get_str("pidfile"));
         quick_exit(EXIT_SUCCESS);
       }
       m_app_queue->add(Request::Handler::Factory::create(m_comm, m_broker.get(),

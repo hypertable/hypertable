@@ -16,54 +16,182 @@
 # along with Hypertable. If not, see <http://www.gnu.org/licenses/>
 #
 
-# - Find PYTHON
+# - Find PYTHON - on Major version
 #  PYTHON_INCLUDE_DIR - where to find Python.h
 #  PYTHON_LIBRARIES   - List of libraries when using python-devel
-#  PYTHON_FOUND       - True if python-devel was found
+#  PYTHON_FOUND - on Major version  - True if python-devel was found
 
-exec_program(env ARGS python -V OUTPUT_VARIABLE PYTHON_VERSION_STRING
-             RETURN_VALUE PYTHON_RETURN)
 
-if (PYTHON_RETURN STREQUAL "0")
-  message(STATUS "Python Shell Version: ${PYTHON_VERSION_STRING}")
+# PYTHON 2
+if (LANGS OR LANG_PY2)
+	exec_program(env ARGS python -V OUTPUT_VARIABLE PYTHON_VERSION_STRING
+				RETURN_VALUE PYTHON_RETURN)
+	if (PYTHON_RETURN  STREQUAL "0")
+		STRING(REGEX REPLACE ".*Python ([0-9]+.[0-9]+).*" "\\1" PYTHON_VERSION "${PYTHON_VERSION_STRING}")
 
-  STRING(REGEX REPLACE ".*Python ([0-9]+.[0-9]+).*" "\\1" PYTHON_VERSION "${PYTHON_VERSION_STRING}")
-
-  find_path(PYTHON_INCLUDE_DIR Python.h NO_DEFAULT_PATH PATHS
-            ${HT_DEPENDENCY_INCLUDE_DIR}
+		find_path(PYTHON2_INCLUDE_DIR Python.h NO_DEFAULT_PATH PATHS
+            ${HT_DEPENDENCY_INCLUDE_DIR}/python${PYTHON_VERSION}
             /opt/local/include/python${PYTHON_VERSION}
-            /opt/local/include/python
             /usr/local/include/python${PYTHON_VERSION}
-            /usr/local/include/python
             /usr/include/python${PYTHON_VERSION}
-            /usr/include/python
             )
-
-  find_library(PYTHON_LIBRARY python${PYTHON_VERSION} NO_DEFAULT_PATH PATHS
+		
+		if(LANG_PY_HYPERPYTHON)
+			find_library(PYTHON2_LIBRARY python${PYTHON_VERSION} NO_DEFAULT_PATH PATHS
                ${HT_DEPENDENCY_LIB_DIR}
                /opt/local/lib
                /usr/local/lib
                /usr/lib
                /usr/lib/x86_64-linux-gnu
                )
+		endif()
+	endif ()
 
-  if (PYTHON_INCLUDE_DIR)
-    set(PYTHON_FOUND TRUE)
+	if (PYTHON2_INCLUDE_DIR AND (PYTHON2_LIBRARY OR NOT LANG_PY_HYPERPYTHON))
+		set(PYTHON2_FOUND ON)
+		set(PYTHON2_LIBRARY ${PYTHON2_LIBRARY})
+		message(STATUS "Found Python${PYTHON_VERSION}-devel: ${PYTHON2_LIBRARY}  ${PYTHON2_INCLUDE_DIR}")
+	elseif (LANG_PY2)
+	    message(FATAL_ERROR "Requested for language, python2 is not available")
+	else ()
+		set(PYTHON2_FOUND OFF)
+	endif ()
+endif ()
+  
+
+# PYTHON 3
+if (LANGS OR LANG_PY3)
+	exec_program(env ARGS python3 -V OUTPUT_VARIABLE PYTHON_VERSION_STRING
+				RETURN_VALUE PYTHON_RETURN)
+	
+	if (PYTHON_RETURN  STREQUAL "0")
+	
+		STRING(REGEX REPLACE ".*Python ([0-9]+.[0-9]+).*" "\\1" PYTHON_VERSION "${PYTHON_VERSION_STRING}")
+
+		find_path(PYTHON3_INCLUDE_DIR Python.h NO_DEFAULT_PATH PATHS
+            ${HT_DEPENDENCY_INCLUDE_DIR}/python${PYTHON_VERSION}
+            /opt/local/include/python${PYTHON_VERSION}
+            /usr/local/include/python${PYTHON_VERSION}
+            /usr/include/python${PYTHON_VERSION}
+            )
+
+		if(NOT PYTHON3_INCLUDE_DIR)
+			find_path(PYTHON3_INCLUDE_DIR Python.h NO_DEFAULT_PATH PATHS
+				${HT_DEPENDENCY_INCLUDE_DIR}/python${PYTHON_VERSION}m
+				/opt/local/include/python${PYTHON_VERSION}m
+				/usr/local/include/python${PYTHON_VERSION}m
+				/usr/include/python${PYTHON_VERSION}m
+            )
+		endif ()
+			
+		if(LANG_PY_HYPERPYTHON)
+			find_library(PYTHON3_LIBRARY python${PYTHON_VERSION} NO_DEFAULT_PATH PATHS
+               ${HT_DEPENDENCY_LIB_DIR}
+               /opt/local/lib
+               /usr/local/lib
+               /usr/lib
+               /usr/lib/x86_64-linux-gnu
+               )
+			if(NOT PYTHON3_LIBRARY)
+			  find_library(PYTHON3_LIBRARY python${PYTHON_VERSION}m NO_DEFAULT_PATH PATHS
+				${HT_DEPENDENCY_LIB_DIR}
+				/opt/local/lib
+				/usr/local/lib
+				/usr/lib
+				/usr/lib/x86_64-linux-gnu
+               )
+			endif ()
+		endif ()
+	endif ()
+	
+	if (PYTHON3_INCLUDE_DIR AND (PYTHON3_LIBRARY OR NOT LANG_PY_HYPERPYTHON))
+		set(PYTHON3_FOUND ON)
+		set(PYTHON3_LIBRARY ${PYTHON3_LIBRARY})
+		message(STATUS "Found Python${PYTHON_VERSION}-devel: ${PYTHON3_LIBRARY}  ${PYTHON3_INCLUDE_DIR}")
+	elseif (LANG_PY3)
+	    message(FATAL_ERROR "Requested for language, python3 is not available")
+	else ()
+		set(PYTHON3_FOUND OFF)
   endif ()
-
-  if (PYTHON_FOUND)
-    message(STATUS "Found Python-devel: ${PYTHON_LIBRARY}")
-  else ()
-    message(STATUS "Not Found Python-devel: ${PYTHON_LIBRARY}")
-  endif ()
-
-else ()
-  message(STATUS "Python: not found")
-  set(PYTHON_FOUND FALSE)
 endif ()
 
 
-mark_as_advanced(
-  PYTHON_LIBRARY
-  PYTHON_INCLUDE_DIR
-)
+
+# PYPY 2
+if (LANGS OR LANG_PYPY2)
+	execute_process(COMMAND pypy -c "from distutils import sysconfig as s;import sys;
+print(s.get_python_inc(plat_specific=True));
+print(sys.prefix);
+"
+    RESULT_VARIABLE _PYPY_SUCCESS
+    OUTPUT_VARIABLE _PYPY_VALUES
+    )
+	if (_PYPY_SUCCESS  STREQUAL "0")
+		string(REGEX REPLACE ";" "\\\\;" _PYPY_VALUES ${_PYPY_VALUES})
+		string(REGEX REPLACE "\n" ";" _PYPY_VALUES ${_PYPY_VALUES})
+		list(GET _PYPY_VALUES 0 PYPY2_INCLUDE_DIR)
+		list(GET _PYPY_VALUES 1 PYPY2_LIBDIR)
+		
+		if(LANG_PY_HYPERPYTHON)
+			set(PYPY2_LIBDIR ${PYPY2_LIBDIR}/bin/libpypy-c.so)
+		else ()
+			set(PYPY2_LIBDIR "")
+		endif ()
+	endif ()
+	
+	if (PYPY2_INCLUDE_DIR AND (PYPY2_LIBDIR OR NOT LANG_PY_HYPERPYTHON))
+		set(PYPY2_FOUND ON)
+		message(STATUS "Found PyPy2-devel: ${PYPY2_LIBDIR} ${PYPY2_INCLUDE_DIR}")
+	elseif(LANG_PYPY2)
+	    message(FATAL_ERROR "Requested for language, pypy2 is not available")
+	else ()
+		set(PYPY2_FOUND OFF)
+	endif ()
+endif ()
+
+# PYPY 3
+if (LANGS OR LANG_PYPY3)
+	execute_process(COMMAND pypy3 -c "from distutils import sysconfig as s;import sys;
+print(s.get_python_inc(plat_specific=True));
+print(sys.prefix);
+"
+    RESULT_VARIABLE _PYPY_SUCCESS
+    OUTPUT_VARIABLE _PYPY_VALUES
+    )
+	if (_PYPY_SUCCESS  STREQUAL "0")
+		string(REGEX REPLACE ";" "\\\\;" _PYPY_VALUES ${_PYPY_VALUES})
+		string(REGEX REPLACE "\n" ";" _PYPY_VALUES ${_PYPY_VALUES})
+		list(GET _PYPY_VALUES 0 PYPY3_INCLUDE_DIR)
+		list(GET _PYPY_VALUES 1 PYPY3_LIBDIR)
+		if(LANG_PY_HYPERPYTHON)
+			set(PYPY3_LIBDIR ${PYPY3_LIBDIR}/bin/libpypy-c.so)
+		else ()
+			set(PYPY3_LIBDIR "")
+		endif ()
+	endif ()
+	
+	if (PYPY3_INCLUDE_DIR AND (PYPY3_LIBDIR) OR NOT LANG_PY_HYPERPYTHON)
+		set(PYPY3_FOUND ON)
+		message(STATUS "Found PyPy3-devel: ${PYPY3_LIBDIR} ${PYPY3_INCLUDE_DIR}")
+	elseif (LANG_PYPY3)
+	    message(FATAL_ERROR "Requested for language, pypy3 is not available")
+	else ()
+		set(PYPY3_FOUND OFF)
+	endif ()
+endif ()
+
+if (PYPY2_FOUND OR PYPY3_FOUND)
+	find_path(Pybind11_INCLUDE_DIR pybind11/pybind11.h PATHS
+		/usr/local/include
+		/opt/local/include
+	)
+	if (Pybind11_INCLUDE_DIR)
+		message(STATUS "Found Pybind11: ${Pybind11_INCLUDE_DIR}")
+		set(Pybind11_FOUND ON)
+	else ()
+		if(LANG_PYPY2 OR LANG_PYPY3) 
+			    message(FATAL_ERROR "Requested for language pypy, dependency Pybind11 is not available")
+		endif ()
+		set(Pybind11_FOUND OFF)
+	endif ()
+endif ()

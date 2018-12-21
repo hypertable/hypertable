@@ -36,6 +36,7 @@
 #include <signal.h>
 #include <stdarg.h>
 #include <stdio.h>
+#include <atomic>
 
 #include "FixedStream.h"
 
@@ -63,6 +64,17 @@ namespace Logger {
       NOTSET = 8
     };
   } // namespace Priority
+
+
+  /** Property Extended Enum Cfg calls */
+  namespace cfg {
+
+    int from_string(String loglevel);
+
+    String repr(int value);
+
+  } // namespace cfg
+
 
   /** The LogWriter class writes to stdout. It's not used directly, but
    * rather through the macros below (i.e. HT_ERROR_OUT, HT_ERRORF etc).
@@ -147,7 +159,7 @@ namespace Logger {
       String m_name;
 
       /** The current priority (everything above is filtered) */
-      int m_priority;
+      std::atomic<int> m_priority;
 
       /** The output file handle */
       FILE *m_file;

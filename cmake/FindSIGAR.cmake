@@ -66,6 +66,9 @@ if (SIGAR_INCLUDE_DIR AND SIGAR_LIBRARY)
               OUTPUT_VARIABLE FOO
               CMAKE_FLAGS -DINCLUDE_DIRECTORIES=${SIGAR_INCLUDE_DIR}
                           -DLINK_LIBRARIES=${SYSTEM_VERSION_LINK_LIBS})
+		
+    set(SYSTEM_VERSION_LINK_LIBS "")				  
+    set(SIGAR_LIBRARIES "")				  
   message(STATUS "cb=${SYSTEMVERSION_CHECK_BUILD} c=${SYSTEMVERSION_CHECK} val=${SYSTEMVERSION_TRY_OUT} foo=${FOO}")
   if (NOT SYSTEMVERSION_CHECK_BUILD)
     message(FATAL_ERROR "Unable to determine OS vendor/version")
@@ -80,12 +83,13 @@ if (SIGAR_INCLUDE_DIR AND SIGAR_LIBRARY)
   endif ()
 else ()
   set(SIGAR_FOUND FALSE)
-  set(SIGAR_LIBRARIES)
 endif ()
 
 if (SIGAR_FOUND)
-  message(STATUS "Found SIGAR: ${SIGAR_LIBRARIES}")
+  message(STATUS "Found SIGAR: ${SIGAR_LIBRARY}")
   message(STATUS "Operating System: ${OS_VERSION}")
+  
+  HT_INSTALL_LIBS(lib ${SIGAR_LIBRARY})
 else ()
   message(STATUS "Not Found SIGAR: ${SIGAR_LIBRARY}")
   if (SIGAR_FIND_REQUIRED)
@@ -94,8 +98,3 @@ else ()
   endif ()
 endif ()
 
-mark_as_advanced(
-  SIGAR_LIBRARY
-  SIGAR_INCLUDE_DIR
-  OS_VERSION
-)

@@ -103,6 +103,13 @@ int main(int argc, char **argv) {
     if ((error = comm->set_timer(maintenance_interval, maintenance_dhp)) != Error::OK)
       HT_FATALF("Problem setting timer - %s", Error::get_text(error));
 
+  
+    if (get_bool("Hypertable.Config.OnFileChange.Reload")){
+      // inotify can be an option instead of a timer based Handler
+      ConfigHandlerPtr hdlr = std::make_shared<ConfigHandler>(properties);
+      hdlr->run();
+    }
+
     app_queue->join();
 
     HT_INFO("Exitting...");

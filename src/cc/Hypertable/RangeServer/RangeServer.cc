@@ -115,7 +115,7 @@ Apps::RangeServer::RangeServer(PropertiesPtr &props, ConnectionManagerPtr &conn_
   m_ganglia_collector =
     std::make_shared<MetricsCollectorGanglia>("rangeserver", props);
 
-  m_context = std::make_shared<Context>();
+  m_context = std::make_shared<RangeServerContext>();
   m_context->props = props;
   m_context->comm = conn_mgr->get_comm();
   m_context->server_state = std::make_shared<ServerState>();
@@ -128,7 +128,8 @@ Apps::RangeServer::RangeServer(PropertiesPtr &props, ConnectionManagerPtr &conn_
   HT_ASSERT(m_cores != 0);
   SubProperties cfg(props, "Hypertable.RangeServer.");
 
-  m_verbose = props->get_bool("verbose");
+  m_verbose = props->get_ptr<gBool>("verbose");
+  Global::auto_re_init_location = cfg.get_bool("Location.AutoReInitiate", false);
   Global::row_size_unlimited = cfg.get_bool("Range.RowSize.Unlimited", false);
   Global::ignore_cells_with_clock_skew 
     = cfg.get_bool("Range.IgnoreCellsWithClockSkew");
@@ -214,19 +215,19 @@ Apps::RangeServer::RangeServer(PropertiesPtr &props, ConnectionManagerPtr &conn_
     Global::memory_limit = cfg.get_i64("MemoryLimit");
   else {
     double pct = std::max(1.0, std::min((double)cfg.get_i32("MemoryLimit.Percentage"), 99.0)) / 100.0;
-    Global::memory_limit = (int64_t)(mem_stat.ram * Property::MiB * pct);
+    Global::memory_limit = (int64_t)(mem_stat.ram * MiB * pct);
   }
 
   if (cfg.has("MemoryLimit.EnsureUnused"))
     Global::memory_limit_ensure_unused = cfg.get_i64("MemoryLimit.EnsureUnused");
   else if (cfg.has("MemoryLimit.EnsureUnused.Percentage")) {
     double pct = std::max(1.0, std::min((double)cfg.get_i32("MemoryLimit.EnsureUnused.Percentage"), 99.0)) / 100.0;
-    Global::memory_limit_ensure_unused = (int64_t)(mem_stat.ram * Property::MiB * pct);
+    Global::memory_limit_ensure_unused = (int64_t)(mem_stat.ram * MiB * pct);
   }
 
   if (Global::memory_limit_ensure_unused) {
     // adjust current limit according to the actual memory situation
-    int64_t free_memory_50pct = (int64_t)(0.5 * mem_stat.free * Property::MiB);
+    int64_t free_memory_50pct = (int64_t)(0.5 * mem_stat.free * MiB);
     Global::memory_limit_ensure_unused_current = std::min(free_memory_50pct, Global::memory_limit_ensure_unused);
     if (Global::memory_limit_ensure_unused_current < Global::memory_limit_ensure_unused)
       HT_NOTICEF("Start up in low memory condition (free memory %.2fMB)", mem_stat.free);
@@ -235,7 +236,7 @@ Apps::RangeServer::RangeServer(PropertiesPtr &props, ConnectionManagerPtr &conn_
   int64_t block_cache_min = cfg.get_i64("BlockCache.MinMemory");
   int64_t block_cache_max = cfg.get_i64("BlockCache.MaxMemory");
   if (block_cache_max == -1) {
-    double physical_ram = mem_stat.ram * Property::MiB;
+    double physical_ram = mem_stat.ram * MiB;
     block_cache_max = (int64_t)physical_ram;
   }
   if (block_cache_min > block_cache_max)
@@ -251,7 +252,7 @@ Apps::RangeServer::RangeServer(PropertiesPtr &props, ConnectionManagerPtr &conn_
     if ((double)query_cache_memory > (double)Global::memory_limit * 0.2) {
       query_cache_memory = (int64_t)((double)Global::memory_limit * 0.2);
       props->set("Hypertable.RangeServer.QueryCache.MaxMemory", query_cache_memory);
-      HT_INFOF("Maximum size of query cache has been reduced to %.2fMB", (double)query_cache_memory / Property::MiB);
+      HT_INFOF("Maximum size of query cache has been reduced to %.2fMB", (double)query_cache_memory / MiB);
     }
     m_query_cache = std::make_shared<QueryCache>(query_cache_memory);
   }
@@ -260,11 +261,8 @@ Apps::RangeServer::RangeServer(PropertiesPtr &props, ConnectionManagerPtr &conn_
 
   FsBroker::Lib::ClientPtr dfsclient = std::make_shared<FsBroker::Lib::Client>(conn_mgr, props);
 
-  int dfs_timeout;
-  if (props->has("FsBroker.Timeout"))
-    dfs_timeout = props->get_i32("FsBroker.Timeout");
-  else
-    dfs_timeout = props->get_i32("Hypertable.Request.Timeout");
+  int dfs_timeout = props->get_pref<int32_t>(
+                    {"FsBroker.Timeout", "Hypertable.Request.Timeout"});
 
   if (!dfsclient->wait_for_connection(dfs_timeout))
     HT_THROW(Error::REQUEST_TIMEOUT, "connecting to FS Broker");
@@ -276,9 +274,9 @@ Apps::RangeServer::RangeServer(PropertiesPtr &props, ConnectionManagerPtr &conn_
   /**
    * Check for and connect to commit log FS broker
    */
-  if (cfg.has("CommitLog.DfsBroker.Host")) {
-    String loghost = cfg.get_str("CommitLog.DfsBroker.Host");
-    uint16_t logport = cfg.get_i16("CommitLog.DfsBroker.Port");
+  if (cfg.has("CommitLog.FsBroker.Host")) {
+    String loghost = cfg.get_str("CommitLog.FsBroker.Host");
+    uint16_t logport = cfg.get_i16("CommitLog.FsBroker.Port");
     InetAddr addr(loghost, logport);
 
     dfsclient = std::make_shared<FsBroker::Lib::Client>(conn_mgr, addr, dfs_timeout);
@@ -313,9 +311,19 @@ Apps::RangeServer::RangeServer(PropertiesPtr &props, ConnectionManagerPtr &conn_
   Global::location_initializer = make_shared<LocationInitializer>(m_context);
 
   if(Global::location_initializer->is_removed(Global::toplevel_dir+"/servers", m_hyperspace)) {
-    HT_ERROR_OUT << "location " << Global::location_initializer->get()
-        << " has been marked removed in hyperspace" << HT_END;
-    quick_exit(EXIT_FAILURE);
+     if(!Global::auto_re_init_location){
+           HT_ERROR_OUT << "location " << Global::location_initializer->get()
+           << " has been marked removed in hyperspace" << HT_END;
+           quick_exit(EXIT_FAILURE);
+     }
+	  
+     String old_m_loc = Global::location_initializer->get();
+     if(Global::location_initializer->remove_location()) {
+        HT_INFOF("Auto re-initiated location, removed location: %s", old_m_loc.c_str());
+     }else{
+        HT_ERROR_OUT << "Unable to auto re-initiated location" << old_m_loc << HT_END;
+        quick_exit(EXIT_FAILURE);
+     }
   }
 
   // Create Master client

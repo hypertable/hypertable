@@ -30,13 +30,11 @@
 
 #include <Hypertable/RangeServer/Global.h>
 
-#include <Common/Config.h>
 #include <Common/Logger.h>
 
 #include <ctime>
 
 using namespace Hypertable;
-using namespace Config;
 using namespace std;
 
 AccessGroupGarbageTracker::AccessGroupGarbageTracker(PropertiesPtr &props,

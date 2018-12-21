@@ -26,7 +26,6 @@
 #include "Notifier.h"
 
 #include <Common/Config.h>
-#include <Common/Properties.h>
 
 #include <histedit.h>
 

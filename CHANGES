@@ -1,3 +1,149 @@
+
+Version 0.9.8.15:
+(2018-12-19)
+
+   Updated for libssh 0.8.5 (changes to deprecated and use of read_nonblocking)
+   added support of ZSTD(zstandard) compressor for BlockCompressionCodec
+   added macro USE_READDIR_R, false with glibc-2.23+
+   changed readdir_r deprecated infavour of readdir depends on USE_READDIR_R(GLIBC version)
+   changed ClientKeepaliveHandler, select next hyperspace replica client by index count 
+   changed Hyperspace ClientKeepaliveHandler, Config/Properties assigned via Session
+   added method get_next_replica to Hyperspace Session 
+   added stricness to Berkeley DB events REP_DUPMASTER and DB_EVENT_REP_LOCAL_SITE_REMOVED, exit with HT_FATAL
+   added dbenv->rep_sync(0) to on DB_EVENT_REP_CLIENT and DB_EVENT_REP_NEWMASTER(for client)
+   changed finish_election in both cases of newly elected or was a master at DB_EVENT_REP_MASTER event
+   removed unused cases of include Config and using namespace Config
+   depcicated boost::program_options(libboost_program_options) 
+   added files Common/Property.[h,cc] include namespace hypretable::Property
+   changed definitions of MiB, KiB, etc. at Common/Property.h in Hypertable namespace 
+   added class Property::Value with dependencies classes TypeDef and ValueDef<T>
+   added files Common/PropertyValueEnumExt.h,c define EnumExt and gEnumExt types
+   added callback set_cb_on_chg, an on change setter, to gEnumExt
+   added file Common/PropertyValueGuarded.h define gBool, gInt32t and gStrings types 
+   added callback set_cb_on_chg, an on change setter, to Property::ValueGuardedAtomic<T>
+   added files Common/PropertiesParser.[h,cc] with classes ParserConfig, Parser
+   added cfg methods g_boo(Bool), g_i32(int32_t), g_strs(Strings), g_enum_ext(gEnumExt) to PropertiesParser
+   changed parsed cfg option validation and convertion is done by Property::ValueDef<T>
+   added test Common/properties_parser_test
+   removed test Common/config_test 
+   changed Properties MapPair to <String, Property::ValuePtr>
+   organized Common/Properties.[cc,h] and Config namespace and align to the new Config::Parser/ParserConfig
+   changed cfg descriptions(cmdline,file desc) to new PropertiesParser configurations
+   added config option Hypertable.Config.OnFileChange.Reload=True change to False will halt from reloading
+   added config option Hypertable.Config.OnFileChange.Reload.Interval=600000 
+   added config option Hypertable.Config.OnFileChange.file=path/hypertable-dyn.cfg (a strings type property) 
+   added method Properties::load_files_by, loads cfg files from property name
+   added to Config init, if main cfg file set with OnFileChange.file configured files loaded as well
+   added file conf/hypertable-dyn.cfg the default configs of dynamic properties 
+   changed cmake install hypertable.cfg.ini (hypertable.cfg remain for tests)
+   added files and class AsyncComm/ConfigHandler 
+         work with files from OnFileChange.file or use Hypertable.Config / --config file
+         checks on files change and update properties for Guarded Value Types only
+   added use of ConfigHandler by Hypertable.Config.OnFileChange.Reload for
+         Master, Range, Thrift, FsBroker(C++) and Hyperspace
+   changed property Hypertable.Logging.Level defined with gEnumExt, level is changeable at runtime
+   changed property Hypertable.Verbose / --verbose to type gBool a g_boo() cfg
+   added changeable at runtime configs for ThriftBroker SlowQueryLog.Enable and SlowQueryLog.LatencyThreshold
+   added set_slow_query_logging call-back on ThriftBroker.SlowQueryLog.Enable change stop/start logging
+   changed Hyperspace Configurations with Guarded types (g_i32) for
+           Maintenance.Interval, Checkpoint.Size, LogGc.Interval, LogGc.MaxUnusedLogs, 
+           KeepAlive.Interval, Lease.Interval, GracePeriod
+   changed cfg Port, Workers and Reactors for cfg(Local, Qfs, Kfs, Mapr, Ceph) for the server-side
+           to "FsBroker.Listen.Port",  "FsBroker.Listen.Workers",  "FsBroker.Listen.Reactors"
+   changed all FsBroker configuration options to start with "FsBroker."
+           specific apply on namespaces: Local, Hdfs, Mapr, Ceph, Qfs
+           common options are on "FsBroker." configuration namespace
+   removed completely prior DEPRECATED configuration options
+   added a python module to Hypertable::Client with methods to namespace 
+         module: from hypertable.hypertable_client import HypertableClient
+   added supporting test HypertableClient-test (ht_client_test.py) for py2, py3, pypy2 and pypy3
+   added cfg_reload a command and interpreter statement to Hyperspace(client-side) (experimental)
+   TODO: test Hyperspace related (bdb) changes in big(3+ replicas) cluster environment
+         apply possible/reasonable configurations to be dynamic property at run time
+
+Version 0.9.8.14:
+(2018-08-23)
+
+   Updated for GCC 8.2, boost 1.68.0, maven 3.5.4
+   Updated for Thrift 0.11.0 (no backward capabilitites)
+   Updated for Ceph 13.2.0 FsBroker
+   fixed ThriftBroker any shared_ptr switched to thrift::stdcxx::shared_ptr
+   add new cmake option -DBOOST_NO_CXX11_SMART_PTR=1 for thrift to use Boost
+   changed ThriftBroker does not need to inlcude boost
+   changed ThriftBroker only apache::thrift namespace used from apache::
+   removed std namespace from ThriftBroker's MetricsHandler
+   added utilization of ThriftBroker.Workers configuration option 
+   changed ThriftClient protocol and transport ptrs renamed with prefixed m_ as apache::thrift namespaces on-course 
+   added options to link staticly with libboost, libstdc++ and libgcc 
+   added new cmake option -DHT_NOT_STATIC_CORE=1
+   changed Hyperspace client keep-alive handler selects a hyperspace-replica by round-robin
+   added accessed with scope_guard for replica_map in ReplicationInfo
+   added ReplicationInfo new methods rep_update_sites, rep_remove, rep_add, get_site 
+   added a pointer to BerkeleyDbFilesystem cls in ReplicationInfo for callbacks
+   changed method get_current_master of BerkeleyDbFilesystem uses safe ReplicationInfo::String get_site(int)
+   added methods go_master, update_rep_sites to BerkeleyDbFilesystem
+   changed BerkeleyDbFilesystem init exclude master-init and init made on DB_EVENT_REP_MASTER event with go_master
+   changed BerkeleyDbFilesystem master, lost of ownership condition to is_master && master_eid != eid
+   changed BerkeleyDbFilesystem condition for event DB_EVENT_REP_NEWMASTER new Master can be elected
+   added on event DB_EVENT_REP_MASTER, in-case host is a new master, go_master() doing master init
+   added a call to dbenv->rep_sync(0) to DB_EVENT_REP_PERM_FAILED, DB_EVENT_REP_SITE_ADDED events
+   added a call of update_rep_sites for events DB_EVENT_REP_SITE_ADDED and DB_EVENT_REP_SITE_REMOVED
+   added method BerkeleyDbFilesystem::update_rep_sites makes functionality of hot-adding replicas without Hyperspace.Replica.Host
+   TODO: check Hyperspace related changes in cluster environment
+
+Version 0.9.8.13:
+(2018-06-01)
+
+   Updated for Java 10.0.1, boost 1.66.0, maven 3.5.3
+   adjustments toward gcc 8.1.0 (declaration issues with apache::thrift::)
+   std::map require U__STRICT_ANSI__ flag (gcc 8.1.0) PageArenaAllocator doesn't need mapped_type 
+   fixes to warnings for memset with non-trivial type
+   ThriftClient with Zlib transport
+   added new option for configuration file ThriftBroker.Transport=framed(default)/zlib
+   added --thrift-transport=framed(default)/zlib option for ht-start-*service.sh
+   added Hypertable::Thrift::Transport enum for ZLIB, FRAMED 
+   added overloader for Hypertable::Thrift::Client(Transport, std::string, int, int)
+   added supporting tests for ThriftClient over zlib transport
+   changed libSigar, still required by hadoop/java, is now part of ThirdParty and included in libHyperThirdParty.so/a  
+   added cmake new methods for more optimal build linking CommonUtil.cmake
+   added new cmake options for optimizations -DHT_O_LEVEL=[1-6]
+   added new build option linked with static libraries, except libc, libstdc++, libgcc_s and libboost all supported
+   cmake tests can be performed in dual builds on the different linking methods
+   fix for cronolog current log sym-relinking
+   thrift generate perl GenThrift and pregenerated are no longer used
+   fixes ThriftClient setup and tests for perl, ruby
+   fix setup.py.in inlcude_path is by a found PyPy2/PyPy3 headers path
+   compatabillity fixes relating to shared tests between py2/py3
+   
+Version 0.9.8.12:
+(2018-02-26)
+
+   Updated for Thrift 0.10.0, Java 9.0.4, gcc 7.3.0, berkeley-db 6.2.32
+   Updated to std=C++17 with LTO on -O3
+   Thrift build is protocol version dependent  
+   Thrift gen is done each build gen files are not kept except cc at src/cc/ThriftBroker/thrift-version
+   New configuration option Hypertable.RangeServer.Location.AutoReInitiate= defaults to false
+   Python hypertable pkg structure has been changed and serialized_cells at pkg install
+   HyperPython depreciated in favor for distutils setup
+   Added Support for python3, pypy2, pypy3 - serialized_cells(reader has issues) 
+   Steadiness to building options and multi build options for FsBrokers
+   Added build opt -Dfsbrokers=hdfs,mapr,ceph,qfs (only specified, None or try) 
+   Added build opt -Dhdfs_vers=apache-2.7.5,apache-1.1.0,apache-1.1.1,apache-1.2.1,cdh-3 etc. (if hdfs enabled)
+   Added build opt -Dlanguages=js,java,php,py2,py3,pypy2,pypy3,perl,rb (only specified, None or try) 
+   Java directory moved to src/java 
+   Restructure of maven build with preference to bundled-jar a FsBroker and a ThriftClient
+   Java ThriftClient does not require htCommon and Hadoop jars and can be joined with Hadoop-Tools
+   Change of jar names and structure at lib/java ht-fsbroker-VERSION-vendor-ver-bundled.jar
+   ht-set-hadoop-distro.sh options depend on available jars at lib/java ht-fsbroker-VERSION-*-bundled.jar
+   ht-java-run.sh arg --cp-group  class-path-group FsBroker is the only used
+   org.hypertable.Common.System.installDir is set by arg -Dht_home=
+   Graphiz generate svg instead jpg
+   Steadiness to some tests and adjustments
+   Fixed RRDtool execution arg to --step=%u
+   RangeServer "Context" changed to "RangeServerContext"
+   Fixed ht_cluster SSH con steadiness and optional ../conf/ht_ssh_config 
+   issue #70 Ambiguous class name Context 
+   
 Version 0.9.8.11:
 (2016-03-14)
 
@@ -12,7 +158,7 @@ Version 0.9.8.11:
    Fixed bug in fast_clock::to_time_t
    Don't apply TIMESTAMP filter when scanning index tables
    Removed thread_local storage specifier from random engine variable in Random
-
+   
 Version 0.9.8.10:
 (2015-12-22)
 

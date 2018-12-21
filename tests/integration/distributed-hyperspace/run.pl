@@ -24,7 +24,7 @@ chdir $HYPERTABLE_BASE_INSTALL_DIR;
 &run_cap_command($CLEANDB_COMMAND);
 &run_cap_command($STARTDB_COMMAND);
 &run_hql($CREATE_TABLE_FILE);
-$command = "$HYPERTABLE_BIN_DIR/ht ht_load_generator --config $HYPERTABLE_CONF_FILE --spec-file $SPEC_FILE update ";
+$command = "$HYPERTABLE_BIN_DIR/ht ht_load_generator update --config $HYPERTABLE_CONF_FILE --spec-file $SPEC_FILE ";
 system($command);
 $command = "$HYPERTABLE_BIN_DIR/ht hyperspace --config $HYPERTABLE_CONF_FILE --exec 'locate master;'";
 my $master = `$command`;

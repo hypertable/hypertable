@@ -114,14 +114,15 @@ LoadTest  1456961038717377424  212325929        source  nah\\nwinnard\\nWinne\\n
 
 Options)";
 
-  struct AppPolicy : Config::Policy {
+  struct AppPolicy : Policy {
     static void init_options() {
       cmdline_desc(usage).add_options()
         ("tsv-output", "Convert log into a set of loadable .tsv files")
         ("stdout", "Write log to stdout with table name as first field")
         ;
-      cmdline_hidden_desc().add_options()("log-dir", str(), "dfs log dir");
-      cmdline_positional_desc().add("log-dir", -1);
+      cmdline_hidden_desc().add_options()
+      ("log-dir", str(), "dfs log dir")
+      ("log-dir", -1);
     }
     static void init() {
       if (!has("log-dir")) {

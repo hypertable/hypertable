@@ -84,6 +84,9 @@ namespace Hyperspace {
     EVENT        /**< Event identifier */
   };
 
+  /* BerkeleyDbFilesystem type Class definer */
+  class BerkeleyDbFilesystem;
+
   /** Encapsulates replication state. */
   class ReplicationInfo {
   public:
@@ -113,17 +116,60 @@ namespace Hyperspace {
       return m_election_done;
     }
 
+	/** update replication map by site status**/
+	void rep_update_sites(unsigned count, DB_REPMGR_SITE *list) {
+		for (unsigned i = 0; i < count; i++) {
+			switch (list[i].status) {
+			case DB_REPMGR_CONNECTED:
+				rep_add(list[i].eid, list[i].host);
+				break;
+			default: //DB_REPMGR_DISCONNECTED:
+				rep_remove(list[i].eid);
+				break;
+			}
+		}
+	}
+	
+	/** remove replication site **/
+	void rep_remove(int eid) {
+		std::lock_guard<std::mutex> lock(m_replica_map_mutex);
+		replica_map.erase(eid);
+	}
+
+	/** add replication site **/
+	void rep_add(int eid, String host) {
+		std::lock_guard<std::mutex> lock(m_replica_map_mutex);
+		replica_map[eid] = host.c_str();
+	}
+
+	/** get replication site by eid **/
+	String get_site(int eid) {
+		std::lock_guard<std::mutex> lock(m_replica_map_mutex);
+		auto it = replica_map.find(eid);
+		if (it != replica_map.end())
+			return it->second;
+		else
+			return (String) "";
+	}
+
+
     bool do_replication {};
     bool is_master {};
     int master_eid {-1};
     uint32_t num_replicas {};
     String localhost;
-    std::unordered_map<int, String> replica_map;
+	BerkeleyDbFilesystem* m_cls;
 
   private:
 
     /// %Mutex for serializing access to #m_election_done
     std::mutex m_election_mutex;
+
+	/// replication sites map
+	std::unordered_map<int, String> replica_map;
+
+	/// %Mutex for replica_map
+	std::mutex m_replica_map_mutex;
 
     /// Condition variable for signaling change to #m_election_done
     std::condition_variable m_election_cond;
@@ -260,14 +306,9 @@ namespace Hyperspace {
      */
     String get_current_master() {
       if (m_replication_info.is_master)
-        return m_replication_info.localhost;
-      else {
-        auto it = m_replication_info.replica_map.find(m_replication_info.master_eid);
-        if (it != m_replication_info.replica_map.end())
-          return it->second;
-        else
-          return (String) "";
-      }
+		  return m_replication_info.localhost;
+      else 
+		  return m_replication_info.get_site(m_replication_info.master_eid);
     }
 
     /** Creates a new BerkeleyDB transaction.
@@ -797,21 +838,26 @@ namespace Hyperspace {
                         const String &aname, Dbt &key);
     static void db_event_callback(DbEnv *dbenv, uint32_t which, void *info);
     static void db_err_callback(const DbEnv *dbenv, const char *errpfx, const char *msg);
+    static void db_msg_callback(const DbEnv *dbenv, const char *msgpfx, const char *msg);
     static void db_msg_callback(const DbEnv *dbenv, const char *msg);
+
+	// static methods for call-back processes
+	static void go_master(BerkeleyDbFilesystem *m_cls);
+	static void update_rep_sites(DbEnv *dbenv, ReplicationInfo *replication_info);
 
     ReplicationInfo m_replication_info;
     String m_base_dir;
     DbEnv  m_env;
-    uint32_t m_db_flags {};
+    uint32_t m_db_flags { DB_CREATE | DB_AUTO_COMMIT | DB_THREAD };
     static const char *ms_name_namespace_db;
     static const char *ms_name_state_db;
     typedef std::map<Thread::id, BDbHandlesPtr> ThreadHandleMap;
     ThreadHandleMap m_thread_handle_map;
 
     /// Checkpoint size threshold in kilobytes
-    uint32_t m_checkpoint_size_kb;
-    uint32_t m_max_unused_logs;
-    std::chrono::steady_clock::duration m_log_gc_interval;
+    gInt32tPtr m_checkpoint_size_kb;
+    gInt32tPtr m_max_unused_logs;
+    gInt32tPtr m_log_gc_interval;
     std::chrono::steady_clock::time_point m_last_log_gc_time;
   };
 

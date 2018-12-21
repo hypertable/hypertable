@@ -25,19 +25,23 @@ Unique.cc
 Unique.h
 Error.h
 )
-
-add_library(HyperAppHelper ${Helper_SRCS})
-target_link_libraries(HyperAppHelper Hypertable HyperCommon ${BOOST_LIBS} ${Log4cpp_LIBRARIES}
-    ${ZLIB_LIBRARIES} ${SIGAR_LIBRARIES} ${NCURSES_LIBRARY}
-    ${CMAKE_THREAD_LIBS_INIT} ${MALLOC_LIBRARY})
+# lib HyperAppHelper
+HT_ADD_LIBS(
+	TARGET HyperAppHelper 
+	SRCS ${Helper_SRCS}
+	TARGETS Hypertable HyperCommon)
 
 # tests
-add_executable(unique_test tests/unique_test.cc)
-target_link_libraries(unique_test HyperAppHelper Hypertable HyperComm HyperCommon)
-add_test(HyperAppHelper-Unique unique_test)
-add_executable(error_test tests/error_test.cc)
-target_link_libraries(error_test HyperAppHelper HyperCommon)
-add_test(HyperAppHelper-Error error_test)
+HT_ADD_TEST(
+	NAME HyperAppHelper-Unique
+	SRCS tests/unique_test.cc
+	TARGETS HyperAppHelper Hypertable HyperComm HyperCommon
+)
+HT_ADD_TEST(
+	NAME HyperAppHelper-Error
+	SRCS tests/error_test.cc
+	TARGETS HyperAppHelper HyperAppHelper HyperCommon
+)
 
 configure_file(${HYPERTABLE_SOURCE_DIR}/conf/hypertable.cfg
                ${DST_DIR}/hypertable.cfg)

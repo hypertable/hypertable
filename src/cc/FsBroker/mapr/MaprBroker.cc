@@ -55,24 +55,45 @@ extern "C" {
 #include <unistd.h>
 }
 
+
+// hdfs.h versions 
+// #ifdef hdfsBuilderConnect
+// #define HDFS_VER 275
+// #elifdef hdfsConnectNewInstance
+// #define HDFS_VER 021
+// #else 
+// #define HDFS_VER 0
+// #endif
+
 using namespace Hypertable;
 using namespace Hypertable::FsBroker;
 using namespace std;
 
 atomic<int> MaprBroker::ms_next_fd {0};
 
-MaprBroker::MaprBroker(PropertiesPtr &cfg) {
-  m_verbose = cfg->get_bool("verbose");
-  m_aggregate_writes = cfg->get_bool("DfsBroker.Mapr.aggregate.writes", true);
-  m_readbuffering = cfg->get_bool("DfsBroker.Mapr.readbuffering", true);
-  m_namenode_host = cfg->get_str("DfsBroker.Hdfs.NameNode.Host");
-  m_namenode_port = cfg->get_i16("DfsBroker.Hdfs.NameNode.Port");
+MaprBroker::MaprBroker(PropertiesPtr &props) {
+  m_verbose = props->get_ptr<gBool>("verbose");
+  m_aggregate_writes = props->get_bool("FsBroker.Mapr.aggregate.writes", true);
+  m_readbuffering = props->get_bool("FsBroker.Mapr.readbuffering", true);
 
-  m_metrics_handler = std::make_shared<MetricsHandler>(cfg, "mapr");
+  m_metrics_handler = std::make_shared<MetricsHandler>(props, "mapr");
   m_metrics_handler->start_collecting();
 
-  m_filesystem = hdfsConnectNewInstance(m_namenode_host.c_str(), m_namenode_port);
+  m_builder = hdfsNewBuilder();
+  //hdfsBuilderConfSetStr(m_builder, const char *key, const char *val);
+  //m_namenode_host = props->get_str("FsBroker.Hdfs.NameNode.Host");
+  //m_namenode_port = props->get_i16("FsBroker.Hdfs.NameNode.Port");
+  hdfsBuilderSetNameNode(m_builder, "default");  //"default" > read from hadoop XML config from LIBHDFS3_CONF=path
+  //hdfsBuilderSetNameNodePort(m_builder, m_namenode_port);
+  m_filesystem = hdfsBuilderConnect(m_builder);
 
+  // status check
+  int64_t sz_used = hdfsGetUsed(m_filesystem); 
+  HT_INFOF("Non DFS Used bytes: %ld", sz_used);
+  sz_used = hdfsGetCapacity(m_filesystem); 
+  HT_INFOF("Configured Capacity bytes: %ld", sz_used);
+  
+  // m_filesystem = hdfsConnectNewInstance(m_namenode_host.c_str(), m_namenode_port);
 }
 
 
@@ -311,7 +332,7 @@ void MaprBroker::remove(ResponseCallback *cb, const char *fname) {
 
   HT_DEBUGF("remove file='%s'", fname);
 
-  if (hdfsDelete(m_filesystem, fname) == -1) {
+  if (hdfsDelete(m_filesystem, fname, 1) == -1) {
     report_error(cb);
     HT_ERRORF("unlink failed: file='%s' - %s", fname,
               strerror(errno));
@@ -441,16 +462,15 @@ namespace {
       if (fileInfo[i].mKind == kObjectKindDirectory)
 	rmdir_recursive(fs, child);
       else if (fileInfo[i].mKind == kObjectKindFile) {
-	if (hdfsDelete(fs, child.c_str()) == -1) {
-	  if (errno != 0) {
-	    HT_THROWF(Error::FSBROKER_IO_ERROR, "Problem deleting file '%s' - %s",
-		      child.c_str(), strerror(errno));
-	  }
-	}
+	    if (hdfsDelete(fs, child.c_str(), 1) == -1) {
+	      if (errno != 0) {
+	         HT_THROWF(Error::FSBROKER_IO_ERROR, "Problem deleting file '%s' - %s",
+		               child.c_str(), strerror(errno));
+	      }
+	    }
       }
     }
-
-    if (hdfsDelete(fs, dname.c_str()) == -1) {
+	if (hdfsDelete(fs, dname.c_str(), 1) == -1) {
       HT_THROWF(Error::FSBROKER_IO_ERROR, "Problem removing directory '%s' - %s",
 		dname.c_str(), strerror(errno));
     }
@@ -464,7 +484,7 @@ void MaprBroker::rmdir(ResponseCallback *cb, const char *dname) {
 
   boost::trim_right_if(removal_dir, boost::is_any_of("/"));
 
-  if (m_verbose)
+  if (m_verbose->get())
     HT_DEBUGF("rmdir dir='%s'", dname);
 
   try {

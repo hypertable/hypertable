@@ -49,15 +49,14 @@
 #include <Common/System.h>
 #include <Common/Time.h>
 
+#include <server/TThreadPoolServer.h>
 #include <concurrency/ThreadManager.h>
-#include <protocol/TBinaryProtocol.h>
-#include <server/TThreadedServer.h>
-#include <transport/TBufferTransports.h>
+#include <concurrency/PlatformThreadFactory.h>
 #include <transport/TServerSocket.h>
 #include <transport/TSocket.h>
-#include <transport/TTransportUtils.h>
-
-#include <boost/shared_ptr.hpp>
+#include <transport/TBufferTransports.h>
+#include <transport/TZlibTransport.h>
+#include <protocol/TBinaryProtocol.h>
 
 #include <iostream>
 #include <iomanip>
@@ -82,14 +81,15 @@ namespace {
   /// Smart pointer to metrics gathering handler
   MetricsHandlerPtr g_metrics_handler;
   /// Enable slow query log
-  bool g_log_slow_queries {};
+  gBoolPtr g_log_slow_queries {};
   /// Slow query latency threshold
-  int32_t g_slow_query_latency_threshold {};
+  gInt32tPtr g_slow_query_latency_threshold {};
   /// Slow query log
   Cronolog *g_slow_query_log {};
 }
 
-#define THROW_TE(_code_, _str_) do { ThriftGen::ClientException te; \
+#define THROW_TE(_code_, _str_) do { \
+  Hypertable::ThriftGen::ClientException te; \
   te.code = _code_; \
   te.message.append(Error::get_text(_code_)); \
   te.message.append(" - "); \
@@ -112,14 +112,14 @@ namespace {
   std::ostringstream logging_stream;\
   ScannerInfoPtr scanner_info;\
   g_metrics_handler->request_increment(); \
-  if (m_context.log_api || g_log_slow_queries) {\
+  if (m_context.log_api || g_log_slow_queries->get()) {\
     start_time = std::chrono::fast_clock::now(); \
     if (m_context.log_api)\
       logging_stream << "API " << __func__ << ": " << _expr_;\
   }
 
 #define LOG_API_FINISH \
-  if (m_context.log_api || (g_log_slow_queries && scanner_info)) { \
+  if (m_context.log_api || (g_log_slow_queries->get() && scanner_info)) { \
     end_time = std::chrono::fast_clock::now(); \
     if (m_context.log_api) \
 std::cout << std::chrono::duration_cast<std::chrono::seconds>(start_time.time_since_epoch()).count() <<'.'<< std::setw(9) << std::setfill('0') << (std::chrono::duration_cast<std::chrono::nanoseconds>(start_time.time_since_epoch()).count() % 1000000000LL) <<" API "<< __func__ <<": "<< logging_stream.str() << " latency=" << std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count() << std::endl; \
@@ -128,7 +128,7 @@ std::cout << std::chrono::duration_cast<std::chrono::seconds>(start_time.time_si
   }
 
 #define LOG_API_FINISH_E(_expr_) \
-  if (m_context.log_api || (g_log_slow_queries && scanner_info)) { \
+  if (m_context.log_api || (g_log_slow_queries->get() && scanner_info)) { \
     end_time = std::chrono::fast_clock::now(); \
     if (m_context.log_api) \
       std::cout << std::chrono::duration_cast<std::chrono::seconds>(start_time.time_since_epoch()).count() <<'.'<< std::setw(9) << std::setfill('0') << (std::chrono::duration_cast<std::chrono::nanoseconds>(start_time.time_since_epoch()).count() % 1000000000LL) <<" API "<< __func__ <<": "<< logging_stream.str() << _expr_ << " latency=" << std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count() << std::endl; \
@@ -161,21 +161,21 @@ std::cout << std::chrono::duration_cast<std::chrono::seconds>(start_time.time_si
 } while(0)
 
 #define LOG_SLOW_QUERY(_pd_, _ns_, _hql_) do {   \
-  if (g_log_slow_queries) { \
+  if (g_log_slow_queries->get()) { \
     end_time = std::chrono::fast_clock::now(); \
     int64_t latency_ms = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count(); \
-    if (latency_ms >= g_slow_query_latency_threshold) \
+    if (latency_ms >= g_slow_query_latency_threshold->get()) \
       log_slow_query(__func__, start_time, end_time, latency_ms, _pd_, _ns_, _hql_); \
   } \
 } while(0)
 
 #define LOG_SLOW_QUERY_SCANNER(_scanner_, _ns_, _table_, _ss_) do {      \
-  if (g_log_slow_queries) { \
+  if (g_log_slow_queries->get()) { \
     ProfileDataScanner pd; \
     _scanner_->get_profile_data(pd); \
     end_time = std::chrono::fast_clock::now(); \
     int64_t latency_ms = std::chrono::duration_cast<std::chrono::milliseconds>(end_time - start_time).count(); \
-    if (latency_ms >= g_slow_query_latency_threshold) \
+    if (latency_ms >= g_slow_query_latency_threshold->get()) \
       log_slow_query_scanspec(__func__, start_time, end_time, latency_ms, pd, _ns_, _table_, _ss_); \
   } \
 } while(0)
@@ -183,15 +183,8 @@ std::cout << std::chrono::duration_cast<std::chrono::seconds>(start_time.time_si
 namespace Hypertable { namespace ThriftBroker {
 
 using namespace apache::thrift;
-using namespace apache::thrift::protocol;
-using namespace apache::thrift::transport;
-using namespace apache::thrift::server;
-using namespace apache::thrift::concurrency;
-
 using namespace Config;
 using namespace ThriftGen;
-using namespace boost;
-using namespace std;
 
 
 class SharedMutatorMapKey {
@@ -240,9 +233,9 @@ class Context {
 public:
   Context() {
     client = new Hypertable::Client();
-    log_api = Config::get_bool("ThriftBroker.API.Logging");
-    next_threshold = Config::get_i32("ThriftBroker.NextThreshold");
-    future_capacity = Config::get_i32("ThriftBroker.Future.Capacity");
+    log_api = get_bool("ThriftBroker.API.Logging");
+    next_threshold = get_i32("ThriftBroker.NextThreshold");
+    future_capacity = get_i32("ThriftBroker.Future.Capacity");
   }
   Hypertable::Client *client;
   std::mutex shared_mutator_mutex;
@@ -1209,7 +1202,7 @@ public:
 
     try {
       Hypertable::Namespace *namespace_ptr = get_namespace(ns);
-      Hypertable::SchemaPtr hschema = make_shared<Hypertable::Schema>();
+      Hypertable::SchemaPtr hschema = std::make_shared<Hypertable::Schema>();
       convert_schema(schema, hschema);
       namespace_ptr->create_table(table, hschema);
     } RETHROW("namespace=" << ns << " table="<< table)
@@ -1223,7 +1216,7 @@ public:
 
     try {
       Hypertable::Namespace *namespace_ptr = get_namespace(ns);
-      Hypertable::SchemaPtr hschema = make_shared<Hypertable::Schema>();
+      Hypertable::SchemaPtr hschema = std::make_shared<Hypertable::Schema>();
       convert_schema(schema, hschema);
       namespace_ptr->alter_table(table, hschema, false);
     } RETHROW("namespace=" << ns << " table="<< table)
@@ -1236,7 +1229,7 @@ public:
     Scanner id;
     LOG_API_START("namespace=" << ns << " table="<< table <<" scan_spec="<< ss);
     try {
-      ScannerInfoPtr si = make_shared<ScannerInfo>(ns, table);
+      ScannerInfoPtr si = std::make_shared<ScannerInfo>(ns, table);
       convert_scan_spec(ss, si->scan_spec_builder);
       id = get_scanner_id(_open_scanner(ns, table, si->scan_spec_builder.get()), si);
     } RETHROW("namespace=" << ns << " table="<< table <<" scan_spec="<< ss)
@@ -1299,11 +1292,11 @@ public:
       ClientObjectPtr cobj;
       remove_scanner(id, cobj, scanner_info);
       TableScanner *scanner = dynamic_cast<TableScanner *>(cobj.get());
-      if (g_log_slow_queries) {
+      if (g_log_slow_queries->get()) {
         ProfileDataScanner pd;
         scanner->get_profile_data(pd);
         end_time = std::chrono::fast_clock::now();
-        if (scanner_info->latency >= g_slow_query_latency_threshold) {
+        if (scanner_info->latency >= g_slow_query_latency_threshold->get()) {
           if (scanner_info->hql.empty())
             log_slow_query_scanspec(__func__, start_time, end_time,
                                     scanner_info->latency, pd,
@@ -1551,7 +1544,7 @@ public:
     LOG_API_FINISH_E(" result.size="<< result.size());
   }
 
-  void get_cell(Value &result, const ThriftGen::Namespace ns,
+  void get_cell(ThriftGen::Value &result, const ThriftGen::Namespace ns,
           const String &table, const String &row, const String &column) override {
     LOG_API_START("namespace=" << ns << " table=" << table << " row="
             << row << " column=" << column);
@@ -1895,7 +1888,7 @@ public:
     ThriftGen::Namespace id;
     LOG_API_START("namespace =" << ns);
     try {
-      id = get_cached_object_id( dynamic_pointer_cast<ClientObject>(m_context.client->open_namespace(ns)) );
+      id = get_cached_object_id(std::dynamic_pointer_cast<ClientObject>(m_context.client->open_namespace(ns)));
     } RETHROW("namespace " << ns)
     LOG_API_FINISH_E(" id=" << id);
     return id;
@@ -3027,12 +3020,12 @@ void HqlCallback<ResultT, CellT>::on_scan(TableScannerPtr &s) {
     }
     result.__isset.cells = true;
 
-    if (g_log_slow_queries)
+    if (g_log_slow_queries->get())
       s->get_profile_data(profile_data);
 
   }
   else {
-    ScannerInfoPtr si = make_shared<ScannerInfo>(ns);
+    ScannerInfoPtr si = std::make_shared<ScannerInfo>(ns);
     si->hql = hql;
     result.scanner = handler.get_scanner_id(s, si);
     result.__isset.scanner = true;
@@ -3118,21 +3111,38 @@ class ThriftBrokerIfFactory : public HqlServiceIfFactory {
 public:
   virtual ~ThriftBrokerIfFactory() {}
 
-  HqlServiceIf* getHandler(const ::apache::thrift::TConnectionInfo& connInfo) override {
-    typedef ::apache::thrift::transport::TSocket TTransport;
-    String remotePeer =
-      dynamic_cast<TTransport*>(connInfo.transport.get())->getPeerAddress();
+  HqlServiceIf* getHandler(const TConnectionInfo& connInfo) override {
     g_metrics_handler->connection_increment();
-    return ServerHandlerFactory::getHandler(remotePeer);
+    return ServerHandlerFactory::getHandler(
+		std::dynamic_pointer_cast<transport::TSocket>(connInfo.transport)
+		->getPeerAddress());
   }
 
   void releaseHandler( ::Hypertable::ThriftGen::ClientServiceIf *service) override {
-    ServerHandler* serverHandler = dynamic_cast<ServerHandler*>(service);
     g_metrics_handler->connection_decrement();
-    return ServerHandlerFactory::releaseHandler(serverHandler);
+    return ServerHandlerFactory::releaseHandler(dynamic_cast<ServerHandler*>(service));
   }
 };
 
+void set_slow_query_logging(){
+  if (g_log_slow_queries->get()) {
+    if(!g_slow_query_latency_threshold)
+      g_slow_query_latency_threshold = 
+        properties->get_ptr<gInt32t>("ThriftBroker.SlowQueryLog.LatencyThreshold");
+    if(g_slow_query_log) 
+      return;
+    
+    g_slow_query_log = new Cronolog("SlowQuery.log",
+                                      System::install_dir + "/log",
+                                      System::install_dir + "/log/archive");
+    HT_INFOF("ThriftBroker.SlowQueryLog Started, LatencyThreshold: %d", 
+                                      g_slow_query_latency_threshold->get());   
+  } else if(g_slow_query_log) {
+    g_slow_query_log->sync();
+    g_slow_query_log = {};
+    HT_INFO("ThriftBroker.SlowQueryLog Stopped");   
+  }
+}
 
 }} // namespace Hypertable::ThriftBroker
 
@@ -3148,45 +3158,77 @@ int main(int argc, char **argv) {
     if (get_bool("ThriftBroker.Hyperspace.Session.Reconnect"))
       properties->set("Hyperspace.Session.Reconnect", true);
 
-    if (get_bool("ThriftBroker.SlowQueryLog.Enable")) {
-      g_log_slow_queries = true;
-      g_slow_query_latency_threshold = get_i32("ThriftBroker.SlowQueryLog.LatencyThreshold");
-      g_slow_query_log = new Cronolog("SlowQuery.log",
-                                      System::install_dir + "/log",
-                                      System::install_dir + "/log/archive");
-    }
+    g_log_slow_queries = properties->get_ptr<gBool>("ThriftBroker.SlowQueryLog.Enable");
+    set_slow_query_logging();
+    g_log_slow_queries->set_cb_on_chg(set_slow_query_logging);
 
     g_metrics_handler = std::make_shared<MetricsHandler>(properties, g_slow_query_log);
     g_metrics_handler->start_collecting();
 
-    boost::shared_ptr<ThriftBroker::Context> context(new ThriftBroker::Context());
-
+	  std::shared_ptr<ThriftBroker::Context> context(new ThriftBroker::Context());
     g_context = context.get();
 
-    ::uint16_t port = get_i16("port");
-    boost::shared_ptr<TProtocolFactory> protocolFactory(new TBinaryProtocolFactory());
-    boost::shared_ptr<HqlServiceIfFactory> hql_service_factory(new ThriftBrokerIfFactory());
-    boost::shared_ptr<TProcessorFactory> hql_service_processor_factory(new HqlServiceProcessorFactory(hql_service_factory));
+	  stdcxx::shared_ptr<protocol::TProtocolFactory> protocolFactory(
+		  new protocol::TBinaryProtocolFactory());
+	  stdcxx::shared_ptr<HqlServiceIfFactory> hql_service_factory(
+	  	new ThriftBrokerIfFactory());
+	  stdcxx::shared_ptr<TProcessorFactory> hql_service_processor_factory(
+		  new HqlServiceProcessorFactory(hql_service_factory));
 
-    boost::shared_ptr<TServerTransport> serverTransport;
-
+	  stdcxx::shared_ptr<server::TServerTransport> serverTransport;
+	  ::uint16_t port = get_i16("port");
     if (has("thrift-timeout")) {
       int timeout_ms = get_i32("thrift-timeout");
-      serverTransport.reset( new TServerSocket(port, timeout_ms, timeout_ms) );
+      serverTransport.reset(new transport::TServerSocket(port, timeout_ms, timeout_ms));
+    } 
+	  else { 
+		  serverTransport.reset(new transport::TServerSocket(port));
+	  }
+
+
+	  HT_INFOF("Starting the server with %d workers on %s transport...",
+		  (int)get_i32("workers"), get_str("thrift-transport").c_str());
+
+	  stdcxx::shared_ptr<concurrency::ThreadManager> threadManager =
+		  concurrency::ThreadManager::newSimpleThreadManager((int)get_i32("workers"));
+	  threadManager->threadFactory(std::make_shared<concurrency::PlatformThreadFactory>());
+	  threadManager->start();
+
+    if (get_bool("Hypertable.Config.OnFileChange.Reload")){
+      // inotify can be an option instead of a timer based Handler
+      ConfigHandlerPtr hdlr = std::make_shared<ConfigHandler>(properties);
+      hdlr->run();
     }
-    else
-      serverTransport.reset( new TServerSocket(port) );
 
-    boost::shared_ptr<TTransportFactory> transportFactory(new TFramedTransportFactory());
+	  if (get_str("thrift-transport").compare("framed") == 0){
+		  stdcxx::shared_ptr<transport::TTransportFactory> transportFactory(
+			  new transport::TFramedTransportFactory());
+		  server::TThreadPoolServer server(hql_service_processor_factory,
+			  serverTransport,
+			  transportFactory,
+			  protocolFactory,
+			  threadManager
+      );
+	  	server.serve();
+	  }
+	  else if (get_str("thrift-transport").compare("zlib") == 0){
+		  stdcxx::shared_ptr<transport::TTransportFactory> transportFactory(
+			  new transport::TZlibTransportFactory());
+		  server::TThreadPoolServer server(hql_service_processor_factory,
+			  serverTransport,
+			  transportFactory,
+			  protocolFactory,
+			  threadManager
+      );
+		  server.serve();
+	  }
+	  else {
+		  HT_FATALF("No implementation for thrift transport: %s", get_str("thrift-transport").c_str());
+		  return 0;
+	  }
 
-    TThreadedServer server(hql_service_processor_factory, serverTransport,
-                           transportFactory, protocolFactory);
 
-    HT_INFO("Starting the server...");
-
-    server.serve();
-
-    g_metrics_handler->start_collecting();
+    g_metrics_handler->stop_collecting();
     g_metrics_handler.reset();
 
     HT_INFO("Exiting.\n");

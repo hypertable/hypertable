@@ -36,14 +36,14 @@ using namespace std;
 
 namespace {
 
-  struct AppPolicy : Config::Policy {
+  struct AppPolicy : Policy {
     static void init_options() {
       cmdline_desc().add_options()
-        ("no-log-sync", boo()->default_value(false),
+        ("no-log-sync", boo(false),
          "Don't sync rangeserver commit logs on autoflush")
         ("output-only", "Display status output and exit with status 0")
         ("profile", "Send profiling output to stderr")
-        ("namespace", str()->default_value(""),
+        ("namespace", str(""),
          "Automatically use specified namespace when starting")
         ("silent-startup", "Squelch output during startup")
         ;

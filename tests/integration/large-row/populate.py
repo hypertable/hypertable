@@ -3,8 +3,8 @@
 import random
 import sys
 import time
-from hypertable.thriftclient import *
-from hyperthrift.gen.ttypes import *
+from hypertable.thrift_client.thriftclient import ThriftClient
+from hypertable.thrift_client.hyperthrift.gen.ttypes import *
 
 story = \
 """In 1815, M. Charles-Francois-Bienvenu Myriel was Bishop of D---- He was
@@ -87,35 +87,33 @@ M. Myriel had arrived at D---- accompanied by an elderly spinster,
 Mademoiselle Baptistine, who was his sister, and ten years his junior.
 """;
 
-if (len(sys.argv) < 2):
-  print sys.argv[0], "<amount-to-write>"
-  sys.exit(1)
+if len(sys.argv) < 2:
+    print (sys.argv[0], "<amount-to-write>")
+    sys.exit(1)
 
 try:
-  random.seed(1);
+    random.seed(1)
+    story = story.replace("\n", " ")
 
-  story = story.replace("\n", " ");
-  
-  client = ThriftClient("localhost", 15867)
-  
-  namespace = client.namespace_open("/")
+    client = ThriftClient("localhost", 15867)
 
-  mutator = client.mutator_open(namespace, "LargeRowTest", 0, 0)
+    namespace = client.namespace_open("/")
 
-  iterations = int(sys.argv[1]) / len(story);
+    mutator = client.mutator_open(namespace, "LargeRowTest", 0, 0)
 
-  for x in range(0, iterations):
-    cutoff = random.randint(0, len(story));
-    story_cut = story[cutoff:] + story[:cutoff];
-    client.mutator_set_cell(mutator, Cell(Key(story_cut, "c", None), "dummy"))
+    iterations = int(sys.argv[1]) / len(story)
 
-  client.mutator_flush(mutator);
+    for x in range(0, iterations):
+        cutoff = random.randint(0, len(story))
+        story_cut = story[cutoff:] + story[:cutoff]
+        client.mutator_set_cell(mutator, Cell(Key(story_cut, "c", None), "dummy"))
 
-  client.close_namespace(namespace)
+    client.mutator_flush(mutator)
+
+    client.close_namespace(namespace)
 
 except ClientException, e:
-  print '%s' % (e.message)
-  sys.exit(1)
+    print ('%s' % e.message)
+    sys.exit(1)
 
 sys.exit(0)
-

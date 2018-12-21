@@ -151,8 +151,6 @@ SshSocketHandler::SshSocketHandler(const string &hostname)
     return;
   }
 
-  // Set to non-blocking
-  FileUtils::set_flags(m_sd, O_NONBLOCK);
 
   struct hostent *server = gethostbyname(m_hostname.c_str());
   if (server == nullptr) {
@@ -177,12 +175,27 @@ SshSocketHandler::SshSocketHandler(const string &hostname)
 
   m_state = STATE_CREATE_SESSION;
 
+  // Set to non-blocking
+  FileUtils::set_flags(m_sd, O_NONBLOCK);
+
+  int tries = 5;
+  int retry = 0;
   while (connect(m_sd, (struct sockaddr *)&serv_addr,sizeof(serv_addr)) < 0) {
     if (errno == EINTR) {
       this_thread::sleep_for(chrono::milliseconds(1000));
       continue;
     }
-    else if (errno != EINPROGRESS) {
+	else if (errno == ETIMEDOUT || errno == ECONNABORTED || errno == ECONNREFUSED || errno == ECONNRESET) {
+		if (retry < tries) {
+			this_thread::sleep_for(chrono::milliseconds(30));
+			retry++;
+			continue;
+		}
+		m_error = string("connect(") + InetAddr::format(serv_addr) + ") failed - " + strerror(errno);
+		deregister(m_sd);
+		return;
+	}   
+    else if (errno != EINPROGRESS && errno != EALREADY && errno != EISCONN) {
       m_error = string("connect(") + InetAddr::format(serv_addr) + ") failed - " + strerror(errno);
       deregister(m_sd);
       return;
@@ -190,7 +203,6 @@ SshSocketHandler::SshSocketHandler(const string &hostname)
     m_state = STATE_INITIAL;
     break;
   }
-
   int rc = m_comm->register_socket(m_sd, m_comm_address, this);
   if (rc != Error::OK) {
     m_error = string("Comm::register_socket(") + InetAddr::format(serv_addr) + ") failed - " + strerror(errno);
@@ -200,7 +212,7 @@ SshSocketHandler::SshSocketHandler(const string &hostname)
 
 
 SshSocketHandler::~SshSocketHandler() {
-  if (m_state != STATE_INITIAL && m_ssh_session) {
+  if (m_ssh_session) {//m_state != STATE_INITIAL && 
     ssh_disconnect(m_ssh_session);
     ssh_free(m_ssh_session);
   }
@@ -224,12 +236,12 @@ bool SshSocketHandler::handle(int sd, int events) {
         socklen_t sockerr_len = sizeof(sockerr);
         if (getsockopt(m_sd, SOL_SOCKET, SO_ERROR, &sockerr, &sockerr_len) < 0) {
           m_error = string("getsockopt(SO_ERROR) failed (") + strerror(errno) + ")";
-	  m_cond.notify_all();
+          m_cond.notify_all();
           return false;
         }
         if (sockerr) {
           m_error = string("connect() completion error (") + strerror(errno) + ")";
-	  m_cond.notify_all();
+          m_cond.notify_all();
           return false;
         }
       }
@@ -270,19 +282,20 @@ bool SshSocketHandler::handle(int sd, int events) {
         rc = ssh_set_callbacks(m_ssh_session, &m_callbacks);
         if (rc == SSH_ERROR) {
           m_error = string("ssh_set_callbacks() failed - ") + ssh_get_error(m_ssh_session);
-	  m_cond.notify_all();
+          m_cond.notify_all();
           return false;
         }
 
-        // First load system config
-        if (FileUtils::exists("/etc/ssh/ssh_config"))
+        // Load in preferred order a SSH Client Configuration file
+        if (FileUtils::exists("../conf/ht_ssh_config"))
+          ssh_options_parse_config(m_ssh_session, "../conf/ht_ssh_config");
+        else if (FileUtils::exists("/etc/ssh/ssh_config"))
           ssh_options_parse_config(m_ssh_session, "/etc/ssh/ssh_config");
-
-        // Then load ~/.ssh/config
-        string config_file = ssh_dir + "/config";
-        if (FileUtils::exists(config_file))
-          ssh_options_parse_config(m_ssh_session, config_file.c_str());
-
+        else {
+          string config_file = ssh_dir + "/config";
+          if (FileUtils::exists(config_file))
+            ssh_options_parse_config(m_ssh_session, config_file.c_str());
+        }
         rc = ssh_connect(m_ssh_session);
         if (rc == SSH_OK) {
           m_state = STATE_VERIFY_KNOWNHOST;
@@ -290,7 +303,7 @@ bool SshSocketHandler::handle(int sd, int events) {
         }
         if (rc == SSH_ERROR) {
           m_error = string("ssh_connect() failed - ") + ssh_get_error(m_ssh_session);
-	  m_cond.notify_all();
+          m_cond.notify_all();
           return false;
         }
         else if (rc == SSH_AGAIN) {
@@ -380,82 +393,64 @@ bool SshSocketHandler::handle(int sd, int events) {
       m_state = STATE_CHANNEL_REQUEST_READ;
       
     case (STATE_CHANNEL_REQUEST_READ):
-
-      while (true) {
-
-        if (m_stdout_buffer.base == 0)
-          m_stdout_buffer = m_stdout_collector.allocate_buffer();
-
-        int nbytes = ssh_channel_read(m_channel,
-                                      m_stdout_buffer.ptr,
-                                      m_stdout_buffer.remain(),
-                                      0);
-
-        if (nbytes == SSH_ERROR) {
-          m_error = string("ssh_channel_read() failed - ") + ssh_get_error(m_ssh_session);
-          ssh_channel_close(m_channel);
-          ssh_channel_free(m_channel);
-          m_channel = 0;
-          m_cond.notify_all();
+      /*
+      switch(ssh_get_status(m_ssh_session)){
+        case SSH_READ_PENDING:
+          std::cout << "SSH_READ_PENDING";
+          break;
+        case SSH_WRITE_PENDING:
+          std::cout << "SSH_WRITE_PENDING";
+	        m_state = STATE_CONNECTED;
+          return true;
+        case SSH_CLOSED:
+          std::cout << "SSH_CLOSED";
           return false;
-        }
-        else if (nbytes == SSH_EOF) {
-          m_channel_is_eof = true;
-          break;
-        }
-        else if (nbytes <= 0)
-          break;
-
-        if (nbytes > 0 && *m_stdout_buffer.ptr == 0)
-          continue;
-
-        if (m_terminal_output)
-          write_to_stdout((const char *)m_stdout_buffer.ptr, nbytes);
-
-        m_stdout_buffer.ptr += (size_t)nbytes;
-        if (m_stdout_buffer.fill() == SSH_READ_PAGE_SIZE) {
-          m_stdout_collector.add(m_stdout_buffer);
-          m_stdout_buffer = SshOutputCollector::Buffer();
-        }
-      }
-
-      while (true) {
-
-        if (m_stderr_buffer.base == 0)
-          m_stderr_buffer = m_stderr_collector.allocate_buffer();
-
-        int nbytes = ssh_channel_read(m_channel,
-                                      m_stderr_buffer.ptr,
-                                      m_stderr_buffer.remain(),
-                                      1);
-
-        if (nbytes == SSH_ERROR) {
-          m_error = string("ssh_channel_read() failed - ") + ssh_get_error(m_ssh_session);
-          ssh_channel_close(m_channel);
-          ssh_channel_free(m_channel);
-          m_channel = 0;
-          m_cond.notify_all();
+        case SSH_CLOSED_ERROR:
+          std::cout << "SSH_CLOSED_ERROR";
           return false;
-        }
-        else if (nbytes == SSH_EOF) {
-          m_channel_is_eof = true;
-          break;
-        }
-        else if (nbytes <= 0)
-          break;
-
-        if (nbytes > 0 && *m_stderr_buffer.ptr == 0)
-          continue;
-
-        if (m_terminal_output)
-          write_to_stderr((const char *)m_stderr_buffer.ptr, nbytes);
-
-        m_stderr_buffer.ptr += (size_t)nbytes;
-        if (m_stderr_buffer.fill() == SSH_READ_PAGE_SIZE) {
-          m_stderr_collector.add(m_stderr_buffer);
-          m_stderr_buffer = SshOutputCollector::Buffer();
-        }
       }
+      */
+		for (int is_stderr = 0; is_stderr <= 1;) {
+			while (true) {
+
+				if (m_stdout_buffer.base == 0)
+					m_stdout_buffer = m_stdout_collector.allocate_buffer();
+
+				int nbytes = ssh_channel_read_nonblocking(m_channel,
+					m_stdout_buffer.ptr,
+					m_stdout_buffer.remain(),
+					is_stderr);
+
+				if (nbytes == SSH_ERROR) {
+					m_error = string("ssh_channel_read_nonblocking() failed - ") + ssh_get_error(m_ssh_session);
+					ssh_channel_close(m_channel);
+					ssh_channel_free(m_channel);
+					m_channel = 0;
+					m_cond.notify_all();
+					return false;
+				}
+				else if (nbytes == SSH_EOF) {
+					m_channel_is_eof = true;
+					break;
+				}
+				else if (nbytes <= 0)
+					break;
+
+				if (nbytes > 0 && *m_stdout_buffer.ptr == 0)
+					continue;
+
+				if (m_terminal_output)
+					write_to_stdout((const char *)m_stdout_buffer.ptr, nbytes);
+
+				m_stdout_buffer.ptr += (size_t)nbytes;
+				if (m_stdout_buffer.fill() == SSH_READ_PAGE_SIZE) {
+					m_stdout_collector.add(m_stdout_buffer);
+					m_stdout_buffer = SshOutputCollector::Buffer();
+				}
+			}
+			is_stderr++;
+		}
+
 
       if (m_channel_is_eof || ssh_channel_is_eof(m_channel)) {
         int exit_status = ssh_channel_get_exit_status(m_channel);
@@ -720,10 +715,10 @@ bool SshSocketHandler::verify_knownhost() {
   size_t hlen {};
   int rc;
 
-  int state = ssh_is_server_known(m_ssh_session);
+  int state = ssh_session_is_known_server(m_ssh_session);
 
   ssh_key key;
-  rc = ssh_get_publickey(m_ssh_session, &key);
+  rc = ssh_get_server_publickey(m_ssh_session, &key);
   if (rc != SSH_OK) {
     m_error = string("unable to obtain public key - ") + ssh_get_error(m_ssh_session);
     return false;
@@ -740,34 +735,34 @@ bool SshSocketHandler::verify_knownhost() {
 
   switch (state) {
 
-  case SSH_SERVER_KNOWN_OK:
+  case SSH_KNOWN_HOSTS_OK:
     break;
 
-  case SSH_SERVER_KNOWN_CHANGED:
+  case SSH_KNOWN_HOSTS_CHANGED:
     m_error = "host key has changed";
-    free(hash);
+    ssh_clean_pubkey_hash(&hash);
     return false;
 
-  case SSH_SERVER_FOUND_OTHER:
+  case SSH_KNOWN_HOSTS_OTHER:
     m_error = "Key mis-match with one in known_hosts";
-    free(hash);
+    ssh_clean_pubkey_hash(&hash);
     return false;
 
-  case SSH_SERVER_FILE_NOT_FOUND:
-  case SSH_SERVER_NOT_KNOWN:
+  case SSH_KNOWN_HOSTS_NOT_FOUND:
+  case SSH_KNOWN_HOSTS_UNKNOWN:
 
-    if (ssh_write_knownhost(m_ssh_session) < 0) {
+    if (ssh_session_update_known_hosts(m_ssh_session) != SSH_OK) {
       m_error = "problem writing known hosts file";
-      free(hash);
+      ssh_clean_pubkey_hash(&hash);
       return false;
     }
     break;
 
-  case SSH_SERVER_ERROR:
+  case SSH_KNOWN_HOSTS_ERROR:
     m_error = ssh_get_error(m_ssh_session);
     return false;
   }
-  free(hash);
+  ssh_clean_pubkey_hash(&hash);
   return true;
 }
 

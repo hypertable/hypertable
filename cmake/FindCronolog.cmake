@@ -33,11 +33,13 @@ if (CRONOLOG_DIR)
 endif()
 
 if (CRONOLOG_FOUND)
-  message(STATUS "Found cronolog in ${CRONOLOG_DIR}")
+	message(STATUS "Found cronolog in ${CRONOLOG_DIR}")
+	
+	mark_as_advanced(
+		CRONOLOG_DIR
+	)
+	install(PROGRAMS "${CRONOLOG_DIR}/cronolog" DESTINATION ${CMAKE_INSTALL_PREFIX}/sbin)
 else ()
-  message(FATAL_ERROR "Not Found cronolog")
+	message(FATAL_ERROR "Not Found cronolog")
 endif ()
 
-mark_as_advanced(
-  CRONOLOG_DIR
-  )

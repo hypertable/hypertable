@@ -63,7 +63,7 @@ int main(int argc, char **argv) {
 
   try {
 
-    Global::verbose = get_bool("verbose");
+    Global::verbose = properties->get_ptr<gBool>("verbose");
 
     if (has("induce-failure")) {
       if (FailureInducer::instance == 0)
@@ -105,6 +105,13 @@ int main(int argc, char **argv) {
     Apps::RangeServerPtr range_server
       = std::make_shared<Apps::RangeServer>(properties, conn_manager,
           Global::app_queue, Global::hyperspace);
+
+
+    if (get_bool("Hypertable.Config.OnFileChange.Reload")){
+      // inotify can be an option instead of a timer based Handler
+      ConfigHandlerPtr hdlr = std::make_shared<ConfigHandler>(properties);
+      hdlr->run();
+    }
 
     Global::app_queue->join();
 

@@ -27,7 +27,6 @@
 #include <AsyncComm/ApplicationQueue.h>
 #include <AsyncComm/Comm.h>
 
-#include <Common/Config.h>
 #include <Common/FileUtils.h>
 #include <Common/Init.h>
 #include <Common/Usage.h>
@@ -47,7 +46,7 @@ using namespace Hypertable::FsBroker;
 using namespace Config;
 using namespace std;
 
-struct AppPolicy : Config::Policy {
+struct AppPolicy : Policy {
   static void init_options() {
     cmdline_desc().add_options()
       ("ceph-version", "Show Ceph version and exit")
@@ -55,9 +54,9 @@ struct AppPolicy : Config::Policy {
   }
 
   static void init() {
-    alias("workers", "CephBroker.Workers");
-    alias("ceph_mon", "CephBroker.MonAddr");
-    alias("port", "CephBroker.Port");
+    alias("ceph_mon", "FsBroker.Ceph.MonAddr");
+    alias("workers", "FsBroker.Listen.Workers");
+    alias("port", "FsBroker.Listen.Port");
 
     if (has("ceph-version")) {
       cout <<"  Ceph: "<< ceph_version(NULL, NULL, NULL) << endl;
@@ -72,19 +71,14 @@ int main (int argc, char **argv) {
   //  HT_INFOF("ceph/main attempting to create pieces %d", argc);
   try {
     init_with_policies<Policies>(argc, argv);
-    int port;
-    int worker_count = get_i32("CephBroker.Workers");
 
-    if (has("CephBroker.Port"))
-      port = get_i16("CephBroker.Port");
-    else if (has("DfsBroker.Port"))
-      port = get_i16("DfsBroker.Port");
-    else
-      port = get_i16("FsBroker.Port");
+    int port = get_i16("port");
+    int worker_count = get_i32("workers");
 
     Comm *comm = Comm::instance();
     ApplicationQueuePtr app_queue = make_shared<ApplicationQueue>(worker_count);
-    HT_INFOF("attemping to create new CephBroker with address %s", properties->get_str("CephBroker.MonAddr").c_str());
+    HT_INFOF("attemping to create new CephBroker with address %s", 
+              properties->get_str("FsBroker.Ceph.MonAddr").c_str());
     BrokerPtr broker = make_shared<CephBroker>(properties);
     HT_INFO("Created CephBroker!");
     ConnectionHandlerFactoryPtr chfp =

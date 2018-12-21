@@ -43,9 +43,9 @@ namespace Hyperspace {
   private:
     Comm *m_comm {};
     ApplicationQueuePtr m_app_queue;
-    MasterPtr m_master;
-    uint64_t m_session_id {};
-    uint32_t m_maintenance_interval {};
+    MasterPtr   m_master;
+    uint64_t    m_session_id {};
+    gInt32tPtr  m_maintenance_interval;
   };
 
 }

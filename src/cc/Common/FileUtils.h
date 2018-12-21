@@ -239,6 +239,13 @@ namespace Hypertable {
      */
     static off_t length(const String &fname);
 
+    /** Returns the last modification time
+     *
+     * @param fname The path of the file
+     * @return The file modification time_t or 0 on error (sets errno)
+     */
+    static time_t modification(const String &fname);
+
     /** Adds a trailing slash to a path */
     static void add_trailing_slash(String &path);
 

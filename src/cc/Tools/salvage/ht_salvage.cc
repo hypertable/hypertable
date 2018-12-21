@@ -37,12 +37,10 @@
 
 #include <AsyncComm/Comm.h>
 
-#include <Common/Config.h>
 #include <Common/Error.h>
 #include <Common/FileUtils.h>
 #include <Common/Init.h>
 #include <Common/InteractiveCommand.h>
-#include <Common/Properties.h>
 #include <Common/Serialization.h>
 #include <Common/Stopwatch.h>
 #include <Common/StringExt.h>
@@ -179,7 +177,7 @@ PATH REGEX
 
 Options)";
 
-  struct MyPolicy : Config::Policy {
+  struct MyPolicy : Policy {
     static void init_options() {
       cmdline_desc(usage).add_options()
         ("dry-run", "Dont actually open the CellStores, just print out messages")
@@ -188,14 +186,15 @@ Options)";
         ("end-key", str(), "Ignore keys that are greater than <arg>")
         ("start-key", str(), "Ignore keys that are less than or equal to <arg>")
         ("path-regex", str(), "Just salvage CellStores files whose full path matches this regex")
-	("cumulative-size-estimate", i64(),
-	 "Estimate of cumulative size of files.  Used for for progress tracking.")
+      	("cumulative-size-estimate", i64(),
+         "Estimate of cumulative size of files.  Used for for progress tracking.")
         ("exclude-metadata-since", i32(),
          "Exclude files referenced in this METADATA that are older than this many seconds ago")
-	("gzip", "Generate gzipped .tsv files")
+	      ("gzip", "Generate gzipped .tsv files")
         ;
-      cmdline_hidden_desc().add_options()("out-dir", str(), "output dir");
-      cmdline_positional_desc().add("out-dir", -1);
+      cmdline_hidden_desc().add_options()
+      ("out-dir", str(), "output dir")
+      ("out-dir", -1);
     }
     static void init() {
       if (!has("out-dir")) {
@@ -521,13 +520,13 @@ Options)";
     String file_contents = FileUtils::file_to_string(metadata_tsv);
     String filepath;
 
-    char_separator<char> sep_outer("\n");
-    char_separator<char> sep_inner("\t");
-    char_separator<char> sep_field(";");
-    tokenizer<char_separator<char> > tokens_outer(file_contents, sep_outer);
+	boost::char_separator<char> sep_outer("\n");
+	boost::char_separator<char> sep_inner("\t");
+	boost::char_separator<char> sep_field(";");
+	boost::tokenizer<char_separator<char> > tokens_outer(file_contents, sep_outer);
     for (string line : tokens_outer) {
-      tokenizer<char_separator<char> > tokens_inner(line, sep_inner);
-      tokenizer<char_separator<char> >::iterator iter = tokens_inner.begin();
+      boost::tokenizer<char_separator<char> > tokens_inner(line, sep_inner);
+      boost::tokenizer<char_separator<char> >::iterator iter = tokens_inner.begin();
       if (iter == tokens_inner.end())
         continue;
       ++iter;
@@ -537,7 +536,7 @@ Options)";
       ++iter;
       if (iter == tokens_inner.end())
         continue;
-      tokenizer<char_separator<char> > tokens_field(*iter, sep_field);
+	  boost::tokenizer<char_separator<char> > tokens_field(*iter, sep_field);
       for (string file : tokens_field) {
         if (file.find_first_of("\\n") == 0)
           file = file.substr(2);
@@ -589,10 +588,10 @@ int main(int argc, char **argv) {
       load_metadata_exclude("metadata.tsv");
     }
 
-    Global::dfs = make_shared<FsBroker::Lib::Client>(host, port, timeout_ms);
+    Global::dfs = std::make_shared<FsBroker::Lib::Client>(host, port, timeout_ms);
     Global::memory_tracker = new MemoryTracker(0, 0);
 
-    hyperspace = make_shared<Hyperspace::Session>(Comm::instance(), properties);
+    hyperspace = std::make_shared<Hyperspace::Session>(Comm::instance(), properties);
 
     Timer timer(timeout_ms, true);
 
@@ -611,7 +610,7 @@ int main(int argc, char **argv) {
     }
 
     if (has("verbose"))
-      verbose = get_bool("verbose");
+      verbose = get<gBool>("verbose");
     dry_run = has("dry-run");
     gzip = has("gzip");
 

@@ -45,7 +45,7 @@ atomic<int> ReactorFactory::ms_next_reactor(0);
 bool ReactorFactory::ms_epollet = true;
 bool ReactorFactory::use_poll = false;
 bool ReactorFactory::proxy_master = false;
-bool ReactorFactory::verbose {};
+gBoolPtr ReactorFactory::verbose {};
 
 void ReactorFactory::initialize(uint16_t reactor_count) {
   lock_guard<mutex> lock(ms_mutex);

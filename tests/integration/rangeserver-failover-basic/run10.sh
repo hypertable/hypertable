@@ -42,10 +42,10 @@ $HT_HOME/bin/ht RangeServer --verbose --pidfile=$RS2_PIDFILE \
 $HT_HOME/bin/ht shell --no-prompt < $SCRIPT_DIR/create-table.hql
 
 # write data 
-$HT_HOME/bin/ht load_generator --spec-file=$SCRIPT_DIR/data.spec \
+$HT_HOME/bin/ht load_generator update --spec-file=$SCRIPT_DIR/data.spec \
     --max-keys=$MAX_KEYS --row-seed=$ROW_SEED --table=LoadTest \
     --Hypertable.Mutator.ScatterBuffer.FlushLimit.PerServer=2M \
-    --Hypertable.Mutator.FlushDelay=250 update
+    --Hypertable.Mutator.FlushDelay=250
 if [ $? != 0 ] ; then
     echo "Problem loading table 'LoadTest', exiting ..."
     exit 1

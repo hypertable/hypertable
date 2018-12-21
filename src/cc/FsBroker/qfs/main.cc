@@ -57,10 +57,10 @@ namespace KFS {
 namespace {
   struct AppPolicy : Policy {
     static void init_options() {
-    alias("port", "Qfs.MetaServer.Port");
-    alias("host", "Qfs.MetaServer.Name");
-    alias("workers", "Qfs.Broker.Workers");
-    alias("reactors", "Qfs.Broker.Reactors");
+    alias("port", "FsBroker.Qfs.MetaServer.Port");
+    alias("host", "FsBroker.Qfs.MetaServer.Name");
+    alias("workers", "FsBroker.Listen.Workers");
+    alias("reactors", "FsBroker.Listen.Reactors");
     }
   };
 
@@ -70,13 +70,9 @@ namespace {
 int main(int argc, char **argv) {
   try {
     init_with_policies<Policies>(argc, argv);
-    int port;
-    int worker_count = get_i32("workers");
 
-    if (has("DfsBroker.Port"))
-      port = get_i16("DfsBroker.Port");
-    else
-      port = get_i16("FsBroker.Port");
+    int port = get_i16("FsBroker.Listen.Port");
+    int worker_count = get_i32("workers");
 
     Comm *comm = Comm::instance();
 

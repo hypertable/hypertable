@@ -16,7 +16,7 @@
 # along with Hypertable. If not, see <http://www.gnu.org/licenses/>
 #
 
-if (Thrift_FOUND)
+if (THRIFT_FOUND)
   add_custom_target(thriftdoc thrift -gen html -r
                     ${ThriftBroker_IDL_DIR}/Hql.thrift)
 endif ()
@@ -33,7 +33,7 @@ if (DOXYGEN_FOUND)
   add_custom_command(TARGET doc PRE_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory 
                      ${CMAKE_SOURCE_DIR}/doc/markdown markdown POST_BUILD COMMAND make hqldoc)
 
-  if (Thrift_FOUND)
+  if (THRIFT_FOUND)
     add_custom_command(TARGET doc POST_BUILD COMMAND make thriftdoc)
   endif ()
 

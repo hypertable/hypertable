@@ -61,7 +61,7 @@ ServerConnectionHandler::ServerConnectionHandler(ApplicationQueuePtr &app_queue,
                                                  MasterPtr &master)
   : m_app_queue(app_queue), m_master(master), m_session_id(0) {
   m_comm = Comm::instance();
-  m_maintenance_interval = Config::properties->get_i32("Hyperspace.Maintenance.Interval");
+  m_maintenance_interval = Config::properties->get_ptr<gInt32t>("Hyperspace.Maintenance.Interval");
 }
 
 
@@ -203,7 +203,7 @@ void ServerConnectionHandler::handle(EventPtr &event) {
       HT_ERROR_OUT << e << HT_END;
     }
 
-    if ((error = m_comm->set_timer(m_maintenance_interval, shared_from_this())) != Error::OK)
+    if ((error = m_comm->set_timer(m_maintenance_interval->get(), shared_from_this())) != Error::OK)
        HT_FATALF("Problem setting timer - %s", Error::get_text(error));
 
   }

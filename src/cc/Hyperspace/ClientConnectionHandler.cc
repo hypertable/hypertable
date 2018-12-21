@@ -33,10 +33,9 @@ using namespace Hyperspace;
 using namespace Hypertable;
 using namespace std;
 
-ClientConnectionHandler::ClientConnectionHandler(Comm *comm, Session *session,
-                                                 uint32_t timeout_ms)
+ClientConnectionHandler::ClientConnectionHandler(Comm *comm, Session *session) 
   : m_comm(comm), m_session(session), m_session_id(0), m_state(DISCONNECTED),
-    m_timeout_ms(timeout_ms), m_verbose(false), m_callbacks_enabled(true) {
+    m_callbacks_enabled(true) {
   memset(&m_master_addr, 0, sizeof(struct sockaddr_in));
 }
 
@@ -68,7 +67,7 @@ void ClientConnectionHandler::handle(Hypertable::EventPtr &event_ptr) {
   }
   else if (event_ptr->type == Hypertable::Event::DISCONNECT) {
 
-    if (m_verbose) {
+    if (m_session->m_verbose->get()) {
       HT_WARNF("%s", event_ptr->to_str().c_str());
     }
 
@@ -87,7 +86,8 @@ void ClientConnectionHandler::handle(Hypertable::EventPtr &event_ptr) {
     CommBufPtr
         cbp(Hyperspace::Protocol::create_handshake_request(m_session_id, System::exe_name));
 
-    if ((error = m_comm->send_request(event_ptr->addr, m_timeout_ms, cbp, this))
+    if ((error = m_comm->send_request(event_ptr->addr, 
+                                      m_session->m_lease_interval->get(), cbp, this))
         != Error::OK) {
       HT_FATALF("Problem sending handshake request - %s",
                 Error::get_text(error));

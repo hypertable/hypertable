@@ -56,14 +56,13 @@ namespace {
     static void init_options() {
       cmdline_desc(usage).add_options()
         ("limit,l", i64(), "Limit on the number of records to output")
-        ("seed,s", i32()->default_value(1), "Pseudo-random number generator seed")
+        ("seed,s", i32(1), "Pseudo-random number generator seed")
         ;
       cmdline_hidden_desc().add_options()
         ("words-per-record", i32(), "Number of words for each output record.")
-        ("word-file", str()->default_value("/usr/share/dict/words"),
-         "Number of words for each output record.")
-        ;
-      cmdline_positional_desc().add("words-per-record", 1).add("word-file", -1);
+        ("word-file", str("/usr/share/dict/words"), "Number of words for each output record.")
+         ("words-per-record", 1)
+         ("word-file", -1);
     }
   };
 }

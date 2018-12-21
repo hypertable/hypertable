@@ -26,7 +26,6 @@
 
 #include <Hypertable/Lib/Cell.h>
 
-#include <Common/Config.h>
 #include <Common/DiscreteRandomGeneratorFactory.h>
 #include <Common/Random.h>
 #include <Common/String.h>
@@ -42,7 +41,6 @@ extern "C" {
 #include <string>
 #include <memory>
 
-using namespace Hypertable::Config;
 using namespace std;
 
 namespace Hypertable {

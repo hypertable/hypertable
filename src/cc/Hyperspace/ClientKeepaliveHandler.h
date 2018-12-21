@@ -30,7 +30,6 @@
 
 #include <Common/Time.h>
 #include <Common/StringExt.h>
-#include <Common/Properties.h>
 
 #include <cassert>
 #include <chrono>
@@ -50,7 +49,7 @@ namespace Hyperspace {
   class ClientKeepaliveHandler : public DispatchHandler {
 
   public:
-    ClientKeepaliveHandler(Comm *, PropertiesPtr &, Session *);
+    ClientKeepaliveHandler(Comm *, Session *);
 
     void start();
 
@@ -96,11 +95,8 @@ namespace Hyperspace {
     bool m_destroying {};
     std::condition_variable_any m_cond_destroyed;
     Comm *m_comm {};
-    uint32_t m_lease_interval {};
-    uint32_t m_keep_alive_interval {};
     sockaddr_in m_master_addr;
     CommAddress m_local_addr;
-    bool m_verbose {};
     Session *m_session {};
     uint64_t m_session_id {};
     ClientConnectionHandlerPtr m_conn_handler;
@@ -111,9 +107,6 @@ namespace Hyperspace {
     BadNotificationHandleMap m_bad_handle_map;
     static const uint64_t ms_bad_notification_grace_period = 120000;
     bool m_reconnect {};
-    uint16_t m_hyperspace_port {};
-    uint16_t m_datagram_send_port {};
-    std::vector<String> m_hyperspace_replicas;
   };
 
   typedef std::shared_ptr<ClientKeepaliveHandler> ClientKeepaliveHandlerPtr;

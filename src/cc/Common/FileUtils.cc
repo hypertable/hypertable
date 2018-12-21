@@ -462,6 +462,13 @@ off_t FileUtils::length(const String &fname) {
   return statbuf.st_size;
 }
 
+time_t FileUtils::modification(const String &fname) {
+  struct stat statbuf;
+  if (stat(fname.c_str(), &statbuf) != 0)
+    return 0;
+  return statbuf.st_mtime;
+}
+
 
 void FileUtils::add_trailing_slash(String &path) {
   if (path.find('/', path.length() - 1) == string::npos)
@@ -506,27 +513,45 @@ bool FileUtils::expand_tilde(String &fname) {
   return true;
 }
 
-using namespace re2;
-
 void FileUtils::readdir(const String &dirname, const String &fname_regex,
 			std::vector<struct dirent> &listing) {
-  int ret;
+
   DIR *dirp = opendir(dirname.c_str());
-  struct dirent de, *dep;
-  boost::shared_ptr<RE2> regex(fname_regex.length()
-                                ? new RE2(fname_regex)
+  boost::shared_ptr<re2::RE2> regex(fname_regex.length()
+                                ? new re2::RE2(fname_regex)
                                 : 0);
 
+#if defined(USE_READDIR_R) && USE_READDIR_R
+  int ret;
+  struct dirent de, *dep;
   do {
-    if ((ret = readdir_r(dirp, &de, &dep)) != 0)
+    if ((ret = ::readdir_r(dirp, &de, &dep)) != 0)
       HT_FATALF("Problem reading directory '%s' - %s", dirname.c_str(),
               strerror(errno));
 
-    if (dep != 0 && (!regex || RE2::FullMatch(de.d_name, *regex)))
+    if (dep != 0 && (!regex || re2::RE2::FullMatch(de.d_name, *regex)))
       listing.push_back(de);
   } while (dep != 0);
 
+#else
+  struct dirent *de;
+  do {
+    errno = 0;
+    de = ::readdir(dirp);
+    if (de == NULL){
+      if(errno > 0)
+        HT_FATALF("Problem reading directory '%s' - %s", dirname.c_str(),
+                strerror(errno));
+      break;
+    }
+    if (!regex || re2::RE2::FullMatch(de->d_name, *regex))
+      listing.push_back(*de);
+
+  } while (de != NULL);
+#endif
+
   (void)closedir(dirp);
 }
+
 
 

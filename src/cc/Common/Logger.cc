@@ -99,4 +99,50 @@ void LogWriter::log(int priority, const char *format, ...) {
   va_end(ap);
 }
 
+
+
+
+int cfg::from_string(String loglevel) {
+    if (loglevel == "info")
+      return Logger::Priority::INFO;
+    if (loglevel == "debug")
+      return Logger::Priority::DEBUG;
+    if (loglevel == "notice")
+      return Logger::Priority::NOTICE;
+    if (loglevel == "warn")
+      return Logger::Priority::WARN;
+    if (loglevel == "error")
+      return Logger::Priority::ERROR;
+    if (loglevel == "crit")
+      return Logger::Priority::CRIT;
+    if (loglevel == "alert")
+      return Logger::Priority::ALERT;
+    if (loglevel == "fatal")
+      return Logger::Priority::FATAL;
+    return -1;
+}
+
+String cfg::repr(int value) {
+    switch(value){
+      case Logger::Priority::INFO:
+        return "info";
+      case Logger::Priority::DEBUG:
+        return "debug";
+      case Logger::Priority::NOTICE:
+        return "notice";
+      case Logger::Priority::WARN:
+        return "warn";
+      case Logger::Priority::ERROR:
+        return "error";
+      case Logger::Priority::CRIT:
+        return "crit";
+      case Logger::Priority::ALERT:
+        return "alert";
+      case Logger::Priority::FATAL:
+        return "fatal";
+      default:
+        return format("undefined logging level: %d", value);
+    }
+}
+
 }} // namespace Hypertable::

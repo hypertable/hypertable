@@ -65,7 +65,7 @@ OperationProcessor::OperationProcessor(ContextPtr &context, size_t thread_count)
     Path data_dir = Path(context->props->get_str("Hypertable.DataDirectory"));
     string run_dir = (data_dir /= "/run").string();
     string filename = run_dir + "/graphviz-stream";
-    m_graphviz_out = make_unique<std::ofstream>(filename.c_str(), ofstream::out|ofstream::app);
+    m_graphviz_out = std::make_unique<std::ofstream>(filename.c_str(), ofstream::out|ofstream::app);
   }
 
   m_context.execution_order_iter = m_context.execution_order.end();

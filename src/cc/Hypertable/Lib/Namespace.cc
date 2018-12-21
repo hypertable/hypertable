@@ -50,7 +50,6 @@
 using namespace std;
 using namespace Hypertable;
 using namespace Hyperspace;
-using namespace Config;
 
 Namespace::Namespace(const string &name, const string &id, PropertiesPtr &props,
     ConnectionManagerPtr &conn_manager, Hyperspace::SessionPtr &hyperspace,

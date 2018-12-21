@@ -56,7 +56,7 @@ using namespace std;
 
 namespace {
 
-  struct AppPolicy : Config::Policy {
+  struct AppPolicy : Policy {
     static void init_options() {
       cmdline_desc("Usage: %s [options] <log-dir>\n\n"
                    "  This program dumps a textual representation of\n"
@@ -67,13 +67,13 @@ namespace {
         .add_options()
         ("all", "Display all entities in log (not just latest state)")
         ("metadata-tsv", "For each Range, dump StartRow and Location .tsv lines")
-        ("location", str()->default_value(""),
-         "Used with --metadata-tsv to specify location proxy")
-        ("print-logs", boo()->zero_tokens()->default_value(false), "Print log files, one per line")
+        ("location", str(""), "Used with --metadata-tsv to specify location proxy")
+        ("print-logs", boo(false)->zero_token(), "Print log files, one per line")
         ("show-version", "Display log version number and exit")
         ;
-      cmdline_hidden_desc().add_options()("log-path", str(), "dfs log path");
-      cmdline_positional_desc().add("log-path", -1);
+      cmdline_hidden_desc().add_options()
+      ("log-path", str(), "dfs log path")
+      ("log-path", -1);
     }
     static void init() {
       if (!has("log-path")) {

@@ -31,10 +31,10 @@
 #include <AsyncComm/Comm.h>
 #include <AsyncComm/ConnectionManager.h>
 
+#include <Common/Config.h>
 #include <Common/Error.h>
 #include <Common/InetAddr.h>
 #include <Common/Logger.h>
-#include <Common/Properties.h>
 #include <Common/Serialization.h>
 #include <Common/SleepWakeNotifier.h>
 #include <Common/Time.h>
@@ -45,37 +45,37 @@
 #include <cassert>
 #include <chrono>
 
-using namespace std;
 using namespace Hypertable;
 using namespace Hyperspace;
 using namespace Serialization;
 
 
-Session::Session(Comm *comm, PropertiesPtr &cfg)
-  : m_comm(comm), m_cfg(cfg), m_verbose(false), m_silent(false),
-    m_state(STATE_JEOPARDY), m_last_callback_id(0) {
+Session::Session(Comm *comm, PropertiesPtr &props)
+  : m_comm(comm), m_props(props), m_state(STATE_JEOPARDY), m_last_callback_id(0) {
 
-  HT_TRY("getting config values",
-    m_verbose = cfg->get_bool("Hypertable.Verbose");
-    m_silent = cfg->get_bool("Hypertable.Silent");
-    m_grace_period = cfg->get_i32("Hyperspace.GracePeriod");
-    m_lease_interval = cfg->get_i32("Hyperspace.Lease.Interval");
-    m_hyperspace_port = cfg->get_i16("Hyperspace.Replica.Port");
-    m_reconnect = cfg->get_bool("Hyperspace.Session.Reconnect"));
+  m_hyperspace_replicas = m_props->get_ptr<gStrings>("Hyperspace.Replica.Host");
+
+  m_datagram_send_port = props->get_i16("Hyperspace.Client.Datagram.SendPort");
+  m_hyperspace_port = props->get_i16("Hyperspace.Replica.Port");
+
+  m_keep_alive_interval = props->get_ptr<gInt32t>("Hyperspace.KeepAlive.Interval");
+  m_lease_interval = props->get_ptr<gInt32t>("Hyperspace.Lease.Interval");
+  m_grace_period = props->get_ptr<gInt32t>("Hyperspace.GracePeriod");
+  
+  m_verbose = props->get_ptr<gBool>("Hypertable.Verbose");
+  m_silent = props->has("Hypertable.Silent") && props->get_bool("Hypertable.Silent");
+
+  m_reconnect = props->get_bool("Hyperspace.Session.Reconnect");
 
   if (m_reconnect)
     HT_INFO("Hyperspace session setup to reconnect");
 
-  for (const auto &replica : cfg->get_strs("Hyperspace.Replica.Host")) {
-    m_hyperspace_replicas.push_back(replica);
-  }
-
-  m_timeout_ms = m_lease_interval * 2;
+  // m_timeout_ms = m_lease_interval->get() * 2;
 
   m_expire_time = chrono::steady_clock::now() +
-    chrono::milliseconds(m_grace_period);
+	  chrono::milliseconds(m_grace_period->get());
 
-  m_keepalive_handler_ptr = std::make_shared<ClientKeepaliveHandler>(m_comm, m_cfg, this);
+  m_keepalive_handler_ptr = std::make_shared<ClientKeepaliveHandler>(m_comm, this);
   m_keepalive_handler_ptr->start();
 
   function<void()> sleep_callback = [this]() -> void {this->handle_sleep();};
@@ -89,10 +89,21 @@ Session::~Session() {
   delete m_sleep_wake_notifier;
 }
 
+String Session::get_next_replica() 
+{
+	// opts, rnd or rack aware
+	// if round-rubin
+	m_hyperspace_replica_nxt++;
+	if (m_hyperspace_replica_nxt >= m_hyperspace_replicas->size())
+		m_hyperspace_replica_nxt = 0;
+	return m_hyperspace_replicas->get_item(m_hyperspace_replica_nxt);
+}
+
+
 void Session::update_master_addr(const String &host)
 {
   lock_guard<mutex> lock(m_mutex);
-  HT_EXPECT(InetAddr::initialize(&m_master_addr, host.c_str(),m_hyperspace_port),
+  HT_EXPECT(InetAddr::initialize(&m_master_addr, host.c_str(), m_hyperspace_port),
             Error::BAD_DOMAIN_NAME);
   m_hyperspace_master = host;
 }
@@ -100,14 +111,14 @@ void Session::update_master_addr(const String &host)
 void Session::handle_sleep() {
   lock_guard<mutex> lock(m_mutex);
   m_expire_time = chrono::steady_clock::now() +
-    chrono::milliseconds(m_grace_period);
+    chrono::milliseconds(m_grace_period->get());
 }
 
 void Session::handle_wakeup() {
   {
     lock_guard<mutex> lock(m_mutex);
     m_expire_time = chrono::steady_clock::now() +
-      chrono::milliseconds(m_grace_period);
+      chrono::milliseconds(m_grace_period->get());
   }
   if (m_state == Session::STATE_JEOPARDY)
     state_transition(Session::STATE_SAFE);
@@ -1141,21 +1152,30 @@ void Session::check_sequencer(LockSequencer &sequencer, Timer *timer) {
 }
 
 /*
+data based on client
  */
 String Session::locate(int type) {
   String location;
 
   switch(type) {
-  case LOCATE_MASTER:
-    location = m_hyperspace_master +  "\n";
-    break;
-  case LOCATE_REPLICAS:
-    for (const auto &replica : m_hyperspace_replicas)
-      location += replica + "\n";
-    break;
+    case LOCATE_MASTER:
+      location = m_hyperspace_master +  "\n";
+      break;
+  
+    case LOCATE_REPLICAS:
+      for(size_t idx=0; idx<m_hyperspace_replicas->size(); idx++)
+        location.append(get_next_replica() + "\n");
+      break;
   }
   return location;
 }
+/*
+data based on client
+ */
+String Session::cfg_reload(const String &filename) {
+	return format("\n%s\n", Config::reparse_file(filename).c_str());
+} /// ht_hyperspace cfg_reload command chk up (only the client's cfg reloaded )
+
 
 /*
  */
@@ -1197,7 +1217,7 @@ int Session::state_transition(int state) {
       for(CallbackMap::iterator it = m_callbacks.begin(); it != m_callbacks.end(); it++)
         (it->second)->jeopardy();
       m_expire_time = chrono::steady_clock::now() +
-        chrono::milliseconds(m_grace_period);
+        chrono::milliseconds(m_grace_period->get());
     }
   }
   else if (m_state == STATE_DISCONNECTED) {
@@ -1206,7 +1226,7 @@ int Session::state_transition(int state) {
         for(CallbackMap::iterator it = m_callbacks.begin(); it != m_callbacks.end(); it++)
           (it->second)->disconnected();
       m_expire_time = chrono::steady_clock::now() +
-        chrono::milliseconds(m_grace_period);
+        chrono::milliseconds(m_grace_period->get());
     }
   }
   else if (m_state == STATE_EXPIRED) {
@@ -1357,7 +1377,8 @@ Session::send_message(CommBufPtr &cbuf_ptr, DispatchHandler *handler,
                       Timer *timer) {
   lock_guard<mutex> lock(m_mutex);
   int error;
-  uint32_t timeout_ms = timer ? (time_t)timer->remaining() : m_timeout_ms;
+  uint32_t timeout_ms = timer ? (time_t)timer->remaining() 
+                              : m_lease_interval->get() * 2;
 
   if ((error = m_comm->send_request(m_master_addr, timeout_ms, cbuf_ptr,
       handler)) != Error::OK) {
@@ -1390,7 +1411,6 @@ void Session::normalize_name(const String &name, String &normal) {
 HsCommandInterpreterPtr Session::create_hs_interpreter() {
   return make_shared<HsCommandInterpreter>(this);
 }
-
 
 void Hyperspace::close_handle(SessionPtr hyperspace, uint64_t handle) {
   if (handle)

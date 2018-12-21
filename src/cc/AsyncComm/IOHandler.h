@@ -92,7 +92,7 @@ namespace Hypertable {
       m_poll_interest = 0;
       socklen_t namelen = sizeof(m_local_addr);
       getsockname(m_sd, (sockaddr *)&m_local_addr, &namelen);
-      memset(&m_alias, 0, sizeof(m_alias));
+	  memset(reinterpret_cast<void*>(&m_alias), 0, sizeof(m_alias));
     }
 
     /// Constructor.
@@ -107,7 +107,7 @@ namespace Hypertable {
       m_poll_interest = 0;
       socklen_t namelen = sizeof(m_local_addr);
       getsockname(m_sd, (sockaddr *)&m_local_addr, &namelen);
-      memset(&m_alias, 0, sizeof(m_alias));
+	  memset(reinterpret_cast<void*>(&m_alias), 0, sizeof(m_alias));
     }
 
     /** Event handler method for Unix <i>poll</i> interface.

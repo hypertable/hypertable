@@ -69,9 +69,9 @@ Context::Context(PropertiesPtr &p, Hyperspace::SessionPtr hs) : props(p), hypers
 
   comm = Comm::instance();
   conn_manager = make_shared<ConnectionManager>(comm);
-  reference_manager = make_unique<ReferenceManager>();
-  response_manager = make_unique<ResponseManager>();
-  response_manager_thread = make_unique<Thread>(*response_manager);
+  reference_manager = std::make_unique<ReferenceManager>();
+  response_manager = std::make_unique<ResponseManager>();
+  response_manager_thread = std::make_unique<Thread>(*response_manager);
   dfs = std::make_shared<FsBroker::Lib::Client>(conn_manager, props);
   rsc_manager = make_shared<RangeServerConnectionManager>();
   metrics_handler = std::make_shared<MetricsHandler>(props);
@@ -82,7 +82,7 @@ Context::Context(PropertiesPtr &p, Hyperspace::SessionPtr hs) : props(p), hypers
 
   if (hyperspace) {
     namemap = make_shared<NameIdMapper>(hyperspace, toplevel_dir);
-    master_file = make_unique<HyperspaceMasterFile>(props, hyperspace);
+    master_file = std::make_unique<HyperspaceMasterFile>(props, hyperspace);
   }
 
   request_timeout = (time_t)(props->get_i32("Hypertable.Request.Timeout") / 1000);

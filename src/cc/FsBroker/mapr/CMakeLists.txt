@@ -17,10 +17,10 @@
 # 02110-1301, USA.
 #
 
-include_directories(${Mapr_INCLUDE_DIR} ${Jni_INCLUDE_DIR})
+include_directories(${MAMP_INCLUDE_DIR} ${Jni_INCLUDE_DIR})
 
 # htFsBrokerMapr
 add_executable(htFsBrokerMapr main.cc MaprBroker.cc)
-target_link_libraries(htFsBrokerMapr HyperFsBroker ${Mapr_LIBRARIES} ${MALLOC_LIBRARY})
+target_link_libraries(htFsBrokerMapr HyperFsBroker ${MAPR_LIBRARIES})
 
 install(TARGETS htFsBrokerMapr RUNTIME DESTINATION bin)

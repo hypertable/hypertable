@@ -122,7 +122,7 @@ if [ $? -ne 0 ] ; then
   max_retries=3600
   report_interval=30
   retries=20
-  if [ `$HYPERTABLE_HOME/bin/ht get_property $@ Hypertable.RangeServer.ReadyStatus | sed 's/"//g'` == "OK" ]; then
+  if [ `$HYPERTABLE_HOME/bin/ht get_property Hypertable.RangeServer.ReadyStatus $@ | sed 's/"//g'` == "OK" ]; then
     ready_status=0
   fi
   wait_for_ready rangeserver "RangeServer" "$@"

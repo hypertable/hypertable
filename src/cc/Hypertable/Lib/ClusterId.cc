@@ -40,7 +40,6 @@
 
 using namespace Hyperspace;
 using namespace Hypertable;
-using namespace Hypertable::Config;
 using namespace std;
 
 uint64_t ClusterId::id;
@@ -48,7 +47,7 @@ uint64_t ClusterId::id;
 ClusterId::ClusterId(Hyperspace::SessionPtr &hyperspace,
                      bool generate_if_not_found) {
 
-  string toplevel_dir = properties->get_str("Hypertable.Directory");
+  string toplevel_dir = Config::properties->get_str("Hypertable.Directory");
   uint64_t handle = 0;
   
   HT_ON_SCOPE_EXIT(&Hyperspace::close_handle_ptr, hyperspace, &handle);
@@ -83,7 +82,7 @@ ClusterId::ClusterId(Hyperspace::SessionPtr &hyperspace,
   }
 
   // Generate new cluster ID
-  uint16_t port = properties->get_i16("Hypertable.Master.Port");
+  uint16_t port = Config::properties->get_i16("Hypertable.Master.Port");
   InetAddr addr(System::net_info().primary_addr, port);
   string tmp = addr.format() + Hypertable::format("%u", (unsigned)time(0));
   id = (uint64_t)md5_hash(tmp.c_str());

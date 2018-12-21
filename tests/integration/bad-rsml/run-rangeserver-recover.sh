@@ -47,10 +47,10 @@ if [ $? != 0 ] ; then
 fi
 
 # Load data
-$HT_HOME/bin/ht load_generator --spec-file=$SCRIPT_DIR/data.spec \
+$HT_HOME/bin/ht load_generator update --spec-file=$SCRIPT_DIR/data.spec \
     --max-keys=$DATA_SIZE --row-seed=$DATA_SEED --table=BadRsmlTest \
     --Hypertable.Mutator.ScatterBuffer.FlushLimit.PerServer=100K \
-    update
+    
 if [ $? != 0 ] ; then
     echo "Problem loading table 'BadRsmlTest', exiting ..."
     exit 1

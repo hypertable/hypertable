@@ -39,6 +39,7 @@
 #include <random>
 #include <set>
 #include <vector>
+#include <Common/Property.h>
 
 namespace Hypertable {
 
@@ -114,7 +115,7 @@ namespace Hypertable {
     static bool proxy_master;
 
     /// Verbose mode
-    static bool verbose;
+    static gBoolPtr verbose;
 
   private:
 

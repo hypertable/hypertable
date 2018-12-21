@@ -39,7 +39,7 @@ while true; do
      exit 1
   fi
 
-  $HYPERTABLE_HOME/bin/ht_load_generator --table SequentialLoadCountTest --spec-file $DATA_CONFIG update
+  $HYPERTABLE_HOME/bin/ht_load_generator update --table SequentialLoadCountTest --spec-file $DATA_CONFIG
 
   if [ $? != 0 ] ; then
      echo "Problem loading table 'SequentialLoadCountTest', exiting ..."

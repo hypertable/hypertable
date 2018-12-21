@@ -12,6 +12,7 @@ usage_exit() {
   echo "  --srcdir <dir>       Hypertable source directory"
   echo "  --thriftdir <dir>    Toplevel Thrift source directory"
   echo "  --thriftbroker-only  Build thriftbroker-only package"
+  echo "  --add-cmake-args <double in single qouted>  Additional cmake arguments"
   echo ""
   exit $1
 }
@@ -22,13 +23,14 @@ while [ "$1" != "${1##-}" ]; do
     --srcdir)   srcdir=$2;      shift;;
     --thriftdir)   thriftdir=$2;      shift;;
     --thriftbroker-only)   tbonly=true;;
+    --add-cmake-args)      add_args=$2;;
     *)          usage_exit 1
   esac
   shift
 done
 
-opts="-DCMAKE_BUILD_TYPE=$build -DTHRIFT_SOURCE_DIR=$thriftdir"
-
+opts="-DCMAKE_BUILD_TYPE=$build -DTHRIFT_SOURCE_DIR=$thriftdir ${add_args:1:-1}"
+echo $opts
 for gen in "$@"; do
   if [ "x$tbonly" == "xtrue" ]; then
     cmake $opts -DPACKAGE_THRIFTBROKER=1 $srcdir

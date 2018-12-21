@@ -66,14 +66,14 @@ print_help() {
   echo "output format.  The first line lists the Hypertable version and subsequent lines"
   echo "print version information for some of the Hypertable dependencies, for example:"
   echo
-  echo "0.9.8.6 (v0.9.8.6-8-g2500c8e-dirty)"
-  echo "  Hadoop: 2.5.0-cdh5.2.1"
-  echo "  BerkeleyDB: 4.8.26"
-  echo "  Boost: 1_54"
-  echo "  Thrift: 0.9.2"
-  echo "  Tcmalloc: 2.2.1"
-  echo "  Javac: 1.7.0_71"
-  echo "  GCC/G++: 4.9.2"
+  echo "@VERSION@"
+  echo "  Hadoop: @HDFS_VERSION@"
+  echo "  BerkeleyDB: @BDB_VERSION@"
+  echo "  Boost: @BOOST_VERSION@"
+  echo "  Thrift: @THRIFT_VERSION@"
+  echo "  Tcmalloc: TC_VERSION@"
+  echo "  Javac: @JAVAC_VERSION@"
+  echo "  GCC/G++: @GCC_VERSION@"
   echo
 }
 
@@ -144,8 +144,8 @@ print_version() {
   fi
   echo "  BerkeleyDB:" @BDB_VERSION@
   echo "  Boost:" @BOOST_VERSION@
-  echo "@Thrift_VERSION@" | sed 's/Thrift version/  Thrift:/g'
-  [ "@Tcmalloc_LIBRARIES@" ] && echo "  Tcmalloc: @TC_VERSION@"
+  echo "@THRIFT_VERSION@" | sed 's/Thrift version/  Thrift:/g'
+  [ "@TCMALLOC_LIBRARIES@" ] && echo "  Tcmalloc: @TC_VERSION@"
   [ "@JAVAC_VERSION@" ] && echo "  Javac: @JAVAC_VERSION@"
   [ "@GCC_VERSION@" ] && echo "  GCC/G++: @GCC_VERSION@"
 }

@@ -33,9 +33,7 @@
 #include <thread>
 
 using namespace Hypertable;
-using namespace Config;
 using namespace Hypertable::RangeServer::Request::Handler;
-using namespace std;
 
 void Shutdown::run() {
   ResponseCallback cb(m_comm, m_event);
@@ -48,7 +46,7 @@ void Shutdown::run() {
   cb.response_ok();
   this_thread::sleep_for(chrono::milliseconds(2000));
   HT_INFO("Exiting RangeServer.");
-  if (has("pidfile"))
-    FileUtils::unlink(get_str("pidfile"));
+  if (Config::has("pidfile"))
+    FileUtils::unlink(Config::get_str("pidfile"));
   quick_exit(EXIT_SUCCESS);
 }

@@ -29,19 +29,20 @@ using namespace Hyperspace;
 
 namespace Hypertable {
 
-  std::mutex                  Global::mutex;
+  std::mutex             Global::mutex;
   SessionPtr             Global::hyperspace = 0;
   FilesystemPtr          Global::dfs;
   FilesystemPtr          Global::log_dfs;
   ApplicationQueuePtr    Global::app_queue;
   MaintenanceQueuePtr    Global::maintenance_queue;
-  Lib::Master::ClientPtr        Global::master_client;
+  Lib::Master::ClientPtr Global::master_client;
   RangeLocatorPtr        Global::range_locator = 0;
   PseudoTables          *Global::pseudo_tables = 0;
   MetaLogEntityRemoveOkLogsPtr Global::remove_ok_logs;
   LoadStatisticsPtr      Global::load_statistics;
   RangesPtr              Global::ranges;
-  bool                   Global::verbose = false;
+  gBoolPtr               Global::verbose = (gBool)false;
+  bool                   Global::auto_re_init_location = false;
   bool                   Global::row_size_unlimited = false;
   bool                   Global::ignore_cells_with_clock_skew = false;
   bool                   Global::range_initialization_complete = false;

@@ -19,48 +19,33 @@
 # - Find Mapr
 # Find the native Mapr includes and library
 #
-#  Mapr_INCLUDE_DIR - where to find Mapr.h, etc.
-#  Mapr_LIBRARIES   - List of libraries when using Mapr.
-#  Mapr_FOUND       - True if Mapr found.
+#  MAPR_INCLUDE_DIR - where to find Mapr.h, etc.
+#  MAPR_LIBRARIES   - List of libraries when using Mapr.
+#  MAPR_FOUND       - True if Mapr found.
 
-
-if (Mapr_INCLUDE_DIR)
-  # Already in cache, be silent
-  set(Mapr_FIND_QUIETLY TRUE)
-endif ()
-
-find_path(Mapr_INCLUDE_DIR hdfs.h
-  /opt/mapr/hadoop/hadoop-0.20.2/src/c++/libhdfs
+HT_FASTLIB_SET(
+	NAME "MAPR" 
+	LIB_PATHS /opt/mapr/lib  
+						$ENV{HADOOP_HOME}/lib/native
+						${HADOOP_LIB_PATH}/lib/native
+	INC_PATHS /$ENV{HADOOP_HOME}/include 
+			  		/opt/mapr/hadoop/hadoop-0.20.2/src/c++/libhdfs
+						${HADOOP_INCLUDE_PATH}/include 
+	STATIC libhdfs.a 
+	SHARED hdfs 
+	INCLUDE hdfs.h
 )
 
-macro(FIND_MAPR_LIB lib)
-  find_library(${lib}_LIB NAMES ${lib}
-    PATHS /opt/mapr/lib $ENV{JAVA_HOME}/jre/lib/amd64/server  )
-  mark_as_advanced(${lib}_LIB)
-endmacro(FIND_MAPR_LIB lib libname)
+if (MAPR_INCLUDE_DIR AND MAPR_LIBRARIES AND jvm_LIB)
+	set(MAPR_LIBRARIES ${MAPR_LIBRARIES} ${jvm_LIB})
 
-FIND_MAPR_LIB(MapRClient)
-FIND_MAPR_LIB(jvm)
-
-if (Mapr_INCLUDE_DIR AND MapRClient_LIB AND jvm_LIB)
-  set(Mapr_FOUND TRUE)
-  set(Mapr_LIBRARIES ${MapRClient_LIB} ${jvm_LIB})
 else ()
-   set(Mapr_FOUND FALSE)
-   set(Mapr_LIBRARIES)
-endif ()
-
-if (Mapr_FOUND)
-   message(STATUS "Found MAPR: ${Mapr_LIBRARIES}")
-   if (NOT Mapr_FIND_QUIETLY)
-      message(STATUS "Found MAPR: ${Mapr_LIBRARIES}")
-   endif ()
-else ()
-   if (Mapr_FIND_REQUIRED)
+   if (FSBROKER_MAPR)
+	 		if (NOT jvm_LIB)
+		 		message(FATAL_ERROR "Could NOT find jvm_LIB for MAPR libraries")
+	 		endif ()
       message(FATAL_ERROR "Could NOT find MAPR libraries")
    endif ()
+   set(MAPR_FOUND FALSE)
+   set(MAPR_LIBRARIES)
 endif ()
-
-mark_as_advanced(
-  Mapr_INCLUDE_DIR
-)

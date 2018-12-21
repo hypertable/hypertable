@@ -212,9 +212,9 @@ CommandShell::CommandShell(const string &prompt_str, const string &service_name,
   else
     ms_history_file = (String)"." + m_prompt + "_history";
 
-  m_verbose = m_props->has("verbose") ? m_props->get_bool("verbose") : false;
+  m_verbose = m_props->has("verbose") ? (bool)m_props->get<gBool>("verbose") : false;
   m_batch_mode = m_props->has("batch");
-  m_silent = m_props->has("silent") ? m_props->get_bool("silent") : false;
+  m_silent = m_props->has("silent") && m_props->get_bool("silent");
   m_test_mode = m_props->has("test-mode");
   if (m_test_mode) {
     Logger::get()->set_test_mode();
@@ -391,12 +391,12 @@ void CommandShell::add_options(PropertiesDesc &desc) {
     ("no-prompt", "Do not display an input prompt")
     ("test-mode", "Don't display anything that might change from run to run "
         "(e.g. timing statistics)")
-    ("timestamp-format", Property::str(), "Output format for timestamp. "
+    ("timestamp-format", str(), "Output format for timestamp. "
         "Currently the only formats are 'default' and 'nanoseconds'")
-    ("notification-address", Property::str(), "[<host>:]<port> "
+    ("notification-address", str(), "[<host>:]<port> "
         "Send notification datagram to this address after each command.")
-    ("execute,e", Property::str(), "Execute specified commands.")
-    ("command-file", Property::str(), "Execute commands from file.")
+    ("execute,exec,e", str(), "Execute specified commands.")
+    ("command-file", str(), "Execute commands from file.")
     ;
 }
 

@@ -39,6 +39,10 @@ namespace Hypertable {
       init((uint8_t *)buf, len);
     }
 
+    SerializedCellsReader(std::string buf, uint32_t len) {
+      init((uint8_t *)buf.c_str(), len);
+    }
+	
     bool next();
 
     void get(KeySpec &key) {
@@ -82,6 +86,12 @@ namespace Hypertable {
 
   private:
     void init(uint8_t *buf, uint32_t len) {
+		//std::string output(len, 0);
+		//for (size_t i = 0; i < len; ++i)
+		//	output[i] = static_cast<char>(buf[i]);
+		//HT_THROW(Error::BAD_FORMAT,
+		//	"SerializedCellsReader: input: buf: " + output + "len:" + std::to_string(len));
+
       m_base = m_ptr = (uint8_t *)buf;
       m_end = m_base + len;
 

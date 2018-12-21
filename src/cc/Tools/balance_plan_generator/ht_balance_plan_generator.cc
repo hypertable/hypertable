@@ -66,18 +66,14 @@ namespace {
       cmdline_desc(usage).add_options()
         ("help,h", "Show this help message and exit")
         ("help-config", "Show help message for config properties")
-        ("namespace", str()->default_value("/"),
+        ("namespace", str("/"),
          "Namespace in which to create the dummy RS_METRICS table if needed")
-        ("table", str()->default_value("DUMMY_RS_METRICS"),
+        ("table", str("DUMMY_RS_METRICS"),
          "Name of the table in which to load the rs_metrics_file")
-        ("rs-metrics-loaded",  boo()->zero_tokens()->default_value(false),
+        ("rs-metrics-loaded",  boo(false)->zero_token(),
          "If true then assume RS_METRICS is already loaded in namespace/table")
-        ("load-balancer", str()->default_value("basic-distribute-load"),
-         "Type of load balancer to be used.")
-        ("verbose,v", boo()->zero_tokens()->default_value(false),
-         "Show more verbose output")
-        ("balance-plan-file,b",  str()->default_value(""),
-         "File in which to dump balance plan.")
+        ("load-balancer", str("basic-distribute-load"), "Type of load balancer to be used.")
+        ("balance-plan-file,b",  str(""), "File in which to dump balance plan.")
         ("rs-metrics-dump", str(), "File containing dump of 'sys/RS_METRICS' table.");
     }
   };
@@ -100,7 +96,7 @@ int main(int argc, char **argv) {
     init_with_policies<Policies>(argc, argv);
 
     if (has("verbose")) {
-      verbose = get_bool("verbose");
+      verbose = get<gBool>("verbose");
     }
 
     table_str = get_str("table");
@@ -119,11 +115,11 @@ int main(int argc, char **argv) {
       table_str = "RS_METRICS";
     }
 
-    ClientPtr client = make_shared<Hypertable::Client>(System::install_dir);
+    ClientPtr client = std::make_shared<Hypertable::Client>(System::install_dir);
     NamespacePtr ns = client->open_namespace(ns_str);
     TablePtr rs_metrics = ns->open_table(table_str);
-    BalancePlanPtr plan = make_shared<BalancePlan>();
-    ContextPtr context = make_shared<Context>(properties);
+    BalancePlanPtr plan = std::make_shared<BalancePlan>();
+    ContextPtr context = std::make_shared<Context>(properties);
     context->rsc_manager.reset();
     context->rs_metrics_table = rs_metrics;
     generate_balance_plan(context->props, load_balancer, context, plan);

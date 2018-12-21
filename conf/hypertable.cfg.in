@@ -1,0 +1,47 @@
+#
+# Hypertable Configuration
+#
+
+# Dynamic Configuration Files
+Hypertable.Config.OnFileChange.file=@INSTALL_DIR@/conf/hypertable-dyn.cfg
+
+# HDFS Broker specific properties
+# The following property should be set to the absolute path to the
+# directory containing the Hadoop configuration.  The Hadoop broker
+# uses this property to locate core-site.xml and hdfs-site.xml files
+#FsBroker.Hdfs.Hadoop.ConfDir=/etc/hadoop/conf
+
+# Ceph Broker specific properties
+#FsBroker.Ceph.MonAddr=10.0.1.245:6789
+
+# Local Broker specific properties
+# The following property is used by the local broker to determine where
+# to write Hypertable state.  If it is a relative path, the path is
+# relative to the Hypertable installation.
+FsBroker.Local.Root=fs/local
+
+# Qfs Broker specific properties
+#FsBroker.Qfs.MetaServer.Name=localhost
+#FsBroker.Qfs.MetaServer.Port=20000
+
+
+# Crontab entry for when aggresive maintenance can take place in the
+# RangeServer.  Consult Unix man page crontab(5) for a description of the
+# format.  The specification below sets it for 2am to 5am every night.
+# To disable, the word "none" can be used in place of a crontab entry.
+# Hypertable.RangeServer.LowActivityPeriod=none
+Hypertable.RangeServer.LowActivityPeriod="* 2-4 * * *"
+
+# Change the following property to a comma-sparated list of mount points
+# to the data directories to get accurate disk usage reporting in the
+# monitoring UI
+Hypertable.RangeServer.Monitoring.DataDirectories="/"
+
+# Specifies a descriptive name for the cluster that will show up in
+# the monitoring UI
+Hypertable.Cluster.Name="My Cluster"
+
+Hypertable.RangeServer.Location.AutoReInitiate=True
+
+
+

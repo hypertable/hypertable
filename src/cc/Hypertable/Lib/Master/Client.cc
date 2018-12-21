@@ -85,10 +85,10 @@ Master::Client::Client(ConnectionManagerPtr &conn_mgr,
     m_timeout_ms(timeout_ms), m_toplevel_dir(toplevel_dir) {
 
   m_comm = m_conn_manager->get_comm();
-  memset(&m_master_addr, 0, sizeof(m_master_addr));
+  memset(reinterpret_cast<void*>(&m_master_addr), 0, sizeof(m_master_addr));
 
   m_retry_interval = Config::properties->get_i32("Hypertable.Connection.Retry.Interval");
-  m_verbose = Config::get_bool("verbose");
+  m_verbose = Config::get<gBool>("verbose");
 
   /**
    * Open toplevel_dir + /master Hyperspace file to discover the master.
@@ -109,7 +109,7 @@ Master::Client::Client(ConnectionManagerPtr &conn_mgr, InetAddr &addr,
   : m_conn_manager(conn_mgr), m_master_addr(addr), m_timeout_ms(timeout_ms) {
   m_comm = m_conn_manager->get_comm();
   m_retry_interval = Config::properties->get_i32("Hypertable.Connection.Retry.Interval");
-  m_verbose = Config::get_bool("verbose");
+  m_verbose = Config::get<gBool>("verbose");
   m_conn_manager->add_with_initializer(m_master_addr, m_retry_interval, "Master",
                                        m_dispatcher_handler,
                                        m_connection_initializer);
@@ -119,7 +119,7 @@ Master::Client::Client(ConnectionManagerPtr &conn_mgr, InetAddr &addr,
 Master::Client::Client(Comm *comm, InetAddr &addr, uint32_t timeout_ms)
   : m_comm(comm), m_master_addr(addr), m_timeout_ms(timeout_ms) {
   m_retry_interval = Config::properties->get_i32("Hypertable.Connection.Retry.Interval");
-  m_verbose = Config::get_bool("verbose");
+  m_verbose = Config::get<gBool>("verbose");
 }
 
 

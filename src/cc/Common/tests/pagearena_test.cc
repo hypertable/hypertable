@@ -175,7 +175,7 @@ struct MyPolicy : Policy {
   static void init_options() {
     cmdline_desc("Usage: %s [Options] [malloc|arena|arena_alloc|"
                  "string]\nOptions").add_options()
-      ("page-size,p", i32()->default_value(8192), "arena page size")
+      ("page-size,p", i32(8192), "arena page size")
       ;
   }
 };

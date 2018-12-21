@@ -80,6 +80,12 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#if defined (__GLIBC__) && (__GLIBC__ >= 2) && (__GLIBC_MINOR__ >= 23)
+#define USE_READDIR_R 0
+#else
+#define USE_READDIR_R 1
+#endif
+
 /** @}*/
 
 #endif /* HYPERTABLE_COMPAT_C_H */

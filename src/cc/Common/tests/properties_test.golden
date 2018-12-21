@@ -1,13 +1,12 @@
 f64test=0
+mode=An ENUM TYPE
 boo=true (default)
-notify: foo
-mode=0
 f64=1000
 float64s=[1.5, 1500, 1.5e+06, 1.5e+09]
 i16=64000
 i32=20000000
 i64=8000000000
 int64s=[16000000000, 32000000000]
-mode=invalid option type
+mode=An ENUM TYPE
 string=foo
 strs=[s1, s2]

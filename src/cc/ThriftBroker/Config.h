@@ -23,6 +23,7 @@
 #define HYPERTABLE_THRIFTBROKER_CONFIG_H
 
 #include "AsyncComm/Config.h"
+#include "AsyncComm/ConfigHandler.h"
 
 namespace Hypertable { namespace Config {
 

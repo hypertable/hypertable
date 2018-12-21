@@ -56,7 +56,7 @@ using namespace std;
 
 namespace {
 
-  struct AppPolicy : Config::Policy {
+  struct AppPolicy : Policy {
     static void init_options() {
       cmdline_desc("Usage: %s [options] <filename>\n\n"
         "Dumps the contents of the CellStore contained in the FS <filename>."
@@ -64,13 +64,16 @@ namespace {
         ("all,a", "Dump everything, including key/value pairs")
         ("compact,c", "Only prints the cellstore name and a status ('ok' or 'corrupt')")
         ("count,c", "Count the number of key/value pairs")
-        ("column-id-map", str(), "Column family id to name map, format = <id>=<name>[,<id>=<name>...]")
+        ("column-id-map", str(), 
+         "Column family id to name map, format = <id>=<name>[,<id>=<name>...]")
         ("end-key", str(), "Ignore keys that are greater than <arg>")
         ("start-key", str(), "Ignore keys that are less than or equal to <arg>")
         ("tsv-format", "Output data in TSV format")
         ;
-      cmdline_hidden_desc().add_options()("filename", str(), "");
-      cmdline_positional_desc().add("filename", -1);
+      cmdline_hidden_desc().add_options()
+        ("filename", str(), "")
+        ("filename", -1)
+        ;
     }
     static void init() {
       if (!has("filename")) {

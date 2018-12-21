@@ -71,8 +71,8 @@ void test_big_vector(int n) {
 struct MyPolicy : Config::Policy {
   static void init_options() {
     cmdline_desc().add_options()
-      ("small-size,s", i32()->default_value(10), "size of small containers")
-      ("reserve", i32()->default_value(10), "reserve size of small containers")
+      ("small-size,s", i32(10), "size of small containers")
+      ("reserve", i32(10), "reserve size of small containers")
       ;
   }
 };

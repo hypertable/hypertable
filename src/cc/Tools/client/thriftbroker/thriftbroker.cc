@@ -27,8 +27,6 @@
 
 #include <Tools/Lib/CommandShell.h>
 
-#include <AsyncComm/Config.h>
-
 #include <Common/Error.h>
 #include <Common/Init.h>
 #include <Common/Properties.h>
@@ -52,8 +50,9 @@ namespace {
         ("nowait", "Don't wait for certain commands to complete (e.g. shutdown)")
         ("output-only", "Display status output and exit with status 0")
         ;
-      cmdline_hidden_desc().add_options()("address", str(), "");
-      cmdline_positional_desc().add("address", -1);
+      cmdline_hidden_desc().add_options()
+      ("address", str(), "")
+      ("address", -1);
     }
     static void init() {
       if (has("address")) {
@@ -99,7 +98,13 @@ int main(int argc, char **argv) {
     Thrift::ClientPtr client;
     {
       ConsoleOutputSquelcher temp;
-      client = make_shared<Thrift::Client>(host, port, timeout_ms);
+
+	  Thrift::Transport ttp;
+	  if (strcmp(get_str("thrift-transport").c_str(), "zlib") == 0)
+		  ttp = Thrift::Transport::ZLIB;
+	  else
+		  ttp = Thrift::Transport::FRAMED;
+      client = make_shared<Thrift::Client>(ttp, host, port, timeout_ms);
     }
     
     CommandInterpreterPtr interp = make_shared<thriftbroker::CommandInterpreter>(client, nowait);

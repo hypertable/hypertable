@@ -78,7 +78,7 @@ Comm::Comm() {
     HT_ABORT;
   }
 
-  m_verbose = Config::properties->has("verbose") && Config::properties->get_bool("verbose");
+  m_verbose = Config::properties->get_ptr<gBool>("verbose");
   ReactorFactory::verbose = m_verbose;
 
   InetAddr::initialize(&m_local_addr, System::net_info().primary_addr.c_str(), 0);
@@ -144,7 +144,7 @@ Comm::connect(const CommAddress &addr, const DispatchHandlerPtr &default_handler
   while (true) {
 
     if ((sd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0) {
-      if (m_verbose)
+      if (m_verbose->get())
         HT_ERRORF("socket: %s", strerror(errno));
       return Error::COMM_SOCKET_ERROR;
     }
@@ -159,7 +159,7 @@ Comm::connect(const CommAddress &addr, const DispatchHandlerPtr &default_handler
         ::close(sd);
         continue;
       }
-      if (m_verbose)
+      if (m_verbose->get())
         HT_ERRORF( "bind: %s: %s", m_local_addr.format().c_str(), strerror(errno));
       return Error::COMM_BIND_ERROR;
     }
@@ -185,14 +185,14 @@ Comm::connect(const CommAddress &addr, const CommAddress &local_addr,
     return error;
 
   if ((sd = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP)) < 0) {
-    if (m_verbose)
+    if (m_verbose->get())
       HT_ERRORF("socket: %s", strerror(errno));
     return Error::COMM_SOCKET_ERROR;
   }
 
   // bind socket to local address
   if ((::bind(sd, (const sockaddr *)&local_addr.inet, sizeof(sockaddr_in))) < 0) {
-    if (m_verbose)
+    if (m_verbose->get())
       HT_ERRORF( "bind: %s: %s", local_addr.to_str().c_str(), strerror(errno));
     return Error::COMM_BIND_ERROR;
   }
@@ -253,19 +253,19 @@ Comm::listen(const CommAddress &addr, ConnectionHandlerFactoryPtr &chf,
   FileUtils::set_flags(sd, O_NONBLOCK);
 
 #if defined(__linux__)
-  if (setsockopt(sd, SOL_TCP, TCP_NODELAY, &one, sizeof(one)) < 0 && m_verbose)
+  if (setsockopt(sd, SOL_TCP, TCP_NODELAY, &one, sizeof(one)) < 0 && m_verbose->get())
     HT_ERRORF("setting TCP_NODELAY: %s", strerror(errno));
 #elif defined(__sun__)
-  if (setsockopt(sd, IPPROTO_TCP, TCP_NODELAY, (char*)&one, sizeof(one)) < 0 && m_verbose)
+  if (setsockopt(sd, IPPROTO_TCP, TCP_NODELAY, (char*)&one, sizeof(one)) < 0 && m_verbose->get())
     HT_ERRORF("setting TCP_NODELAY: %s", strerror(errno));
 #elif defined(__APPLE__) || defined(__FreeBSD__)
-  if (setsockopt(sd, SOL_SOCKET, SO_NOSIGPIPE, &one, sizeof(one)) < 0 && m_verbose)
+  if (setsockopt(sd, SOL_SOCKET, SO_NOSIGPIPE, &one, sizeof(one)) < 0 && m_verbose->get())
     HT_WARNF("setsockopt(SO_NOSIGPIPE) failure: %s", strerror(errno));
-  if (setsockopt(sd, SOL_SOCKET, SO_REUSEPORT, &one, sizeof(one)) < 0 && m_verbose)
+  if (setsockopt(sd, SOL_SOCKET, SO_REUSEPORT, &one, sizeof(one)) < 0 && m_verbose->get())
     HT_WARNF("setsockopt(SO_REUSEPORT) failure: %s", strerror(errno));
 #endif
 
-  if (setsockopt(sd, SOL_SOCKET, SO_REUSEADDR, &one, sizeof(one)) < 0 && m_verbose)
+  if (setsockopt(sd, SOL_SOCKET, SO_REUSEADDR, &one, sizeof(one)) < 0 && m_verbose->get())
     HT_ERRORF("setting SO_REUSEADDR: %s", strerror(errno));
 
   int bind_attempts = 0;
@@ -273,7 +273,7 @@ Comm::listen(const CommAddress &addr, ConnectionHandlerFactoryPtr &chf,
     if (bind_attempts == 24)
       HT_THROWF(Error::COMM_BIND_ERROR, "binding to %s: %s",
                 addr.to_str().c_str(), strerror(errno));
-    if (m_verbose)
+    if (m_verbose->get())
       HT_INFOF("Unable to bind to %s: %s, will retry in 10 seconds...",
                addr.to_str().c_str(), strerror(errno));
     this_thread::sleep_for(chrono::milliseconds(10000));
@@ -303,7 +303,7 @@ Comm::send_request(const CommAddress &addr, uint32_t timeout_ms,
   int error;
 
   if ((error = m_handler_map->checkout_handler(addr, &data_handler)) != Error::OK) {
-    if (m_verbose)
+    if (m_verbose->get())
       HT_WARNF("No connection for %s - %s", addr.to_str().c_str(), Error::get_text(error));
     return error;
   }
@@ -345,7 +345,7 @@ int Comm::send_response(const CommAddress &addr, CommBufPtr &cbuf) {
   int error;
 
   if ((error = m_handler_map->checkout_handler(addr, &data_handler)) != Error::OK) {
-    if (m_verbose)
+    if (m_verbose->get())
       HT_ERRORF("No connection for %s - %s", addr.to_str().c_str(), Error::get_text(error));
     return error;
   }
@@ -381,12 +381,12 @@ Comm::create_datagram_receive_socket(CommAddress &addr, int tos,
 
   if (setsockopt(sd, SOL_SOCKET, SO_SNDBUF, (char *)&bufsize, sizeof(bufsize))
       < 0) {
-    if (m_verbose)
+    if (m_verbose->get())
       HT_ERRORF("setsockopt(SO_SNDBUF) failed - %s", strerror(errno));
   }
   if (setsockopt(sd, SOL_SOCKET, SO_RCVBUF, (char *)&bufsize, sizeof(bufsize))
       < 0) {
-    if (m_verbose)
+    if (m_verbose->get())
       HT_ERRORF("setsockopt(SO_RCVBUF) failed - %s", strerror(errno));
   }
 
@@ -411,7 +411,7 @@ Comm::create_datagram_receive_socket(CommAddress &addr, int tos,
     if (bind_attempts == 24)
       HT_THROWF(Error::COMM_BIND_ERROR, "binding to %s: %s",
 		addr.to_str().c_str(), strerror(errno));
-    if (m_verbose)
+    if (m_verbose->get())
       HT_INFOF("Unable to bind to %s: %s, will retry in 10 seconds...",
                addr.to_str().c_str(), strerror(errno));
     this_thread::sleep_for(chrono::milliseconds(10000));
@@ -442,7 +442,7 @@ Comm::send_datagram(const CommAddress &addr, const CommAddress &send_addr,
   HT_ASSERT(addr.is_inet());
 
   if ((error = m_handler_map->checkout_handler(send_addr, &handler)) != Error::OK) {
-    if (m_verbose)
+    if (m_verbose->get())
       HT_ERRORF("Datagram send/local address %s not registered",
                 send_addr.to_str().c_str());
     return error;
@@ -524,7 +524,7 @@ void Comm::find_available_tcp_port(InetAddr &addr) {
       HT_FATALF("setting TCP socket SO_REUSEADDR: %s", strerror(errno));
 
 #if defined(__APPLE__) || defined(__FreeBSD__)
-    if (setsockopt(sd, SOL_SOCKET, SO_REUSEPORT, &one, sizeof(one)) < 0 && m_verbose)
+    if (setsockopt(sd, SOL_SOCKET, SO_REUSEPORT, &one, sizeof(one)) < 0 && m_verbose->get())
       HT_WARNF("setsockopt(SO_REUSEPORT) failure: %s", strerror(errno));
 #endif
 
@@ -559,7 +559,7 @@ void Comm::find_available_udp_port(InetAddr &addr) {
       HT_FATALF("setting UDP socket SO_REUSEADDR: %s", strerror(errno));
 
 #if defined(__APPLE__) || defined(__FreeBSD__)
-    if (setsockopt(sd, SOL_SOCKET, SO_REUSEPORT, &one, sizeof(one)) < 0 && m_verbose)
+    if (setsockopt(sd, SOL_SOCKET, SO_REUSEPORT, &one, sizeof(one)) < 0 && m_verbose->get())
       HT_WARNF("setsockopt(SO_REUSEPORT) failure: %s", strerror(errno));
 #endif
 
@@ -606,13 +606,13 @@ Comm::connect_socket(int sd, const CommAddress &addr,
   FileUtils::set_flags(sd, O_NONBLOCK);
 
 #if defined(__linux__)
-  if (setsockopt(sd, SOL_TCP, TCP_NODELAY, &one, sizeof(one)) < 0 && m_verbose)
+  if (setsockopt(sd, SOL_TCP, TCP_NODELAY, &one, sizeof(one)) < 0 && m_verbose->get())
     HT_ERRORF("setsockopt(TCP_NODELAY) failure: %s", strerror(errno));
 #elif defined(__sun__)
-  if (setsockopt(sd, IPPROTO_TCP, TCP_NODELAY, &one, sizeof(one)) < 0 && m_verbose)
+  if (setsockopt(sd, IPPROTO_TCP, TCP_NODELAY, &one, sizeof(one)) < 0 && m_verbose->get())
     HT_ERRORF("setsockopt(TCP_NODELAY) failure: %s", strerror(errno));
 #elif defined(__APPLE__) || defined(__FreeBSD__)
-  if (setsockopt(sd, SOL_SOCKET, SO_NOSIGPIPE, &one, sizeof(one)) < 0 && m_verbose)
+  if (setsockopt(sd, SOL_SOCKET, SO_NOSIGPIPE, &one, sizeof(one)) < 0 && m_verbose->get())
     HT_WARNF("setsockopt(SO_NOSIGPIPE) failure: %s", strerror(errno));
 #endif
 
@@ -631,7 +631,7 @@ Comm::connect_socket(int sd, const CommAddress &addr,
       //HT_INFO("connect() in progress starting to poll");
       error = handler->start_polling(PollEvent::READ|PollEvent::WRITE);
       if (error == Error::COMM_POLL_ERROR) {
-        if (m_verbose)
+        if (m_verbose->get())
           HT_ERRORF("Polling problem on connection to %s: %s",
                     connectable_addr.to_str().c_str(), strerror(errno));
         m_handler_map->remove_handler(handler);
@@ -641,7 +641,7 @@ Comm::connect_socket(int sd, const CommAddress &addr,
     }
     m_handler_map->remove_handler(handler);
     delete handler;
-    if (m_verbose)
+    if (m_verbose->get())
       HT_ERRORF("connecting to %s: %s", connectable_addr.to_str().c_str(),
                 strerror(errno));
     return Error::COMM_CONNECT_ERROR;
@@ -649,7 +649,7 @@ Comm::connect_socket(int sd, const CommAddress &addr,
 
   error = handler->start_polling(PollEvent::READ|PollEvent::WRITE);
   if (error != Error::OK) {
-    if (m_verbose)
+    if (m_verbose->get())
       HT_ERRORF("Polling problem on connection to %s: %s (%s)",
                 connectable_addr.to_str().c_str(),
                 Error::get_text(error), strerror(errno));

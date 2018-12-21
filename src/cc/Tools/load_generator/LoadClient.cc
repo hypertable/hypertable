@@ -41,14 +41,19 @@ LoadClient::LoadClient(const String &config_file, bool thrift)
 
   if (m_thrift) {
 #ifdef HT_WITH_THRIFT
-    m_thrift_client.reset(new Thrift::Client("localhost", 15867));
+	Thrift::Transport ttp;
+	if (strcmp(Config::get_str("thrift-transport").c_str(), "zlib") == 0)
+	  ttp = Thrift::Transport::ZLIB;
+	else
+	  ttp = Thrift::Transport::FRAMED;
+    m_thrift_client.reset(new Thrift::Client(ttp, "localhost", 15867));
     m_thrift_namespace = m_thrift_client->open_namespace("/");
 #else
     HT_FATAL("Thrift support not installed");
 #endif
   }
   else {
-    m_native_client = make_shared<Hypertable::Client>(config_file);
+    m_native_client = std::make_shared<Hypertable::Client>(config_file);
     m_ns = m_native_client->open_namespace("/");
   }
 }
@@ -64,14 +69,19 @@ LoadClient::LoadClient(bool thrift)
 
   if (m_thrift) {
 #ifdef HT_WITH_THRIFT
-    m_thrift_client.reset(new Thrift::Client("localhost", 15867));
+	Thrift::Transport ttp;
+	if (strcmp(Config::get_str("thrift-transport").c_str(), "zlib") == 0)
+		ttp = Thrift::Transport::ZLIB;
+	else
+		ttp = Thrift::Transport::FRAMED;
+    m_thrift_client.reset(new Thrift::Client(ttp, "localhost", 15867));
     m_thrift_namespace = m_thrift_client->open_namespace("/");
 #else
     HT_FATAL("Thrift support not installed");
 #endif
   }
   else {
-    m_native_client = make_shared<Hypertable::Client>();
+    m_native_client = std::make_shared<Hypertable::Client>();
     m_ns = m_native_client->open_namespace("/");
   }
 }

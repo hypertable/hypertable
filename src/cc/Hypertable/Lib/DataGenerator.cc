@@ -45,11 +45,11 @@ DataGeneratorIterator::DataGeneratorIterator(DataGenerator *generator)
   Column *column;
 
   for (size_t i=0; i<generator->m_row_component_specs.size(); i++) {
-    if (generator->m_row_component_specs[i].type == INTEGER)
+    if (generator->m_row_component_specs[i].type == Type::INTEGER)
       row_comp = new RowComponentInteger( generator->m_row_component_specs[i] );
-    else if (generator->m_row_component_specs[i].type == STRING)
+    else if (generator->m_row_component_specs[i].type == Type::STRING)
       row_comp = new RowComponentString( generator->m_row_component_specs[i] );
-    else if (generator->m_row_component_specs[i].type == TIMESTAMP)
+    else if (generator->m_row_component_specs[i].type == Type::TIMESTAMP)
       row_comp = new RowComponentTimestamp( generator->m_row_component_specs[i] );
     else
       HT_ASSERT(!"Unrecognized row component type");
@@ -168,11 +168,11 @@ DataGenerator::DataGenerator(PropertiesPtr &props, bool keys_only) : m_props(pro
       if (!strcmp(ptr, ".type")) {
         str = m_props->get_str(names[i]);
         if (!strcasecmp(str.c_str(), "integer"))
-          m_row_component_specs[index].type = INTEGER;
+          m_row_component_specs[index].type = Type::INTEGER;
         else if (!strcasecmp(str.c_str(), "string"))
-          m_row_component_specs[index].type = STRING;
+          m_row_component_specs[index].type = Type::STRING;
         else if (!strcasecmp(str.c_str(), "timestamp"))
-          m_row_component_specs[index].type = TIMESTAMP;
+          m_row_component_specs[index].type = Type::TIMESTAMP;
         else
           HT_THROW(Error::SYNTAX_ERROR, format("Invalid rowkey component type - %s", str.c_str()));
       }
@@ -232,7 +232,7 @@ DataGenerator::DataGenerator(PropertiesPtr &props, bool keys_only) : m_props(pro
 
       if (!strcmp(tptr, "qualifier.type")) {
         if (!strcasecmp(str.c_str(), "STRING"))
-          m_column_specs[columni].qualifier.type = STRING;
+          m_column_specs[columni].qualifier.type = Type::STRING;
         else
           HT_THROW(Error::SYNTAX_ERROR, format("Unsupported type (%s) for '%s'",
                                                str.c_str(), names[i].c_str()));
@@ -313,7 +313,7 @@ DataGenerator::DataGenerator(PropertiesPtr &props, bool keys_only) : m_props(pro
       m_row_component_specs[i].seed = rowkey_seed;
     if (m_row_component_specs[i].type == -1)
       HT_FATALF("Missing type for component %lu", (Lu)i);
-    else if (m_row_component_specs[i].type == INTEGER &&
+    else if (m_row_component_specs[i].type == Type::INTEGER &&
              m_row_component_specs[i].format != "") {
       if (!strstr(m_row_component_specs[i].format.c_str(), "lld"))
         HT_FATALF("Format sequence (%s) must contain 'lld'",

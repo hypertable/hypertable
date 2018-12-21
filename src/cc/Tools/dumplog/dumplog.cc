@@ -50,17 +50,18 @@ using namespace std;
 
 namespace {
 
-struct AppPolicy : Config::Policy {
+struct AppPolicy : Policy {
   static void init_options() {
     cmdline_desc("Usage: %s [options] <log-dir>\n\n"
       "  This program dumps the given log's metadata.\n\nOptions")
       .add_options()
-      ("block-summary", boo()->zero_tokens()->default_value(false), "Display commit log block information only")
-      ("display-values", boo()->zero_tokens()->default_value(false), "Display values (assumes they're printable)")
-      ("linked-logs", boo()->zero_tokens()->default_value(false), "Display valid (non-deleted) linked logs")
+      ("block-summary", boo(false)->zero_token(), "Display commit log block information only")
+      ("display-values", boo(false)->zero_token(), "Display values (assumes they're printable)")
+      ("linked-logs", boo(false)->zero_token(), "Display valid (non-deleted) linked logs")
       ;
-    cmdline_hidden_desc().add_options()("log-dir", str(), "dfs log dir");
-    cmdline_positional_desc().add("log-dir", -1);
+    cmdline_hidden_desc().add_options()
+    ("log-dir", str(), "dfs log dir")
+    ("log-dir", -1);
   }
   static void init() {
     if (!has("log-dir")) {

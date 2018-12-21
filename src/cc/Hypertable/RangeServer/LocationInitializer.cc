@@ -50,7 +50,7 @@ using namespace Hypertable::Lib;
 using namespace Serialization;
 using namespace std;
 
-LocationInitializer::LocationInitializer(std::shared_ptr<Context> &context)
+LocationInitializer::LocationInitializer(std::shared_ptr<RangeServerContext> &context)
   : m_context(context) {
 
   Path data_dir = m_context->props->get_str("Hypertable.DataDirectory");
@@ -102,6 +102,11 @@ bool LocationInitializer::is_removed(const String &path, Hyperspace::SessionPtr 
     }
   }
   return removed;
+}
+
+bool LocationInitializer::remove_location() {
+  m_location.clear();
+  return FileUtils::unlink(m_location_file);
 }
 
 CommBuf *LocationInitializer::create_initialization_request() {

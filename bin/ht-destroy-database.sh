@@ -37,7 +37,7 @@ if [ $# == 1 ]; then
   esac
 fi
 
-TOPLEVEL="/"`$HYPERTABLE_HOME/bin/ht get_property $@ Hypertable.Directory`"/"
+TOPLEVEL="/"`$HYPERTABLE_HOME/bin/ht get_property Hypertable.Directory $@`"/"
 TOPLEVEL=`echo $TOPLEVEL | tr -s "/" | sed 's/.$//g'`
 
 usage() {

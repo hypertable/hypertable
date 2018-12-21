@@ -17,56 +17,79 @@
 # 02110-1301, USA.
 #
 
-HT_GLOB(ThriftGen_SRCS
-        gen-cpp/Client_constants.cpp 
-        gen-cpp/ClientService.cpp 
-        gen-cpp/Client_types.cpp
-        gen-cpp/Hql_constants.cpp 
-        gen-cpp/HqlService.cpp 
-        gen-cpp/Hql_types.cpp)
-
 set(CMAKE_CXX_FLAGS "-DHAVE_NETINET_IN_H ${CMAKE_CXX_FLAGS}")
 
-add_library(HyperThrift ThriftHelper.cc SerializedCellsReader.cc SerializedCellsWriter.cc ${ThriftGen_SRCS})
-target_link_libraries(HyperThrift ${Thrift_LIBS} ${LibEvent_LIBS})
-
-add_library(HyperThriftConfig Config.cc)
-target_link_libraries(HyperThriftConfig HyperThrift Hypertable)
-
-set(ThriftBroker_SRCS ThriftBroker.cc MetricsHandler.cc)
-
-add_custom_command(
-  OUTPUT    ${ThriftGen_SRCS}
-  COMMAND   thrift
-  ARGS      -r --gen cpp -o ${CMAKE_CURRENT_SOURCE_DIR}
-            ${CMAKE_CURRENT_SOURCE_DIR}/Hql.thrift
-  DEPENDS   ${CMAKE_CURRENT_SOURCE_DIR}/Client.thrift
-            ${CMAKE_CURRENT_SOURCE_DIR}/Hql.thrift
-  COMMENT   "thrift2cpp"
-)
-
-# Disable tcmalloc for 32-bit systems
-if (CMAKE_SYSTEM_PROCESSOR STREQUAL "i386" OR
-    CMAKE_SYSTEM_PROCESSOR STREQUAL "i586" OR
-    CMAKE_SYSTEM_PROCESSOR STREQUAL "i686")
-  set(THRIFT_MALLOC_LIBRARY "")
-else ()
-  set(THRIFT_MALLOC_LIBRARY ${MALLOC_LIBRARY})
+# IF .thirft instruction change with version it is prefered .thrift by versions
+if( NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/thriftgen-${THRIFT_VERSION})
+	execute_process(COMMAND  mkdir -p ${CMAKE_CURRENT_SOURCE_DIR}/thriftgen-${THRIFT_VERSION})
+endif ()
+if( NOT EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/thriftgen-${THRIFT_VERSION}/gen-cpp)
+	execute_process(COMMAND  thrift -r --gen cpp 
+							 -o ${CMAKE_CURRENT_SOURCE_DIR}/thriftgen-${THRIFT_VERSION}/
+							 ${CMAKE_CURRENT_SOURCE_DIR}/Hql.thrift)
+	# set current gen-cpp/ included path				 
+	execute_process(COMMAND rm -rf ${CMAKE_CURRENT_SOURCE_DIR}/gen-cpp)	
+	execute_process(COMMAND cp -r ${CMAKE_CURRENT_SOURCE_DIR}/thriftgen-${THRIFT_VERSION}/gen-cpp
+	                              ${CMAKE_CURRENT_SOURCE_DIR}/)			 
 endif ()
 
+# libHyperThrift
+HT_ADD_LIBS(
+	TARGET HyperThrift 
+	SRCS ThriftHelper.cc SerializedCellsReader.cc SerializedCellsWriter.cc 
+			gen-cpp/Client_constants.cpp 
+			gen-cpp/ClientService.cpp 
+			gen-cpp/Client_types.cpp
+			gen-cpp/Hql_constants.cpp 
+			gen-cpp/HqlService.cpp 
+			gen-cpp/Hql_types.cpp
+	DEPENDENCIES ${THRIFT_LIBRARIES} ${EVENT_LIBRARIES})
+
+# libHyperThriftConfig
+HT_ADD_LIBS(
+	TARGET HyperThriftConfig 
+	SRCS Config.cc
+	TARGETS HyperThrift Hypertable)
+
 # htThriftBroker
+set(ThriftBroker_SRCS ThriftBroker.cc MetricsHandler.cc)
 add_executable(htThriftBroker ${ThriftBroker_SRCS})
-target_link_libraries(htThriftBroker HyperThriftConfig HyperAppHelper ${THRIFT_MALLOC_LIBRARY})
+target_link_libraries(htThriftBroker HyperThriftConfig HyperAppHelper)
 
+
+### ZLIB TRANSPORT TESTS
 # Basic regression test
-add_executable(client_test tests/client_test.cc)
-target_link_libraries(client_test HyperThrift HyperCommon Hypertable)
-add_test(ThriftClient-cpp client_test)
-
+HT_ADD_TEST(
+	NAME ThriftClientZ-cpp
+	SRCS tests/client_test.cc
+	TARGETS HyperThrift HyperCommon Hypertable 
+	ARGS zlib
+	PRE_CMD env bash ${INSTALL_DIR}/bin/ht-start-test-servers.sh --clear --opt--thrift-transport=zlib
+)
 # regression test for SerializedCellsWriter/SerializedCellsReader
-add_executable(serialized_test tests/serialized_test.cc)
-target_link_libraries(serialized_test HyperThrift HyperCommon Hypertable)
-add_test(ThriftClient-Serialized-cpp serialized_test)
+HT_ADD_TEST(
+	NAME ThriftClientZ-cpp-Serialized
+	SRCS tests/client_test.cc
+	TARGETS HyperThrift HyperCommon Hypertable 	
+	ARGS zlib
+	POST_CMD env bash ${INSTALL_DIR}/bin/ht-start-test-servers.sh --clear
+)
+
+### FRAMED TRANSPORT TESTS
+# Basic regression test
+HT_ADD_TEST(
+	NAME ThriftClient-cpp
+	SRCS tests/client_test.cc
+	ARGS framed
+	TARGETS HyperThrift HyperCommon Hypertable 
+)
+# regression test for SerializedCellsWriter/SerializedCellsReader
+HT_ADD_TEST(
+	NAME ThriftClient-cpp-Serialized
+	SRCS tests/serialized_test.cc
+	ARGS framed
+	TARGETS HyperThrift HyperCommon Hypertable 
+)
 
 if (NOT HT_COMPONENT_INSTALL OR PACKAGE_THRIFTBROKER)
   install(TARGETS HyperThrift HyperThriftConfig htThriftBroker

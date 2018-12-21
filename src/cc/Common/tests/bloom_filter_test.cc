@@ -32,18 +32,16 @@ using namespace Config;
 
 namespace {
 
-struct MyPolicy : Config::Policy {
+struct MyPolicy : Policy {
   static void init_options() {
     cmdline_desc("Usage: %s [Options] [<num_items>]\nOptions").add_options()
       ("MurmurHash2", "Test with MurmurHash2 by Austin Appleby")
-      ("length", i16()->default_value(32), "length of test strings")
-      ("false-positive,p", f64()->default_value(0.01),
-          "false positive probability for Bloomfilter")
+      ("length", i16(32), "length of test strings")
+      ("false-positive,p", f64(0.01), "false positive probability for Bloomfilter")
       ;
     cmdline_hidden_desc().add_options()
-      ("items,n", i32()->default_value(200*K), "number of items")
-      ;
-    cmdline_positional_desc().add("items", -1);
+      ("items,n", i32(200*K), "number of items")
+      ("items", -1);
   }
 };
 

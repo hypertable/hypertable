@@ -23,35 +23,22 @@
 #  Jemalloc_LIBRARIES   - List of libraries when using Jemalloc.
 #  Jemalloc_FOUND       - True if Jemalloc found.
 
-find_path(Jemalloc_INCLUDE_DIR jemalloc/jemalloc.h NO_DEFAULT_PATH PATHS
-  ${HT_DEPENDENCY_INCLUDE_DIR}
-  /usr/include
-  /opt/local/include
-  /usr/local/include
+HT_FASTLIB_SET(
+	NAME "JEMALLOC" 
+	REQUIRED FALSE 
+	LIB_PATHS 
+	INC_PATHS 
+	STATIC 
+	SHARED jemalloc
+	INCLUDE jemalloc/jemalloc.h
 )
-
-set(Jemalloc_NAMES jemalloc)
-
-find_library(Jemalloc_LIBRARY NO_DEFAULT_PATH
-  NAMES ${Jemalloc_NAMES}
-  PATHS ${HT_DEPENDENCY_LIB_DIR} /lib /usr/lib /usr/local/lib /opt/local/lib
-)
-
-if (Jemalloc_INCLUDE_DIR AND Jemalloc_LIBRARY)
-  set(Jemalloc_FOUND TRUE)
-  set( Jemalloc_LIBRARIES ${Jemalloc_LIBRARY} )
-else ()
-  set(Jemalloc_FOUND FALSE)
-  set( Jemalloc_LIBRARIES )
-endif ()
-
-if (Jemalloc_FOUND)
-  message(STATUS "Found Jemalloc: ${Jemalloc_LIBRARY}")
+if (JEMALLOC_FOUND)
   try_run(TC_CHECK TC_CHECK_BUILD
           ${HYPERTABLE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeTmp
           ${HYPERTABLE_SOURCE_DIR}/cmake/CheckJemalloc.cc
-          CMAKE_FLAGS -DINCLUDE_DIRECTORIES=${Jemalloc_INCLUDE_DIR}
-                      -DLINK_LIBRARIES=${Jemalloc_LIBRARIES}
+          CMAKE_FLAGS 
+		  INCLUDE_DIRECTORIES ${JEMALLOC_INCLUDE_DIRS}
+          LINK_LIBRARIES ${JEMALLOC_LIBRARIES}
           OUTPUT_VARIABLE TC_TRY_OUT)
   #message("tc_check build: ${TC_CHECK_BUILD}")
   #message("tc_check: ${TC_CHECK}")
@@ -66,16 +53,5 @@ if (Jemalloc_FOUND)
   if (NOT TC_VERSION MATCHES "^[0-9]+.*")
     set(TC_VERSION "unknown -- make sure it's 1.1+")
   endif ()
-  message(STATUS "       version: ${TC_VERSION}")
-else ()
-  message(STATUS "Not Found Jemalloc: ${Jemalloc_LIBRARY}")
-  if (Jemalloc_FIND_REQUIRED)
-    message(STATUS "Looked for Jemalloc libraries named ${Jemalloc_NAMES}.")
-    message(FATAL_ERROR "Could NOT find Jemalloc library")
-  endif ()
+  message("       version: ${TC_VERSION}")
 endif ()
-
-mark_as_advanced(
-  Jemalloc_LIBRARY
-  Jemalloc_INCLUDE_DIR
-  )

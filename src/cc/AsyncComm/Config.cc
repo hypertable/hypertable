@@ -44,14 +44,11 @@ void init_comm_options() {
 void init_comm() {
   int32_t num_cores = System::get_processor_count();
 
-  if (get_bool("verbose"))
+  if (get<gBool>("verbose"))
     std::cout <<"CPU cores count="<< num_cores << std::endl;
 
   int32_t reactors = get("reactors", num_cores);
-
-  if (!has("reactors"))
-    properties->add("reactors", reactors);
-
+  
   ReactorFactory::initialize(reactors);
 }
 
@@ -63,7 +60,7 @@ void init_generic_server_options() {
 }
 
 void init_generic_server() {
-  String pidfile = get("pidfile", String());
+  String pidfile = get_str("pidfile", String());
 
   if (pidfile.length()) {
     std::ofstream out(pidfile.c_str());

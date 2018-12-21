@@ -21,7 +21,7 @@
 add_executable(ht_load_generator ht_load_generator.cc LoadClient.cc 
     LoadThread.cc QueryThread.cc)
 
-if (Thrift_FOUND)
+if (THRIFT_FOUND)
   target_link_libraries(ht_load_generator Hypertable HyperThriftConfig)
 else ()
   target_link_libraries(ht_load_generator Hypertable)

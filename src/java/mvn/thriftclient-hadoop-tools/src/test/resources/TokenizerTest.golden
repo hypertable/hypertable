@@ -1,0 +1,197 @@
+Token COMMENT
+#### test-definition: example 1
+Token VARIABLE
+INSTALL_DIR="/opt/hypertable"
+Token VARIABLE
+HYPERTABLE_VERSION="0.9.8.0"
+Token CODE
+
+Token ROLE
+role: master master
+Token ROLE
+role: hyperspace master, hyperspace01, hyperspace02
+Token CODE
+
+Token INCLUDE
+include: "cluster.tasks"
+Token COMMENT
+#### test-definition: example 2
+Token VARIABLE
+INSTALL_DIR="/opt/hypertable"
+Token VARIABLE
+HYPERTABLE_VERSION="0.9.8.0"
+Token CODE
+
+Token ROLE
+role: master master
+Token ROLE
+role: hyperspace master, hyperspace01, hyperspace02
+Token CODE
+
+Token COMMENT
+# here is another
+# variable definition
+Token VARIABLE
+CONFIG="/opt/hypertable/dev-hypertable.cfg"
+Token CODE
+
+Token COMMENT
+#### test-definition: example 3
+Token VARIABLE
+INSTALL_DIR="/opt/hypertable"
+Token VARIABLE
+HYPERTABLE_VERSION="0.9.8.0"
+Token CODE
+
+Token ROLE
+role: master master
+Token ROLE
+role: slave slave1 slave2 slave3
+            slave4 slave5 slave6
+Token ROLE
+role: thriftbroker_additional tb1 tb2
+Token CODE
+
+Token INCLUDE
+include: "cluster.tasks"
+Token CODE
+
+Token TASK
+# sets up the symbolic link 'current' in the installation area.
+# To point to the directory of the current version
+# (default=${HYPERTABLE_VERSION})
+task: set_current roles: master, slave {
+  ssh: execution_order=series random_start_delay=5000 {
+    cd #{install_dir}
+    rm -f current
+    ln -s #{hypertable_version} current
+  }
+}
+Token COMMENT
+#### test-definition: variables 1
+Token VARIABLE
+INSTALL_DIR="/opt/hypertable/`hostname`"
+Token VARIABLE
+NAME="My \"test\" cluster"
+Token VARIABLE
+MULTI1='foo1
+foo2
+foobar2'
+Token VARIABLE
+MULTI1="foo1
+foo2
+foobar2"
+Token VARIABLE
+EMBEDDED1="This is a 'great' tool"
+Token VARIABLE
+EMBEDDED2='This is a "great" tool'
+Token VARIABLE
+ESCAPE1=`prog "how`
+Token VARIABLE
+ESCAPE2=`prog 'now`
+Token COMMENT
+#### test-definition: task 1
+Token CODE
+
+Token TASK
+# sets up the symbolic link 'current' in the installation area.
+# To point to the directory of the current version
+# (default=${HYPERTABLE_VERSION})
+task: set_current roles: master, slave {
+  ssh: execution_order=series random_start_delay=5000 {
+    echo "This is a test}"
+  }
+}
+Token COMMENT
+#### test-definition: roles 1
+Token CODE
+
+Token ROLE
+role: master master
+Token COMMENT
+#role: hyperspace hyperspace
+Token ROLE
+role: slave test[01-07]
+Token CODE
+
+Token ROLE
+role: slave test[01-07]
+           test[10-18]
+Token CODE
+
+Token ROLE
+role: master master
+Token CODE
+myfunc () {
+  echo "this is my function }"
+}
+echo "yes"
+Token COMMENT
+# end function
+Token COMMENT
+#### test-definition: nested control structures
+Token CODE
+
+Token VARIABLE
+FOO=bar
+Token CODE
+if [ $FOO == "bar" ]; then
+  echo yes
+fi
+
+Token VARIABLE
+VAR=how
+Token CODE
+while true; do
+  if [ $FOO == "bar" ]; then
+    echo "if then else";
+    BAR=yes
+  fi
+  BAZ=yes
+done
+
+Token VARIABLE
+VAR=now
+Token CODE
+until true; do
+  if [ $FOO == "bar" ]; then
+    echo "if then else";
+    BAR=no
+  fi
+  BAZ=no
+done
+
+Token VARIABLE
+VAR=brown
+Token CODE
+case $space in
+[1-6]*)
+  Message="All is quiet."
+  ;;
+[7-8]*)
+  Message="Start thinking about cleaning out some stuff.  There's a partition that is $space % full."
+  ;;
+9[1-8])
+  Message="Better hurry with that new disk...  One partition is $space % full."
+  ;;
+99)
+  Message="I'm drowning here!  There's a partition at $space %!"
+  ;;
+*)
+  Message="I seem to be running with an nonexistent amount of disk space..."
+  ;;
+esac
+
+Token VARIABLE
+VAR=cow
+Token CODE
+for I in 1 2 3 4 5
+do
+  statements1      #Executed for all values of ''I'', up to a disaster-condition if any.
+  statements2
+  if (disaster-condition)
+  then
+    break            #Abandon the loop.
+  fi
+  statements3          #While good and, no disaster-condition.
+done

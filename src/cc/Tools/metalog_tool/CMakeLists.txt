@@ -19,10 +19,7 @@
 
 # metalog_tool - program to print a textual representation of the metalog
 add_executable(ht_metalog_tool ht_metalog_tool.cc)
-target_link_libraries(ht_metalog_tool Hypertable HyperRanger HyperMaster ${BOOST_LIBS} ${RE2_LIBRARY}
-                                   ${SIGAR_LIBRARY} ${EXPAT_LIBRARIES} ${NCURSES_LIBRARY}
-                                   ${EDITLINE_LIBRARY} ${HYPERTABLE_LIBRARIES}
-                                   ${SNAPPY_LIBRARY} ${MALLOC_LIBRARY} ${Libssl_LIBRARIES})
+target_link_libraries(ht_metalog_tool Hypertable HyperRanger HyperMaster)
 
 if (NOT HT_COMPONENT_INSTALL)
   install(TARGETS ht_metalog_tool RUNTIME DESTINATION bin)

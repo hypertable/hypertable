@@ -133,7 +133,7 @@ IOHandlerData::handle_event(struct pollfd *event,
                                  m_message_header_remaining, &error, &eof);
           if (nread == (size_t)-1) {
             if (errno != ECONNREFUSED) {
-              if (ReactorFactory::verbose)
+              if (ReactorFactory::verbose->get())
                 HT_INFOF("socket read(%d, len=%d) failure : %s", m_sd,
                          (int)m_message_header_remaining, strerror(errno));
             }
@@ -162,7 +162,7 @@ IOHandlerData::handle_event(struct pollfd *event,
           nread = et_socket_read(m_sd, m_message_ptr, m_message_remaining,
                                  &error, &eof);
           if (nread == (size_t)-1) {
-            if (ReactorFactory::verbose)
+            if (ReactorFactory::verbose->get())
               HT_INFOF("socket read(%d, len=%d) failure : %s", m_sd,
                        (int)m_message_header_remaining, strerror(errno));
             handle_disconnect();
@@ -192,7 +192,7 @@ IOHandlerData::handle_event(struct pollfd *event,
     }
 
     if (event->revents & POLLERR) {
-      if (ReactorFactory::verbose)
+      if (ReactorFactory::verbose->get())
         HT_INFOF("Received POLLERR on descriptor %d (%s:%d)", m_sd,
                  inet_ntoa(m_addr.sin_addr), ntohs(m_addr.sin_port));
       handle_disconnect();
@@ -210,7 +210,7 @@ IOHandlerData::handle_event(struct pollfd *event,
 
   }
   catch (Hypertable::Exception &e) {
-    if (ReactorFactory::verbose)
+    if (ReactorFactory::verbose->get())
       HT_ERROR_OUT << e << HT_END;
     handle_disconnect();
     return true;
@@ -245,7 +245,7 @@ IOHandlerData::handle_event(struct epoll_event *event,
                                  m_message_header_remaining, &error, &eof);
           if (nread == (size_t)-1) {
             if (errno != ECONNREFUSED) {
-              if (ReactorFactory::verbose)
+              if (ReactorFactory::verbose->get())
                 HT_INFOF("socket read(%d, len=%d) failure : %s", m_sd,
                          (int)m_message_header_remaining, strerror(errno));
             }
@@ -274,7 +274,7 @@ IOHandlerData::handle_event(struct epoll_event *event,
           nread = et_socket_read(m_sd, m_message_ptr, m_message_remaining,
                                  &error, &eof);
           if (nread == (size_t)-1) {
-            if (ReactorFactory::verbose)
+            if (ReactorFactory::verbose->get())
               HT_INFOF("socket read(%d, len=%d) failure : %s", m_sd,
                        (int)m_message_header_remaining, strerror(errno));
             handle_disconnect();
@@ -314,7 +314,7 @@ IOHandlerData::handle_event(struct epoll_event *event,
     }
 
     if (event->events & EPOLLERR) {
-      if (ReactorFactory::verbose)
+      if (ReactorFactory::verbose->get())
         HT_INFOF("Received EPOLLERR on descriptor %d (%s:%d)", m_sd,
                  inet_ntoa(m_addr.sin_addr), ntohs(m_addr.sin_port));
       handle_disconnect();
@@ -329,7 +329,7 @@ IOHandlerData::handle_event(struct epoll_event *event,
     }
   }
   catch (Hypertable::Exception &e) {
-    if (ReactorFactory::verbose)
+    if (ReactorFactory::verbose->get())
       HT_ERROR_OUT << e << HT_END;
     handle_disconnect();
     return true;
@@ -351,7 +351,7 @@ bool IOHandlerData::handle_event(port_event_t *event,
 
     if (event->portev_events & POLLOUT) {
       if (handle_write_readiness()) {
-        if (ReactorFactory::verbose)
+        if (ReactorFactory::verbose->get())
           HT_INFO("handle_disconnect() write readiness");
         handle_disconnect();
         return true;
@@ -366,7 +366,7 @@ bool IOHandlerData::handle_event(port_event_t *event,
                                  m_message_header_remaining, &error, &eof);
           if (nread == (size_t)-1) {
             if (errno != ECONNREFUSED) {
-              if (ReactorFactory::verbose)
+              if (ReactorFactory::verbose->get())
                 HT_INFOF("socket read(%d, len=%d) failure : %s", m_sd,
                          (int)m_message_header_remaining, strerror(errno));
             }
@@ -395,7 +395,7 @@ bool IOHandlerData::handle_event(port_event_t *event,
           nread = et_socket_read(m_sd, m_message_ptr, m_message_remaining,
                                  &error, &eof);
           if (nread == (size_t)-1) {
-            if (ReactorFactory::verbose)
+            if (ReactorFactory::verbose->get())
               HT_INFOF("socket read(%d, len=%d) failure : %s", m_sd,
                        (int)m_message_header_remaining, strerror(errno));
             handle_disconnect();
@@ -426,7 +426,7 @@ bool IOHandlerData::handle_event(port_event_t *event,
 
 
     if (event->portev_events & POLLERR) {
-      if (ReactorFactory::verbose)
+      if (ReactorFactory::verbose->get())
         HT_INFOF("Received POLLERR on descriptor %d (%s:%d)", m_sd,
                  inet_ntoa(m_addr.sin_addr), ntohs(m_addr.sin_port));
       handle_disconnect();
@@ -449,7 +449,7 @@ bool IOHandlerData::handle_event(port_event_t *event,
     
   }
   catch (Hypertable::Exception &e) {
-    if (ReactorFactory::verbose)
+    if (ReactorFactory::verbose->get())
       HT_ERROR_OUT << e << HT_END;
     test_and_set_error(e.code());
     handle_disconnect();
@@ -490,7 +490,7 @@ bool IOHandlerData::handle_event(struct kevent *event,
             nread = FileUtils::read(m_sd, m_message_header_ptr,
                                     m_message_header_remaining);
             if (nread == (size_t)-1) {
-              if (ReactorFactory::verbose)
+              if (ReactorFactory::verbose->get())
                 HT_INFOF("FileUtils::read(%d, len=%d) failure : %s", m_sd,
                          (int)m_message_header_remaining, strerror(errno));
               handle_disconnect();
@@ -504,7 +504,7 @@ bool IOHandlerData::handle_event(struct kevent *event,
           else {
             nread = FileUtils::read(m_sd, m_message_header_ptr, available);
             if (nread == (size_t)-1) {
-              if (ReactorFactory::verbose)
+              if (ReactorFactory::verbose->get())
                 HT_INFOF("FileUtils::read(%d, len=%d) failure : %s", m_sd,
                          (int)available, strerror(errno));
               handle_disconnect();
@@ -520,7 +520,7 @@ bool IOHandlerData::handle_event(struct kevent *event,
           if (m_message_remaining <= available) {
             nread = FileUtils::read(m_sd, m_message_ptr, m_message_remaining);
             if (nread == (size_t)-1) {
-              if (ReactorFactory::verbose)
+              if (ReactorFactory::verbose->get())
                 HT_INFOF("FileUtils::read(%d, len=%d) failure : %s", m_sd,
                          (int)m_message_remaining, strerror(errno));
               handle_disconnect();
@@ -533,7 +533,7 @@ bool IOHandlerData::handle_event(struct kevent *event,
           else {
             nread = FileUtils::read(m_sd, m_message_ptr, available);
             if (nread == (size_t)-1) {
-              if (ReactorFactory::verbose)
+              if (ReactorFactory::verbose->get())
                 HT_INFOF("FileUtils::read(%d, len=%d) failure : %s", m_sd,
                          (int)available, strerror(errno));
               handle_disconnect();
@@ -549,7 +549,7 @@ bool IOHandlerData::handle_event(struct kevent *event,
     }
   }
   catch (Hypertable::Exception &e) {
-    if (ReactorFactory::verbose)
+    if (ReactorFactory::verbose->get())
       HT_ERROR_OUT << e << HT_END;
     test_and_set_error(e.code());
     handle_disconnect();
@@ -614,7 +614,7 @@ void IOHandlerData::handle_message_body() {
            (m_event->header.id == 0
             || !m_reactor->remove_request(m_event->header.id, dh))) {
     if ((m_event->header.flags & CommHeader::FLAGS_BIT_IGNORE_RESPONSE) == 0) {
-      if (ReactorFactory::verbose)
+      if (ReactorFactory::verbose->get())
         HT_WARNF("Received response for non-pending event (id=%d,version"
                  "=%d,total_len=%d)", m_event->header.id, m_event->header.version,
                  m_event->header.total_len);
@@ -656,12 +656,12 @@ bool IOHandlerData::handle_write_readiness() {
       socklen_t sockerr_len = sizeof(sockerr);
 
       if (getsockopt(m_sd, SOL_SOCKET, SO_ERROR, &sockerr, &sockerr_len) < 0) {
-        if (ReactorFactory::verbose)
+        if (ReactorFactory::verbose->get())
           HT_INFOF("getsockopt(SO_ERROR) failed - %s", strerror(errno));
       }
 
       if (sockerr) {
-        if (ReactorFactory::verbose)
+        if (ReactorFactory::verbose->get())
           HT_INFOF("connect() completion error - %s", strerror(sockerr));
 	break;
       }
@@ -669,23 +669,23 @@ bool IOHandlerData::handle_write_readiness() {
       int bufsize = 4*32768;
       if (setsockopt(m_sd, SOL_SOCKET, SO_SNDBUF, (char *)&bufsize,
 		     sizeof(bufsize)) < 0) {
-        if (ReactorFactory::verbose)
+        if (ReactorFactory::verbose->get())
           HT_INFOF("setsockopt(SO_SNDBUF) failed - %s", strerror(errno));
       }
       if (setsockopt(m_sd, SOL_SOCKET, SO_RCVBUF, (char *)&bufsize,
 		     sizeof(bufsize)) < 0) {
-        if (ReactorFactory::verbose)
+        if (ReactorFactory::verbose->get())
           HT_INFOF("setsockopt(SO_RCVBUF) failed - %s", strerror(errno));
       }
 
       int one = 1;
       if (setsockopt(m_sd, SOL_SOCKET, SO_KEEPALIVE, &one, sizeof(one)) < 0) {
-        if (ReactorFactory::verbose)
+        if (ReactorFactory::verbose->get())
           HT_ERRORF("setsockopt(SO_KEEPALIVE) failure: %s", strerror(errno));
       }
 
       if (getsockname(m_sd, (struct sockaddr *)&m_local_addr, &name_len) < 0) {
-        if (ReactorFactory::verbose)
+        if (ReactorFactory::verbose->get())
           HT_INFOF("getsockname(%d) failed - %s", m_sd, strerror(errno));
 	break;
       }
@@ -719,7 +719,7 @@ bool IOHandlerData::handle_write_readiness() {
     if (ReactorFactory::proxy_master) {
       if ((error = ReactorRunner::handler_map->propagate_proxy_map(this))
           != Error::OK) {
-        if (ReactorFactory::verbose)
+        if (ReactorFactory::verbose->get())
           HT_ERRORF("Problem sending proxy map to %s - %s",
                     m_addr.format().c_str(), Error::get_text(error));
         return true;
@@ -757,7 +757,7 @@ IOHandlerData::send_message(CommBufPtr &cbp, uint32_t timeout_ms,
 
   if (m_connected) {
     if ((error = flush_send_queue()) != Error::OK) {
-      if (ReactorFactory::verbose)
+      if (ReactorFactory::verbose->get())
         HT_WARNF("Problem flushing send queue - %s", Error::get_text(error));
       ReactorRunner::handler_map->decomission_handler(this);
       if (m_error == Error::OK)
@@ -768,12 +768,12 @@ IOHandlerData::send_message(CommBufPtr &cbp, uint32_t timeout_ms,
 
   if (initially_empty && !m_send_queue.empty()) {
     error = add_poll_interest(PollEvent::WRITE);
-    if (error && ReactorFactory::verbose)
+    if (error && ReactorFactory::verbose->get())
       HT_ERRORF("Adding Write interest failed; error=%u", (unsigned)error);
   }
   else if (!initially_empty && m_send_queue.empty()) {
     error = remove_poll_interest(PollEvent::WRITE);
-    if (error && ReactorFactory::verbose)
+    if (error && ReactorFactory::verbose->get())
       HT_INFOF("Removing Write interest failed; error=%u", (unsigned)error);
   }
 
@@ -820,7 +820,7 @@ int IOHandlerData::flush_send_queue() {
     if (nwritten == (ssize_t)-1) {
       if (error == EAGAIN)
         return Error::OK;
-      if (ReactorFactory::verbose)
+      if (ReactorFactory::verbose->get())
         HT_WARNF("FileUtils::writev(%d, len=%d) failed : %s", m_sd, (int)towrite,
                  strerror(errno));
       return Error::COMM_BROKEN_CONNECTION;
@@ -830,7 +830,7 @@ int IOHandlerData::flush_send_queue() {
         if (error == EAGAIN)
           break;
         if (error) {
-          if (ReactorFactory::verbose)
+          if (ReactorFactory::verbose->get())
             HT_WARNF("FileUtils::writev(%d, len=%d) failed : %s", m_sd,
                      (int)towrite, strerror(error));
           return Error::COMM_BROKEN_CONNECTION;
@@ -899,7 +899,7 @@ int IOHandlerData::flush_send_queue() {
 
     nwritten = FileUtils::writev(m_sd, vec, count);
     if (nwritten == (ssize_t)-1) {
-      if (ReactorFactory::verbose)
+      if (ReactorFactory::verbose->get())
         HT_WARNF("FileUtils::writev(%d, len=%d) failed : %s", m_sd, (int)towrite,
                  strerror(errno));
       return Error::COMM_BROKEN_CONNECTION;

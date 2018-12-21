@@ -27,7 +27,6 @@
 #include "DataGeneratorRowComponent.h"
 #include "DataGeneratorQualifier.h"
 
-#include <Common/Config.h>
 #include <Common/FileUtils.h>
 #include <Common/String.h>
 #include <Common/WordStream.h>
@@ -43,7 +42,6 @@ extern "C" {
 }
 
 using namespace Hypertable;
-using namespace Hypertable::Config;
 using namespace std;
 
 namespace Hypertable {
@@ -95,7 +93,7 @@ namespace Hypertable {
           HT_FATAL("Source file not specified for word stream");
         if (size == -1)
           HT_FATAL("Size not specified for word stream");
-        m_word_stream = make_shared<WordStream>(s, seed, size, order == RANDOM);
+        m_word_stream = std::make_shared<WordStream>(s, seed, size, order == RANDOM);
       }
       else {
 

@@ -23,10 +23,7 @@ ht_salvage.cc
 
 # salvage - Tool for salvaging data from CellStores
 add_executable(ht_salvage ${salvage_SRCS})
-target_link_libraries(ht_salvage Hypertable HyperRanger ${BOOST_LIBS} ${RE2_LIBRARY} 
-                              ${SIGAR_LIBRARY} ${EXPAT_LIBRARIES} ${NCURSES_LIBRARY}
-                              ${EDITLINE_LIBRARY} ${HYPERTABLE_LIBRARIES}
-                              ${SNAPPY_LIBRARY} ${MALLOC_LIBRARY} ${Libssl_LIBRARIES})
+target_link_libraries(ht_salvage Hypertable HyperRanger)
 
 if (NOT HT_COMPONENT_INSTALL)
   install(TARGETS ht_salvage RUNTIME DESTINATION bin)

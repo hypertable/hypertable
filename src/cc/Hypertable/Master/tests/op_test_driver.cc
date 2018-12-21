@@ -49,6 +49,8 @@
 #include <Hypertable/Lib/TableIdentifier.h>
 #include <Hypertable/Lib/TableParts.h>
 
+#include <Hypertable/Lib/Master/NamespaceFlag.h>
+
 #include <FsBroker/Lib/Client.h>
 
 #include <Common/FailureInducer.h>
@@ -81,7 +83,7 @@ namespace {
   String g_mml_dir;
   uint16_t g_rs_port = 0;
 
-  struct AppPolicy : Config::Policy {
+  struct AppPolicy : Policy {
     static void init_options() {
       cmdline_desc("Usage: %s <test>\n\n"
                    "  This program tests failures and state transitions\n"
@@ -91,6 +93,7 @@ namespace {
                    "  system_upgrade\n"
                    "  create_namespace\n"
                    "  drop_namespace\n"
+                   "  drop_namespace_if_exists_test\n"
                    "  create_table\n"
                    "  create_table_with_index\n"
                    "  drop_table\n"
@@ -100,8 +103,9 @@ namespace {
                    "  toggle_table_maintenance\n"
                    "  recreate_index_tables\n"
                    "\nOptions");
-      cmdline_hidden_desc().add_options()("test", str(), "test to run");
-      cmdline_positional_desc().add("test", -1);
+      cmdline_hidden_desc().add_options()
+      ("test", str(), "test to run")
+      ("test", -1);
     }
     static void init() {
       if (!has("test")) {
@@ -181,7 +185,7 @@ namespace {
                        std::vector<MetaLog::EntityPtr> &entities) {
     OperationPtr operation;
 
-    context->op = make_unique<OperationProcessor>(context, 4);
+    context->op = std::make_unique<OperationProcessor>(context, 4);
     context->mml_writer =
       make_shared<MetaLog::Writer>(context->dfs, context->mml_definition,
                                    g_mml_dir, entities);
@@ -205,7 +209,7 @@ namespace {
     std::vector<OperationPtr> operations;
     std::vector<MetaLog::EntityPtr> tmp_entities;
 
-    context->op = make_unique<OperationProcessor>(context, 4);
+    context->op = std::make_unique<OperationProcessor>(context, 4);
 
     FailureInducer::instance->clear();
     if (failure_point != "")
@@ -352,6 +356,7 @@ namespace {
 
 void create_namespace_test(ContextPtr &context);
 void drop_namespace_test(ContextPtr &context);
+void drop_namespace_if_exists_test(ContextPtr &context);
 void create_table_test(ContextPtr &context);
 void drop_table_test(ContextPtr &context);
 void create_table_with_index_test(ContextPtr &context);
@@ -379,7 +384,7 @@ int main(int argc, char **argv) {
     // Default Hyperspace replicat host
     std::vector<String> replicas;
     replicas.push_back("localhost");
-    properties->set("Hyperspace.Replica.Host", replicas);
+    properties->set("Hyperspace.Replica.Host", (gStrings)replicas);
 
     Hyperspace::SessionPtr hyperspace = make_shared<Hyperspace::Session>(Comm::instance(), properties);
 
@@ -419,6 +424,8 @@ int main(int argc, char **argv) {
       create_namespace_test(context);
     else if (testname == "drop_namespace")
       drop_namespace_test(context);
+    else if (testname == "drop_namespace_if_exists")
+      drop_namespace_if_exists_test(context);
     else if (testname == "create_table")
       create_table_test(context);
     else if (testname == "drop_table")
@@ -501,6 +508,34 @@ void drop_namespace_test(ContextPtr &context) {
   out.close();
 
   if (!check_for_diff("drop_namespace"))
+    quick_exit(EXIT_FAILURE);
+
+  context = 0;
+  quick_exit(EXIT_SUCCESS);
+}
+
+void drop_namespace_if_exists_test(ContextPtr &context) {
+  std::vector<MetaLog::EntityPtr> entities;
+
+  context->mml_writer =
+    make_shared<MetaLog::Writer>(context->dfs, context->mml_definition,
+                                 g_mml_dir, entities);
+
+  entities.push_back(make_shared<OperationDropNamespace>(context, "foo", Lib::Master::NamespaceFlag::IF_EXISTS) );
+
+  ofstream out("drop_namespace_if_exists.output", ios::out|ios::trunc);
+
+  run_test2(context, entities, "drop-namespace-INITIAL:throw:0", out);
+  run_test2(context, entities, "drop-namespace-STARTED-a:throw:0", out);
+  run_test2(context, entities, "drop-namespace-STARTED-b:throw:0", out);
+  run_test2(context, entities, "", out);
+
+  context->op->shutdown();
+  context->op->join();
+
+  out.close();
+
+  if (!check_for_diff("drop_namespace_if_exists"))
     quick_exit(EXIT_FAILURE);
 
   context = 0;

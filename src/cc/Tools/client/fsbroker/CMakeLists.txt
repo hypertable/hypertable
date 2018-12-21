@@ -17,10 +17,6 @@
 # 02110-1301, USA.
 #
 
-set(SRC_DIR "${HYPERTABLE_SOURCE_DIR}/src/cc/Tools/client/fsbroker")
-set(DST_DIR "${HYPERTABLE_BINARY_DIR}/src/cc/Tools/client/fsbroker")
-
-set(TEST_DEPENDENCIES ${DST_DIR}/words)
 
 set(fsbroker_SRCS
 CommandInterpreter.cc
@@ -30,20 +26,27 @@ CommandInterpreter.cc
 add_executable(ht_fsbroker fsbroker.cc ${fsbroker_SRCS})
 target_link_libraries(ht_fsbroker HyperCommon HyperComm HyperFsBroker Hypertable ${EDITLINE_LIBRARIES})
 
-# fsTest
-add_executable(fsTest fsTest.cc FsTestThreadFunction.cc ${TEST_DEPENDENCIES})
-target_link_libraries(fsTest HyperCommon HyperComm HyperFsBroker)
 
-configure_file(${SRC_DIR}/fsTest.golden ${DST_DIR}/fsTest.golden COPYONLY)
+
+set(SRC_DIR "${HYPERTABLE_SOURCE_DIR}/src/cc/Tools/client/fsbroker")
+set(DST_DIR "${HYPERTABLE_BINARY_DIR}/src/cc/Tools/client/fsbroker")
 
 add_custom_command(SOURCE ${HYPERTABLE_SOURCE_DIR}/tests/data/words.gz
     COMMAND gzip ARGS -d < ${HYPERTABLE_SOURCE_DIR}/tests/data/words.gz
                          > ${DST_DIR}/words
     OUTPUT ${DST_DIR}/words)
 
-set(ADDITIONAL_MAKE_CLEAN_FILES ${DST_DIR}/words)
+SET_DIRECTORY_PROPERTIES(PROPERTIES ADDITIONAL_MAKE_CLEAN_FILES "${DST_DIR}/words") 
 
-add_test(HyperFsBroker fsTest)
+# fsTest
+HT_ADD_TEST(
+	NAME HyperFsBroker
+	SRCS fsTest.cc FsTestThreadFunction.cc
+	TARGETS Hypertable HyperCommon HyperComm HyperFsBroker
+	EXEC_DEPS ${DST_DIR}/words
+)
+configure_file(${SRC_DIR}/fsTest.golden ${DST_DIR}/fsTest.golden COPYONLY)
+
 
 if (NOT HT_COMPONENT_INSTALL)
   install(TARGETS ht_fsbroker

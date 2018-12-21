@@ -60,7 +60,7 @@ int main(int argc, char **argv) {
   uint32_t result_length;
   QueryCache::Key key;
   char row[32];
-  char keybuf[32];
+  char keybuf[99];
   TrackRecT  track_buf[TRACK_BUFFER_SIZE];
   size_t track_buf_i = 0;
   std::set<uint8_t> columns;
@@ -92,7 +92,7 @@ int main(int argc, char **argv) {
     row[1] = (char)rowi;
     row[2] = 0;
     for (size_t i=0; i<100; i++) {
-      sprintf(keybuf, "%s-%d", row, (int)i);
+	  snprintf(keybuf, sizeof(keybuf), "%s-%d", row, (int)i);
       md5_csum((unsigned char *)keybuf, strlen(keybuf), (unsigned char *)key.digest);
       if (!cache->insert(&key, "/1", row, columns, cell_count, result, 1000)) {
 	cout << "Error: insert failed." << endl;
@@ -106,7 +106,7 @@ int main(int argc, char **argv) {
   row[2] = 0;
 
   for (size_t i=0; i<100; i++) {
-    sprintf(keybuf, "%s-%d", row, (int)i);
+	snprintf(keybuf, sizeof(keybuf), "%s-%d", row, (int)i);
     md5_csum((unsigned char *)keybuf, strlen(keybuf), (unsigned char *)key.digest);
     if (!cache->lookup(&key, result, &result_length, &cell_count)) {
       cout << "Error: key not found." << endl;
@@ -117,7 +117,7 @@ int main(int argc, char **argv) {
   cache->invalidate("/1", row, columns);
 
   for (size_t i=0; i<100; i++) {
-    sprintf(keybuf, "%s-%d", row, (int)i);
+	snprintf(keybuf, sizeof(keybuf), "%s-%d", row, (int)i);
     md5_csum((unsigned char *)keybuf, strlen(keybuf), (unsigned char *)key.digest);
     if (cache->lookup(&key, result, &result_length, &cell_count)) {
       cout << "Error: key found." << endl;
@@ -141,7 +141,7 @@ int main(int argc, char **argv) {
   for (size_t i=0; i<TOTAL_INSERTS; i++) {
     rand_val = (uint32_t)random();
     charno = (random() % 26) + (uint32_t)'a';
-    sprintf(keybuf, "%c-%d", charno, (int)rand_val);
+	snprintf(keybuf, sizeof(keybuf), "%c-%d", charno, (int)rand_val);
     md5_csum((unsigned char *)keybuf, strlen(keybuf), (unsigned char *)track_buf[track_buf_i].key.digest);
     track_buf[track_buf_i].row[0] = (char)charno;
     track_buf[track_buf_i].row[1] = (char)charno;

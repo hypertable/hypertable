@@ -67,7 +67,7 @@ using namespace std;
 
 namespace {
 
-  struct AppPolicy : Config::Policy {
+  struct AppPolicy : Policy {
     static void init_options() {
       alias("port", "Hypertable.Master.Port");
       alias("workers", "Hypertable.Master.Workers");
@@ -138,7 +138,7 @@ int main(int argc, char **argv) {
       Hyperspace::SessionPtr hyperspace = make_shared<Hyperspace::Session>(Comm::instance(), properties);
       context = make_shared<Context>(properties, hyperspace);
       context->monitoring = make_shared<Monitoring>(context.get());
-      context->op = make_unique<OperationProcessor>(context, get_i32("workers"));
+      context->op = std::make_unique<OperationProcessor>(context, get_i32("workers"));
 
       ConnectionHandlerFactoryPtr connection_handler_factory(new HandlerFactory(context));
       context->comm->listen(listen_addr, connection_handler_factory);
@@ -308,6 +308,11 @@ int main(int argc, char **argv) {
       if (!context->set_startup_status(false))
         context->start_shutdown();
 
+      if (get_bool("Hypertable.Config.OnFileChange.Reload")){
+        // inotify can be an option instead of a timer based Handler
+        ConfigHandlerPtr hdlr = std::make_shared<ConfigHandler>(properties);
+        hdlr->run();
+      }
       context->op->join();
     }
     catch (Exception &e) {

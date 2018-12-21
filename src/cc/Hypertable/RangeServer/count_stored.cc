@@ -47,7 +47,7 @@ using namespace std;
 
 namespace {
 
-struct MyPolicy : Config::Policy {
+struct MyPolicy : Policy {
   static void init_options() {
     cmdline_desc("Usage: %s [options] <table>\n\n"
       "  This program counts the number of cells that exist in CellStores\n"
@@ -57,8 +57,7 @@ struct MyPolicy : Config::Policy {
       "  number of cells...\nOptions");
     cmdline_hidden_desc().add_options()
       ("table", str(), "name of the table to scan")
-      ;
-    cmdline_positional_desc().add("table", -1);
+      ("table", -1);
   }
 };
 
@@ -98,7 +97,9 @@ int main(int argc, char **argv) {
     bool hit_start = false;
     uint64_t total_count = 0;
     uint64_t store_count = 0;
-    int timeout = get_i32("FsBroker.Timeout");
+    
+    uint32_t timeout = properties->get_pref<int32_t>(
+       {"FsBroker.Timeout", "Hypertable.Request.Timeout"});
 
     // Create Hypertable client object
     ClientPtr hypertable_client = make_shared<Hypertable::Client>(argv[0]);

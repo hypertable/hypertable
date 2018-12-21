@@ -26,7 +26,6 @@
 #include "DataGeneratorRandom.h"
 #include "DataGeneratorRowComponent.h"
 
-#include <Common/Config.h>
 #include <Common/Logger.h>
 #include <Common/String.h>
 
@@ -80,7 +79,7 @@ namespace Hypertable {
   class QualifierFactory {
   public:
     static Qualifier *create(QualifierSpec &spec) {
-      if (spec.type == STRING)
+      if (spec.type == Type::STRING)
         return new QualifierString(spec);
       else
         HT_ASSERT(!"Invalid qualifier type");

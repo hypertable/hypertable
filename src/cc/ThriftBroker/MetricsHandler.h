@@ -42,7 +42,6 @@
 
 namespace Hypertable {
 
-  using namespace std;
 
   /// @addtogroup ThriftBroker
   /// @{

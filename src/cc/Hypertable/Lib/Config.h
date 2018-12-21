@@ -24,6 +24,7 @@
 
 #include "Common/Config.h"
 #include "AsyncComm/Config.h"
+#include "AsyncComm/ConfigHandler.h"
 #include "Hyperspace/Config.h"
 #include "FsBroker/Lib/Config.h"
 

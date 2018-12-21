@@ -59,8 +59,9 @@ namespace {
       cmdline_desc(usage).add_options()
         ("no-hyperspace", "Do not establish a connection to hyperspace")
         ;
-      cmdline_hidden_desc().add_options()("address", str(), "");
-      cmdline_positional_desc().add("address", -1);
+      cmdline_hidden_desc().add_options()
+      ("address", str(), "")
+      ("address", -1);
     }
     static void init() {
       if (has("address")) {

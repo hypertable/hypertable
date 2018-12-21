@@ -33,7 +33,6 @@
 #include <AsyncComm/ConnectionManager.h>
 #include <AsyncComm/ReactorFactory.h>
 
-#include <Common/Config.h>
 #include <Common/FileUtils.h>
 #include <Common/InetAddr.h>
 #include <Common/Init.h>
@@ -247,7 +246,7 @@ main(int ac, char *av[]) {
     /**
      *  Log file rollover test
      */
-    Config::properties->set("Hypertable.MetaLog.MaxFileSize", (int64_t)50000);
+    properties->set("Hypertable.MetaLog.MaxFileSize", (int64_t)50000);
     writer = make_shared<MetaLog::Writer>(fs, g_test_definition,
                                           testdir + "/" + g_test_definition->name(),
                                           g_entities);

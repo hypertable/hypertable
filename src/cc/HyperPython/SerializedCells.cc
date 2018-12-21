@@ -37,10 +37,11 @@ static addfn afn = &Hypertable::SerializedCellsWriter::add;
 static getlenfn lenfn = &Hypertable::SerializedCellsWriter::get_buffer_length;
 
 static PyObject *convert(const SerializedCellsWriter &scw) {
-  boost::python::object obj(handle<>(PyBuffer_FromMemory(
-                      (void *)scw.get_buffer(), scw.get_buffer_length())));
-  return boost::python::incref(obj.ptr());
-}
+	return boost::python::incref(boost::python::object(String((const char *)scw.get_buffer(), (const int32_t)scw.get_buffer_length())).ptr());
+}	
+static PyObject *get_value( SerializedCellsReader &scr) {
+	return boost::python::incref(boost::python::object(String((char *)scr.value(), scr.value_len())).ptr());
+}	
 
 BOOST_PYTHON_MODULE(libHyperPython)
 {
@@ -68,11 +69,9 @@ BOOST_PYTHON_MODULE(libHyperPython)
           return_value_policy<return_by_value>())
     .def("column_qualifier", &SerializedCellsReader::column_qualifier,
           return_value_policy<return_by_value>())
-    .def("value", &SerializedCellsReader::value_str,
-          return_value_policy<return_by_value>())
+    .def("value",&SerializedCellsReader::value_str)
     .def("value_len", &SerializedCellsReader::value_len)
-    .def("value_str", &SerializedCellsReader::value_str,
-          return_value_policy<return_by_value>())
+    .def("value_str", &get_value)
     .def("timestamp", &SerializedCellsReader::timestamp)
     .def("cell_flag", &SerializedCellsReader::cell_flag)
     .def("flush", &SerializedCellsReader::flush)

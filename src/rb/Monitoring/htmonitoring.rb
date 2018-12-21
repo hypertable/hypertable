@@ -108,8 +108,8 @@ module HTMonitoring
     end
 
     get '/mop_graph' do
-        file_name = HTMonitoring.config[:data]+"mop.jpg"
-        content_type 'image/jpg'
+        file_name = HTMonitoring.config[:data]+"mop.svg"
+        content_type 'image/svg+xml'
         if File.exists?(file_name) 
            file = File.open(file_name)
            contents=""

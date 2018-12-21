@@ -43,7 +43,7 @@ using namespace std;
 
 namespace {
 
-  struct MyPolicy : Config::Policy {
+  struct MyPolicy : Policy {
     static void init_options() {
       cmdline_desc().add_options()
         ("dryrun,n", "Dryrun, don't modify (delete files etc.)")

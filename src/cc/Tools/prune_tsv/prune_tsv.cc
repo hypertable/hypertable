@@ -55,15 +55,14 @@ namespace {
   struct AppPolicy : Policy {
     static void init_options() {
       cmdline_desc(usage).add_options()
-        ("field", i32()->default_value(0), "Field number of each line to parse")
-        ("newer", boo()->zero_tokens()->default_value(false),
-	 "Remove lines that are newer than calculated cutoff date")
-        ("seconds", boo()->zero_tokens()->default_value(false),
-	 "Interpret all-digit fields as seconds instead of nanoseconds")
-        ("zhack", boo()->zero_tokens()->default_value(false), "")
+        ("field", i32(0), "Field number of each line to parse")
+        ("newer", boo(false)->zero_token(), "Remove lines that are newer than calculated cutoff date")
+        ("seconds", boo(false)->zero_token(), "Interpret all-digit fields as seconds instead of nanoseconds")
+        ("zhack", boo(false)->zero_token(), "")
         ;
-      cmdline_hidden_desc().add_options()("past-date-offset", str(), "");
-      cmdline_positional_desc().add("past-date-offset", -1);
+      cmdline_hidden_desc().add_options()
+      ("past-date-offset", str(), "")
+      ("past-date-offset", -1);
     }
     static void init() {
       if (!has("past-date-offset")) {

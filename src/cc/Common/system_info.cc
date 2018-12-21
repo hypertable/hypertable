@@ -82,7 +82,7 @@ int main(int ac, char *av[]) {
     Strings strs = get_strs("property");
 
     for (auto &s : strs)
-      cout << Properties::to_str((*properties)[s]) << endl;
+      cout << properties->str(s) << endl;
 
     has_option = true;
   }

@@ -28,11 +28,15 @@ namespace Hypertable { namespace Config {
 
 void init_thrift_client_options() {
   cmdline_desc().add_options()
-    ("thrift-broker", str()->default_value("localhost:15867"),
-        "Thrift client endpoint in <host:port> format")
+    ("thrift-broker", str("localhost:15867"),
+     "Thrift client endpoint in <host:port> format")
     ("thrift-timeout", i32(),
-        "Timeout in milli-seconds for thrift client connections")
+     "Timeout in milli-seconds for thrift client connections")
+	  ("thrift-transport", str("framed"),
+     "Thrift transport")
     ;
+
+  alias("thrift-transport", "ThriftBroker.Transport");
   alias("thrift-timeout", "ThriftBroker.Timeout");
   // hidden aliases
   alias("thrift-host", "ThriftBroker.Host");
@@ -51,11 +55,14 @@ void init_thrift_client() {
 
 void init_thrift_broker_options() {
   cmdline_desc().add_options()
-    ("port", i16()->default_value(15867), "Listening port")
+    ("port", i16(15867), "Listening port")
     ("pidfile", str(), "File to contain the process id")
-    ("log-api", boo()->default_value(false), "Enable or disable API logging")
-    ("workers", i32()->default_value(50), "Worker threads")
+    ("log-api", boo(false), "Enable or disable API logging")
+    ("workers", i32(50), "Worker threads")
+	  ("thrift-transport", str("framed"), "Thrift transport")
     ;
+
+  alias("thrift-transport", "ThriftBroker.Transport");
   alias("port", "ThriftBroker.Port");
   alias("log-api", "ThriftBroker.API.Logging");
   alias("workers", "ThriftBroker.Workers");

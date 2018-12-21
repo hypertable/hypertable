@@ -50,7 +50,7 @@ namespace Hypertable { namespace Config {
    * @param desc Optional command option descriptor
    */
   template <class PolicyT>
-  inline void init_with_policy(int argc, char *argv[], const Desc *desc = 0) {
+  inline void init_with_policy(int argc, char *argv[], Desc *desc = 0) {
     try {
       System::initialize();
 
@@ -63,9 +63,8 @@ namespace Hypertable { namespace Config {
       PolicyT::init_options();
       parse_args(argc, argv);
       PolicyT::init();
-      sync_aliases(); // init can generate more aliases
 
-      if (get_bool("verbose"))
+      if (get<gBool>("verbose"))
         properties->print(std::cout);
     }
     catch (Exception &e) {
@@ -81,7 +80,7 @@ namespace Hypertable { namespace Config {
    * @param desc Optional command option descriptor
    */
   template <class PolicyListT>
-  inline void init_with_policies(int argc, char *argv[], const Desc *desc = 0) {
+  inline void init_with_policies(int argc, char *argv[], Desc *desc = 0) {
     typedef typename Join<PolicyListT>::type Combined;
     init_with_policy<Combined>(argc, argv, desc);
   }
@@ -92,7 +91,7 @@ namespace Hypertable { namespace Config {
    * @param argv The argv parameter of the main() function
    * @param desc Optional command option descriptor
    */
-  inline void init(int argc, char *argv[], const Desc *desc = NULL) {
+  inline void init(int argc, char *argv[], Desc *desc = NULL) {
     init_with_policy<DefaultPolicy>(argc, argv, desc);
   }
 

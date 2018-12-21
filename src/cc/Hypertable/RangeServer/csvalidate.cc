@@ -62,15 +62,16 @@ using namespace std;
 
 namespace {
 
-  struct AppPolicy : Config::Policy {
+  struct AppPolicy : Policy {
     static void init_options() {
       cmdline_desc("Usage: %s [options] <filename>\n\n"
         "Dumps the contents of the CellStore contained in the FS <filename>."
         "\n\nOptions").add_options()
         ("repair", "Repair any corruption that is found")
         ;
-      cmdline_hidden_desc().add_options()("filename", str(), "");
-      cmdline_positional_desc().add("filename", -1);
+      cmdline_hidden_desc().add_options()
+      ("filename", str(), "")
+      ("filename", -1);
     }
     static void init() {
       if (!has("filename")) {

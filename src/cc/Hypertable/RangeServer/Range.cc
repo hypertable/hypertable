@@ -274,6 +274,9 @@ void Range::load_cell_stores() {
 
   HT_INFOF("Loading cellstores for '%s'", m_name.c_str());
 
+  bool skip_not_found = Config::get_bool("Hypertable.RangeServer.CellStore.SkipNotFound");
+  bool skip_bad = Config::get_bool("Hypertable.RangeServer.CellStore.SkipBad");
+
   HT_ON_SCOPE_EXIT(&delete_metadata_pointer, &metadata);
 
   m_metalog_entity->get_boundary_rows(start_row, end_row);
@@ -331,9 +334,6 @@ void Range::load_cell_stores() {
     files = "";
 
     String file_basename = Global::toplevel_dir + "/tables/";
-
-    bool skip_not_found = Config::properties->get_bool("Hypertable.RangeServer.CellStore.SkipNotFound");
-    bool skip_bad = Config::properties->get_bool("Hypertable.RangeServer.CellStore.SkipBad");
 
     for (size_t i=0; i<csvec.size(); i++) {
 
@@ -566,7 +566,7 @@ Range::get_maintenance_data(ByteArena &arena, time_t now,
   int64_t size=0;
   int64_t starting_maintenance_generation;
 
-  memset(mdata, 0, sizeof(MaintenanceData));
+  memset(reinterpret_cast<void*>(mdata), 0, sizeof(MaintenanceData));
 
   {
     lock_guard<mutex> lock(m_schema_mutex);

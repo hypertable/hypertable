@@ -516,7 +516,7 @@ namespace Hypertable {
     InetAddr m_local_addr;
 
     /// Verbose flag
-    bool m_verbose {};
+    gBoolPtr m_verbose {};
   };
 
   /** @}*/

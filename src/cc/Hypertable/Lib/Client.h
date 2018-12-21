@@ -22,6 +22,8 @@
 #ifndef Hypertable_Lib_Client_h
 #define Hypertable_Lib_Client_h
 
+#include "Config.h"
+
 #include "Master/Client.h"
 #include "NameIdMapper.h"
 #include "Namespace.h"
@@ -137,7 +139,7 @@ namespace Hypertable {
 
     void initialize();
 
-    PropertiesPtr           m_props;
+    PropertiesPtr          m_props;
     Comm                   *m_comm;
     ConnectionManagerPtr    m_conn_manager;
     ApplicationQueueInterfacePtr m_app_queue;
@@ -146,11 +148,11 @@ namespace Hypertable {
     Lib::Master::ClientPtr m_master_client;
     RangeLocatorPtr         m_range_locator;
     uint32_t                m_timeout_ms;
-    std::string                  m_install_dir;
+    std::string             m_install_dir;
     TableCachePtr           m_table_cache;
     NamespaceCachePtr       m_namespace_cache;
     bool                    m_hyperspace_reconnect;
-    std::string                  m_toplevel_dir;
+    std::string             m_toplevel_dir;
   };
 
   typedef std::shared_ptr<Client> ClientPtr;

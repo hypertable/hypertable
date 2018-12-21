@@ -56,13 +56,13 @@ namespace Hypertable {
          "Maximum number of bytes of key and value data to generate")
         ("DataGenerator.MaxKeys", i64(),
          "Maximum number of keys to generate for query load")
-        ("DataGenerator.Seed", i32()->default_value(1),
+        ("DataGenerator.Seed", i32(1),
          "Pseudo-random number generator seed")
-        ("rowkey.order", str()->default_value("random"), "Order in which to "
+        ("rowkey.order", str("random"), "Order in which to "
          "generate row keys (random, ascending)")
-        ("rowkey.distribution", str()->default_value("uniform"),
+        ("rowkey.distribution", str("uniform"),
          "Default rowkey distribution (uniform, zipf)")
-        ("rowkey.seed", i32()->default_value(1),
+        ("rowkey.seed", i32(1),
          "Default rowkey random number generator seed")
         ("rowkey.component.<n>.type", str(),
          "Type of rowkey component <n> (string, integer)")
@@ -100,8 +100,9 @@ namespace Hypertable {
   /**
    * Provides an STL-style iterator on DataGenerator objects.
    */
-  class DataGeneratorIterator : public boost::iterator<forward_iterator_tag, Cell> {
-
+  class DataGeneratorIterator : public iterator<forward_iterator_tag, Cell> {
+  //class DataGeneratorIterator : public boost::iterator<forward_iterator_tag, Cell> { //boost 1.66.0?
+  
     friend class DataGenerator;
 
   public:

@@ -294,20 +294,21 @@ RSML OPTIONS
 
 Options)";
 
-  struct AppPolicy : Config::Policy {
+  struct AppPolicy : Policy {
     static void init_options() {
       cmdline_desc(usage).add_options()
         ("all", "Used with --dump to display all entities in log (not just latest state)")
         ("balance-plan-change-destination", str(),
          "Change balance plan destination, format = <failed-server>,<plan-type>,<old-rs>,<new-rs>")
-        ("balance-plan-drop-table", str(), "Drop table with this ID from balance plans")
+        ("balance-plan-drop-table", str(), 
+         "Drop table with this ID from balance plans")
         ("balance-plan-incr-generation", "Increment the generation number of the balance plan authority")
         ("balance-plan-clear-current-set", "Clears the \"current set\" of move specifications")
         ("change-move-destinations", str(), "Change move destinations, format is rsN-rsM,rsO-rsP,...")
         ("dump", "Display a textual representation of entities in log")
         ("metadata-tsv", "For each Range, dump StartRow and Location .tsv lines")
         ("select", str(),  "Apply changes on these entities")
-        ("location", str()->default_value(""),
+        ("location", str(""),
          "Used with --metadata-tsv to specify location proxy")
         ("purge", "Purge entities")
         ("acknowledge-load", boo(), "Set the load_acknowledged bit for each Range entity")
@@ -324,8 +325,9 @@ Options)";
          "Translate Range entities matching source to this")
         ("show-version", "Display log version number and exit")
         ;
-      cmdline_hidden_desc().add_options()("log-path", str(), "dfs log path");
-      cmdline_positional_desc().add("log-path", -1);
+      cmdline_hidden_desc().add_options()
+      ("log-path", str(), "dfs log path")
+      ("log-path", -1);
     }
     static void init() {
       if (!has("log-path")) {
@@ -535,7 +537,7 @@ int main(int argc, char **argv) {
   try {
     init_with_policies<Policies>(argc, argv);
 
-    ConnectionManagerPtr conn_manager_ptr = make_shared<ConnectionManager>();
+    ConnectionManagerPtr conn_manager_ptr = std::make_shared<ConnectionManager>();
 
     String log_path = get_str("log-path");
     String log_host = get("log-host", String());
@@ -609,10 +611,10 @@ int main(int argc, char **argv) {
       int log_port = get_i16("log-port");
       InetAddr addr(log_host, log_port);
 
-      dfs_client = make_shared<FsBroker::Lib::Client>(conn_manager_ptr, addr, timeout);
+      dfs_client = std::make_shared<FsBroker::Lib::Client>(conn_manager_ptr, addr, timeout);
     }
     else {
-      dfs_client = make_shared<FsBroker::Lib::Client>(conn_manager_ptr, properties);
+      dfs_client = std::make_shared<FsBroker::Lib::Client>(conn_manager_ptr, properties);
     }
 
     if (!dfs_client->wait_for_connection(timeout)) {
@@ -622,9 +624,9 @@ int main(int argc, char **argv) {
 
     // Population Defintion map
     unordered_map<String, MetaLog::DefinitionPtr> defmap;
-    MetaLog::DefinitionPtr def = make_shared<MetaLog::DefinitionRangeServer>("");
+    MetaLog::DefinitionPtr def = std::make_shared<MetaLog::DefinitionRangeServer>("");
     defmap[def->name()] = def;
-    def = make_shared<MetaLog::DefinitionMaster>("");
+    def = std::make_shared<MetaLog::DefinitionMaster>("");
     defmap[def->name()] = def;
 
     FilesystemPtr fs = static_pointer_cast<Filesystem>(dfs_client);
@@ -643,11 +645,11 @@ int main(int argc, char **argv) {
 
     int reader_flags = dump_all ? MetaLog::Reader::LOAD_ALL_ENTITIES : 0;
     if (is_file) {
-      rsml_reader = make_shared<MetaLog::Reader>(fs, def, reader_flags);
+      rsml_reader = std::make_shared<MetaLog::Reader>(fs, def, reader_flags);
       rsml_reader->load_file(log_path);
     }
     else
-      rsml_reader = make_shared<MetaLog::Reader>(fs, def, log_path, reader_flags);
+      rsml_reader = std::make_shared<MetaLog::Reader>(fs, def, log_path, reader_flags);
 
     if (!metadata_tsv)
       cout << "log version: " << rsml_reader->version() << "\n";

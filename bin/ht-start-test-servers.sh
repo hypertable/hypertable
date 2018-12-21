@@ -36,6 +36,7 @@ usage_exit() {
   echo "  --heapcheck-rangeserver  Pass --heapcheck option to ht-start-rangeserver.sh"
   echo "  --valgrind-rangeserver   Pass --valgrind option to ht-start-rangeserver.sh"
   echo "  --valgrind-thriftbroker  Pass --valgrind option to ht-start-thriftbroker.sh"
+  echo "  --opt--Any  			   Pass --Any option to ht start all-servers"
   echo
   echo "Starts all Hypertable processes on localhost.  By default, the local filesystem"
   echo "broker is started.  Alternatively, the environment varibale HT_TEST_FS can be"
@@ -61,16 +62,27 @@ while [ $# -gt 0 ]; do
     --clear)              clear=1;;
     -h|--help)            usage_exit;;
     --val*|--no*|--heap*) opts[${#opts[*]}]=$1;;
+    --opt-*) 			  tmp=$1;opts[${#opts[*]}]=${tmp:5};;
     *)                    break;;
   esac
   shift
 done
 
 if [ "$clear" ]; then
-  $INSTALL_DIR/bin/ht-start-fsbroker.sh $HT_TEST_FS
-  $INSTALL_DIR/bin/ht destroy-database "$@"
+	$INSTALL_DIR/bin/ht-start-fsbroker.sh $HT_TEST_FS
+	$INSTALL_DIR/bin/ht destroy-database "$@"
+	
+	PIDS1=`ps auxww | fgrep "$INSTALL_DIR/bin/ht" | grep -v "ht-start-test-servers.sh" | fgrep -v grep | tr -s "[ ]" | cut -f2 -d' '`
+	PIDS2=`ps auxww | fgrep "org.hypertable.FsBroker.hadoop.main" | fgrep -v grep | tr -s "[ ]" | cut -f2 -d' '`
+	if [ -n "$PIDS1" ] || [ -n "$PIDS2" ]; then
+		COUNT=`echo "$PIDS1 $PIDS2" | wc -w`
+		echo "Sending SIGKILL to $COUNT processes ..."
+		kill -9 `echo "$PIDS1 $PIDS2"`
+	fi
 else
   $INSTALL_DIR/bin/ht stop servers "$@"
 fi
+  
 
 $INSTALL_DIR/bin/ht start all-servers "${opts[@]}" $HT_TEST_FS "$@"
+sleep 3

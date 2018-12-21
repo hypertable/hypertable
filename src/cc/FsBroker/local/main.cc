@@ -30,7 +30,6 @@
 #include <AsyncComm/Comm.h>
 #include <AsyncComm/DispatchHandler.h>
 
-#include <Common/Config.h>
 #include <Common/Error.h>
 #include <Common/FileUtils.h>
 #include <Common/InetAddr.h>
@@ -58,13 +57,13 @@ namespace {
   struct AppPolicy : Policy {
     static void init_options() {
       cmdline_desc().add_options()
-        ("root", str()->default_value("fs/local"), "root directory for local "
+        ("root", str("fs/local"), "root directory for local "
          "broker (if relative, it's relative to the installation directory")
         ;
-      alias("port", "FsBroker.Local.Port");
+      alias("port", "FsBroker.Listen.Port");
       alias("root", "FsBroker.Local.Root");
-      alias("workers", "FsBroker.Local.Workers");
-      alias("reactors", "FsBroker.Local.Reactors");
+      alias("workers", "FsBroker.Listen.Workers");
+      alias("reactors", "FsBroker.Listen.Reactors");
     }
   };
 
@@ -76,21 +75,9 @@ namespace {
 int main(int argc, char **argv) {
   try {
     init_with_policies<Policies>(argc, argv);
-    int port;
+    
+    int port = get_i16("port");
     int worker_count = get_i32("workers");
-
-    if (has("port"))
-      port = get_i16("port");
-    else
-      port = get_i16("FsBroker.Port");
-
-    // Backward compatibility
-    if (has("DfsBroker.Local.Port"))
-      port = get_i16("DfsBroker.Local.Port");
-    else if (has("DfsBroker.Port"))
-      port = get_i16("DfsBroker.Port");
-    if (has("DfsBroker.Local.Workers"))
-      worker_count = get_i32("DfsBroker.Local.Workers");
 
     Comm *comm = Comm::instance();
 
@@ -101,6 +88,13 @@ int main(int argc, char **argv) {
     InetAddr listen_addr(INADDR_ANY, port);
 
     comm->listen(listen_addr, handler_factory);
+    
+    if (get_bool("Hypertable.Config.OnFileChange.Reload")){
+      // inotify can be an option instead of a timer based Handler
+      ConfigHandlerPtr hdlr = std::make_shared<ConfigHandler>(properties);
+      hdlr->run();
+    }
+    
     app_queue->join();
   }
   catch (Exception &e) {

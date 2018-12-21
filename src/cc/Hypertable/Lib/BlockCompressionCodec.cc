@@ -37,7 +37,8 @@ namespace {
     "zlib",
     "lzo",
     "quicklz",
-    "snappy"
+	"snappy",
+	"zstd"
   };
 }
 

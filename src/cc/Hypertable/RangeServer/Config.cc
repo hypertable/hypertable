@@ -31,8 +31,8 @@ void init_range_server_options() {
     ("crash-test", str(), "Arguments for crash simulation")
     ;
     alias("port", "Hypertable.RangeServer.Port");
-    alias("log-host", "Hypertable.RangeServer.CommitLog.DfsBroker.Host");
-    alias("log-port", "Hypertable.RangeServer.CommitLog.DfsBroker.Port");
+    alias("log-host", "Hypertable.RangeServer.CommitLog.FsBroker.Host");
+    alias("log-port", "Hypertable.RangeServer.CommitLog.FsBroker.Port");
     alias("reactors", "Hypertable.RangeServer.Reactors");
     alias("workers", "Hypertable.RangeServer.Workers");
 }

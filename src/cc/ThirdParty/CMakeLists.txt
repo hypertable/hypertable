@@ -17,12 +17,30 @@
 # 02110-1301, USA.
 #
 
+string(TOLOWER ${CMAKE_SYSTEM_NAME} os)
+INCLUDE_DIRECTORIES(sigar/os/${os})
+
 set(ThirdParty_SRCS
-lzo/minilzo.c
-quicklz/quicklz.cc
+	lzo/minilzo.c
+	quicklz/quicklz.cc
+	
+	sigar/sigar_version.c
+	sigar/os/${os}/${os}_sigar.c
+	sigar/sigar.c
+	sigar/sigar_cache.c
+	sigar/sigar_fileinfo.c
+	sigar/sigar_format.c
+	sigar/sigar_getline.c
+	sigar/sigar_ptql.c
+	sigar/sigar_signal.c
+	sigar/sigar_util.c
 )
 
-add_library(HyperThirdParty ${ThirdParty_SRCS})
+# lib HyperThirdParty
+HT_ADD_LIBS(
+	TARGET HyperThirdParty 
+	SRCS ${ThirdParty_SRCS}
+	)	
 
 if (NOT HT_COMPONENT_INSTALL)
   file(GLOB HEADERS *.h)

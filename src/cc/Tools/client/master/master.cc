@@ -54,8 +54,9 @@ namespace {
   struct AppPolicy : Policy {
     static void init_options() {
       cmdline_desc(usage);
-      cmdline_hidden_desc().add_options()("address", str(), "");
-      cmdline_positional_desc().add("address", -1);
+      cmdline_hidden_desc().add_options()
+      ("address", str(), "")
+      ("address", -1);
     }
     static void init() {
       if (has("address")) {

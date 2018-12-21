@@ -264,7 +264,7 @@ int main(int argc, char **argv) {
                  "./htRangeServer") == 0);
   unlink("./ht_serverup");
   HT_ASSERT(link("../../Tools/serverup/ht_serverup", "./ht_serverup") == 0);
-  system("mkdir conf");
+  system("mkdir -p conf");
   system("touch conf/METADATA.xml");
   system("touch conf/RS_METRICS.xml");
 

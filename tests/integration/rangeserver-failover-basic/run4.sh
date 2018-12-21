@@ -67,9 +67,9 @@ $HT_HOME/bin/ht RangeServer --verbose --pidfile=$RS5_PIDFILE \
 $HT_HOME/bin/ht shell --no-prompt < $SCRIPT_DIR/create-table.hql
 
 # write data 
-$HT_HOME/bin/ht load_generator --spec-file=$SCRIPT_DIR/data.spec \
+$HT_HOME/bin/ht load_generator update --spec-file=$SCRIPT_DIR/data.spec \
     --max-keys=$MAX_KEYS --row-seed=$ROW_SEED --table=LoadTest \
-    --Hypertable.Mutator.FlushDelay=50 update
+    --Hypertable.Mutator.FlushDelay=50
 if [ $? != 0 ] ; then
     $HT_HOME/bin/ht-stop-servers.sh
     kill_rs 1

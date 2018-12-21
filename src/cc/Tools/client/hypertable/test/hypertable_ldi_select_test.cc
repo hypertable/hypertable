@@ -104,7 +104,9 @@ namespace {
   struct AppPolicy : Policy {
     static void init_options() {
       cmdline_desc().add_options()
-        ("install-dir", str()->default_value("/opt/hypertable/current"), "Path to hypertable installation");
+        ("install-dir", str("/opt/hypertable/current"), 
+         "Path to hypertable installation")
+      ;
     }
   };
     

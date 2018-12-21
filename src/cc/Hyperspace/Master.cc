@@ -133,14 +133,15 @@ using namespace std;
 Hyperspace::Master::Master(ConnectionManagerPtr &conn_mgr, PropertiesPtr &props,
                ServerKeepaliveHandlerPtr &keepalive_handler,
                ApplicationQueuePtr &app_queue_ptr)
-  : m_verbose(false), m_next_handle_number(1), m_next_session_id(1),
+  : m_next_handle_number(1), m_next_session_id(1),
     m_maintenance_outstanding(false),
     m_shutdown(false), m_bdb_fs(0) {
 
-  m_verbose = props->get_bool("verbose");
-  m_lease_interval = props->get_i32("Hyperspace.Lease.Interval");
-  m_keep_alive_interval = props->get_i32("Hyperspace.KeepAlive.Interval");
-  m_maintenance_interval = props->get_i32("Hyperspace.Maintenance.Interval");
+  m_lease_interval = props->get_ptr<gInt32t>("Hyperspace.Lease.Interval");
+  m_verbose = props->get_ptr<gBool>("verbose");
+
+  //m_keep_alive_interval = props->get_i32("Hyperspace.KeepAlive.Interval");
+  //m_maintenance_interval = props->get_ptr<gInt32t>("Hyperspace.Maintenance.Interval");
 
   Path base_dir(props->get_str("Hyperspace.Replica.Dir"));
 
@@ -432,7 +433,7 @@ void Hyperspace::Master::remove_expired_sessions() {
   // mark expired sessions
   while (next_expired_session(session_data, now)) {
     bool commited = false;
-    if (m_verbose)
+    if (m_verbose->get())
       HT_INFOF("Expiring session %llu name=%s", (Llu)session_data->get_id(),
                session_data->get_name());
     commited = false;
@@ -452,7 +453,7 @@ void Hyperspace::Master::remove_expired_sessions() {
 
   // delete handles open by expired sessions
   for (auto handle : handles) {
-    if (m_verbose)
+    if (m_verbose->get())
       HT_INFOF("Destroying handle %llu", (Llu)handle);
     if (!destroy_handle(handle, error, errmsg, false))
       HT_INFOF("Problem destroying handle - %s (%s)",
@@ -671,7 +672,7 @@ Hyperspace::Master::open(ResponseCallbackOpen *cb, uint64_t session_id, const ch
   if (commited)
     deliver_event_notifications(ctx);
 
-  if (m_verbose)
+  if (m_verbose->get())
     HT_INFOF("exitting open(session_id=%llu, session_name = %s, fname=%s, flags=0x%x, event_mask=0x%x)",
         (Llu)ctx.session_id, ctx.session_data->get_name(), name, flags, event_mask);
 
@@ -724,7 +725,7 @@ void Hyperspace::Master::close(CommandContext &ctx, uint64_t handle)
     }
   }
 
-  if (m_verbose)
+  if (m_verbose->get())
     HT_INFOF("close(session=%llu(%s), handle=%llu)", (Llu)ctx.session_id,
              ctx.session_data->get_name(), (Llu)handle);
 
@@ -1158,7 +1159,7 @@ Hyperspace::Master::readpath_attr(ResponseCallbackReadpathAttr *cb, uint64_t ses
  * shutdown
  */
 void Hyperspace::Master::shutdown(ResponseCallback *cb, uint64_t session_id) {
-  if (m_verbose)
+  if (m_verbose->get())
     HT_INFOF("shutdown(session=%llu", (Llu)session_id);
 
   // destroy session
@@ -1221,7 +1222,7 @@ Hyperspace::Master::lock(ResponseCallbackLock *cb, uint64_t session_id, uint64_t
     return;
   }
 
-  if (m_verbose) {
+  if (m_verbose->get()) {
     HT_INFOF("lock(session=%llu(%s), handle=%llu, mode=0x%x, try_lock=%d)",
              (Llu)session_id, session_data->get_name(), (Llu)handle, mode, try_lock);
   }
@@ -1428,7 +1429,7 @@ Hyperspace::Master::release(ResponseCallback *cb, uint64_t session_id, uint64_t 
     return;
   }
 
-  if (m_verbose) {
+  if (m_verbose->get()) {
     HT_INFOF("release(session=%llu(%s), handle=%llu)",
              (Llu)session_id, session_data->get_name(), (Llu)handle);
   }
@@ -1679,7 +1680,7 @@ Hyperspace::Master::deliver_event_notifications(HyperspaceEventPtr &event_ptr,
     if (wait_for_notify)
       event_ptr->wait_for_notifications();
 
-    if (m_verbose)
+    if (m_verbose->get())
       HT_INFOF("exitting deliver_event_notifications for event_id=%llu mask=0x%x sessions=(%s )",
                (Llu)event_ptr->get_id(), (int)(Llu)event_ptr->get_mask(), sessions_str.c_str());
   }
@@ -1838,7 +1839,7 @@ void Hyperspace::Master::handle_wakeup() {
 
   std::chrono::milliseconds lease_credit = 
     std::chrono::duration_cast<std::chrono::milliseconds>(now - m_sleep_time) +
-    std::chrono::milliseconds(m_lease_interval);
+    std::chrono::milliseconds(m_lease_interval->get());
 
   // extend all leases
   {
@@ -1872,7 +1873,7 @@ void Hyperspace::Master::do_maintenance() {
 }
 
 void Hyperspace::Master::mkdir(CommandContext &ctx, const char *name) {
-  if (m_verbose) {
+  if (m_verbose->get()) {
     HT_INFOF("%s(session_id=%llu, name=%s)", ctx.friendly_name, (Llu)ctx.session_id, name);
   }
 
@@ -1943,7 +1944,7 @@ void Hyperspace::Master::open(CommandContext &ctx, const char *name,
     }
   }
 
-  if (m_verbose) {
+  if (m_verbose->get()) {
     HT_INFOF("open(session_id=%llu, session_name = %s, fname=%s, flags=0x%x, event_mask=0x%x)",
              (Llu)ctx.session_id,ctx. session_data->get_name(), name, flags, event_mask);
   }
@@ -2078,7 +2079,7 @@ void Hyperspace::Master::open(CommandContext &ctx, const char *name,
 }
 
 void Hyperspace::Master::unlink(CommandContext &ctx, const char *name) {
-  if (m_verbose) {
+  if (m_verbose->get()) {
     HT_INFOF("%s(session_id=%llu, name=%s)", ctx.friendly_name, (Llu)ctx.session_id, name);
   }
 
@@ -2143,7 +2144,7 @@ void Hyperspace::Master::attr_set(CommandContext &ctx, uint64_t handle,
 
   std::string attr_names;
   size_t total_value_len = 0;
-  if (m_verbose) {
+  if (m_verbose->get()) {
     for (const auto &attr : attrs) {
       attr_names += attr.name;
       attr_names += ",";
@@ -2167,7 +2168,7 @@ void Hyperspace::Master::attr_set(CommandContext &ctx, uint64_t handle,
     create_event(ctx, node, EVENT_MASK_ATTR_SET, attr.name);
   }
 
-  if (m_verbose) {
+  if (m_verbose->get()) {
     HT_INFOF("exitting attrset(session=%llu(%s), handle=%llu, name=%s, value_len=%d)",
              (Llu)ctx.session_id, ctx.session_data->get_name(), (Llu)handle, attr_names.c_str(), (int)total_value_len);
   }
@@ -2293,13 +2294,13 @@ void Hyperspace::Master::exists(CommandContext& ctx, const char *name, bool& fil
   HT_ASSERT(ctx.txn);
   BDbTxn &txn = *ctx.txn;
 
-  if (m_verbose)
+  if (m_verbose->get())
     HT_INFOF("exists(session_id=%llu, name=%s)", (Llu)ctx.session_id, name);
 
   HT_ASSERT(name[0] == '/' && (name[1] == '\0' || name[strlen(name)-1] != '/'));
   file_exists = m_bdb_fs->exists(txn, name);
 
-  if (m_verbose)
+  if (m_verbose->get())
     HT_INFOF("exitting exists(session_id=%llu, name=%s)", (Llu)ctx.session_id, name);
 }
 
@@ -2396,7 +2397,7 @@ bool Hyperspace::Master::get_handle_node(CommandContext &ctx, uint64_t handle, c
     }
   }
 
-  if (m_verbose) {
+  if (m_verbose->get()) {
     if (attr && *attr)
       HT_INFOF("%s(session=%llu(%s), handle=%llu, attr=%s)", ctx.friendly_name,
                (Llu)ctx.session_id, ctx.session_data->get_name(), (Llu)handle, attr);
@@ -2435,7 +2436,7 @@ bool Hyperspace::Master::get_named_node(CommandContext &ctx, const char *name, c
     }
   }
 
-  if (m_verbose) {
+  if (m_verbose->get()) {
     if (attr && *attr)
       HT_INFOF("%s(session=%llu(%s), name=%s, attr=%s)", ctx.friendly_name,
                  (Llu)ctx.session_id, ctx.session_data->get_name(), name, attr);

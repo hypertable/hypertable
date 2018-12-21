@@ -52,7 +52,7 @@ namespace {
   struct AppPolicy : Policy {
     static void init_options() {
       cmdline_desc(usage).add_options()
-        ("md5-chars", i32()->default_value(4), "Name of checksum characters to output")
+        ("md5-chars", i32(4), "Name of checksum characters to output")
         ;
     }
     static void init() {

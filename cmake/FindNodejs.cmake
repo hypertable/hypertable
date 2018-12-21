@@ -29,6 +29,9 @@ if (NODEJS_RETURN STREQUAL "0")
                RETURN_VALUE NODEJS_RETURN)
   message(STATUS "Node.js Version: ${NODEJS_VERSION_STRING}")
   set(NODEJS_FOUND TRUE)
+  
+  install(PROGRAMS "${NODEJS_EXECUTABLE}" DESTINATION ${CMAKE_INSTALL_PREFIX}/sbin)
+ 
 else ()
   message(STATUS "Node.js: not found")
   set(NODEJS_FOUND FALSE)

@@ -30,7 +30,6 @@
 
 #include <boost/algorithm/string.hpp>
 #include <boost/program_options.hpp>
-namespace po = boost::program_options;
 
 #include "FileUtils.h"
 #include "System.h"
@@ -80,33 +79,34 @@ int main(int argc, char **argv) {
 
   try {
 
-    po::options_description generic(usage_str);
+    namespace Po = boost::program_options;
+    Po::options_description generic(usage_str);
     generic.add_options()
       ("help", "Display this help message")
-      ("map-file", po::value<string>(), "File containing lines of string "
+      ("map-file", Po::value<string>(), "File containing lines of string "
           "mappings of the form:  <from> '\\t' <to>")
-      ("mapping", po::value< vector<string> >(), "String mapping.  Example: "
+      ("mapping", Po::value< vector<string> >(), "String mapping.  Example: "
           "--mapping=\"foo\\tbar\"")
-      ("license-file", po::value<string>(), "File containing source code "
+      ("license-file", Po::value<string>(), "File containing source code "
           "header comment")
       ;
 
     // Hidden options: server location
-    po::options_description hidden("Hidden options");
+    Po::options_description hidden("Hidden options");
     hidden.add_options()
-      ("input-file", po::value< vector<string> >(), "input file")
+      ("input-file", Po::value< vector<string> >(), "input file")
       ;
 
-    po::options_description cmdline_options;
+    Po::options_description cmdline_options;
     cmdline_options.add(generic).add(hidden);
 
-    po::positional_options_description p;
+    Po::positional_options_description p;
     p.add("input-file", -1);
 
-    po::variables_map vm;
-    store(po::command_line_parser(argc, argv).
+    Po::variables_map vm;
+    store(Po::command_line_parser(argc, argv).
           options(cmdline_options).positional(p).run(), vm);
-    po::notify(vm);
+    Po::notify(vm);
 
     if (vm.count("help") || vm.count("input-file") == 0) {
       cout << generic << "\n";

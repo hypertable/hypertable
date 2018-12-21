@@ -40,7 +40,6 @@ namespace Hypertable { namespace Config {
    *  @{
    */
 
-  using namespace Property;
   typedef PropertiesDesc Desc;
 
   /** A global (recursive) configuration mutex */
@@ -54,20 +53,14 @@ namespace Hypertable { namespace Config {
    * @param name The name of the option to search for
    * @return true if there is an option with this name
    */
-  inline bool has(const String &name) {
-    HT_ASSERT(properties);
-    return properties->has(name);
-  }
+  bool has(const String &name);
 
   /** Check if a configuration value is defaulted
    *
    * @param name The name of the option
    * @return true if this option's value is the default value
    */
-  inline bool defaulted(const String &name) {
-    HT_ASSERT(properties);
-    return properties->defaulted(name);
-  }
+  bool defaulted(const String &name);
 
   /** Retrieves a configuration value
    *
@@ -93,14 +86,14 @@ namespace Hypertable { namespace Config {
    * @return The option's value
    */
   template <typename T>
-  T get(const String &name, const T &default_value) {
+  T get(const String &name, T default_value) {
     HT_ASSERT(properties);
     return properties->get<T>(name, default_value);
   }
 
   /** A macro which definds global functions like get_bool(), get_str(),
    * get_i16() etc. @see Properties.h */
-  HT_PROPERTIES_ABBR_ACCESSORS(BOOST_PP_EMPTY())
+  HT_PROPERTIES_ABBR_ACCESSORS()
 
   /**
    * Get the command line options description
@@ -114,17 +107,12 @@ namespace Hypertable { namespace Config {
    *
    * @param desc Reference to the Description object
    */
-  void cmdline_desc(const Desc &desc);
+  void cmdline_desc(Desc &desc);
 
   /** Get the command line hidden options description (for positional options)
    * @return desc Reference to the hidden description object
    */
   Desc &cmdline_hidden_desc();
-
-  /** Get the command line positional options description
-   * @return Reference to the positional escription object
-   */
-  PositionalDesc &cmdline_positional_desc();
 
   /** Get the config file options description
    *
@@ -137,8 +125,64 @@ namespace Hypertable { namespace Config {
    *
    * @param desc Reference to the Description object
    */
-  void file_desc(const Desc &desc);
+  void file_desc(Desc &desc);
 
+  /**
+   * Initialization helper; parses the argc/argv parameters into properties,
+   * reads the configuration file, handles "help" and "help-config" parameters
+   *
+   * @param argc Number of elements in argv
+   * @param argv Name of binary and command line arguments
+   */
+  void parse_args(int argc, char *argv[]);
+
+  /**
+   * Parses a configuration file and stores all configuration options into
+   * the option descriptor
+   *
+   * @param fname The filename of the configuration file
+   * @param desc Reference to the Description object
+   * @throws Error::CONFIG_BAD_CFG_FILE on error
+   */
+  void parse_file(const String &fname, Desc &desc);
+
+  String reparse_file(const String &fname);
+
+  /**
+   * Setup command line option alias for config file option.
+   * Typically used in policy init_options functions.
+   * The command line option has higher priority.
+   *
+   * Requires use of sync_alias() afterwards.
+   *
+   * @param cmdline_opt Command line option name
+   * @param file_opt Configuration file option name
+   * @param overwrite If true then existing aliases are overwritten
+   */
+  void alias(const String &cmdline_opt, const String &file_opt);
+
+  /**
+   * Toggle allow unregistered options. By default unregistered options
+   * are not allowed.
+   *
+   * @param choice If true then unregistered options are allowed, otherwise not
+   * @return The previous value
+   */
+  bool allow_unregistered_options(bool choice);
+
+  /** Returns true if unregistered options are allowed
+   *
+   * @return true if unregistered options are allowed, otherwise false
+   */
+  bool allow_unregistered_options();
+
+  /**
+   * Free all resources used
+   */
+  void cleanup();
+
+
+  
   /**
    * Interface and base of config policy
    *
@@ -209,64 +253,6 @@ namespace Hypertable { namespace Config {
   };
 
 
-  /**
-   * Initialization helper; parses the argc/argv parameters into properties,
-   * reads the configuration file, handles "help" and "help-config" parameters
-   *
-   * @param argc Number of elements in argv
-   * @param argv Name of binary and command line arguments
-   */
-  void parse_args(int argc, char *argv[]);
-
-  /**
-   * Parses a configuration file and stores all configuration options into
-   * the option descriptor
-   *
-   * @param fname The filename of the configuration file
-   * @param desc Reference to the Description object
-   * @throws Error::CONFIG_BAD_CFG_FILE on error
-   */
-  void parse_file(const String &fname, const Desc &desc);
-
-  /**
-   * Setup command line option alias for config file option.
-   * Typically used in policy init_options functions.
-   * The command line option has higher priority.
-   *
-   * Requires use of sync_alias() afterwards.
-   *
-   * @param cmdline_opt Command line option name
-   * @param file_opt Configuration file option name
-   * @param overwrite If true then existing aliases are overwritten
-   */
-  void alias(const String &cmdline_opt, const String &file_opt,
-             bool overwrite = false);
-
-  /**
-   * Sync alias values. Typically called after parse_* functions to
-   * setup values in the configuration variable map.
-   */
-  void sync_aliases();
-
-  /**
-   * Toggle allow unregistered options. By default unregistered options
-   * are not allowed.
-   *
-   * @param choice If true then unregistered options are allowed, otherwise not
-   * @return The previous value
-   */
-  bool allow_unregistered_options(bool choice);
-
-  /** Returns true if unregistered options are allowed
-   *
-   * @return true if unregistered options are allowed, otherwise false
-   */
-  bool allow_unregistered_options();
-
-  /**
-   * Free all resources used
-   */
-  void cleanup();
 
   /** @}*/
 

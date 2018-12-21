@@ -75,9 +75,9 @@ wait_for_recovery() {
 
 gen_test_data() {
     if [ ! -s golden_dump.md5 ] ; then
-        $HT_HOME/bin/ht load_generator --spec-file=$SCRIPT_DIR/data.spec \
+        $HT_HOME/bin/ht load_generator update --spec-file=$SCRIPT_DIR/data.spec \
             --max-keys=$DATA_SIZE --row-seed=$DATA_SEED --table=FailoverTest \
-            --stdout update | cut -f1 | tail -n +2 | sort -u > golden_dump.txt
+            --stdout | cut -f1 | tail -n +2 | sort -u > golden_dump.txt
         $DIGEST < golden_dump.txt > golden_dump.md5
     fi
 }
@@ -172,10 +172,10 @@ run_test() {
         exit 1
     fi
 
-    $HT_HOME/bin/ht load_generator --spec-file=$SCRIPT_DIR/data.spec \
+    $HT_HOME/bin/ht load_generator update --spec-file=$SCRIPT_DIR/data.spec \
         --max-keys=$DATA_SIZE --row-seed=$DATA_SEED --table=FailoverTest \
         --Hypertable.Mutator.ScatterBuffer.FlushLimit.PerServer=100K \
-        update
+
     if [ $? != 0 ] ; then
         echo "Problem loading table 'FailoverTest', exiting ..."
         save_failure_state

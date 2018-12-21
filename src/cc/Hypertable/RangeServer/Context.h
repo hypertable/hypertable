@@ -42,7 +42,7 @@ namespace Hypertable {
   /// @{
 
   /// Holds references to commonly needed services and data structures.
-  class Context {
+  class RangeServerContext {
   public:
     /// Configuration properties
     PropertiesPtr props;
@@ -55,7 +55,7 @@ namespace Hypertable {
   };
 
   /// Smart pointer to Context
-  typedef std::shared_ptr<Context> ContextPtr;
+  typedef std::shared_ptr<RangeServerContext> ContextPtr;
 
   /// @}
 

@@ -30,12 +30,13 @@
 #include "SshThreadsCallbacks.h"
 #include "SshOutputCollector.h"
 
+#include <Common/Init.h>
+
 #include <AsyncComm/Comm.h>
 #include <AsyncComm/ReactorFactory.h>
 
 #include <Common/Error.h>
 #include <Common/HostSpecification.h>
-#include <Common/Init.h>
 #include <Common/Logger.h>
 #include <Common/Random.h>
 #include <Common/System.h>
@@ -57,7 +58,7 @@ using namespace Hypertable;
 using namespace std;
 
 namespace {
-
+  
   std::mutex g_mutex;
   bool g_handlers_created {};
   bool g_cancelled {};
@@ -76,7 +77,7 @@ namespace {
     cout << "\n";
     cout << "ht_ssh version " << version_string() << "\n";
     cout << "\n";
-    cout << "This application uses libssh 0.6.4 (https://www.libssh.org/)\n";
+    cout << "This application uses libssh 0.8.5 (https://www.libssh.org/)\n";
     cout << "libssh is licensed under the GNU Lesser General Public License\n";
     cout << "\n";
     cout << "usage: ht_ssh [options] <hosts-specification> <command>\n";
@@ -103,6 +104,8 @@ int main(int argc, char **argv) {
 
   System::initialize();
   Config::properties = make_shared<Properties>();
+  Config::properties->set("verbose", g_boo(false)); // used with AsyncComm 
+
   ReactorFactory::initialize(System::get_processor_count());
 
   string host_spec;
@@ -110,13 +113,15 @@ int main(int argc, char **argv) {
 
   int start_delay {};
   for (int i=1; i<argc; i++) {
-    if (!strcmp(argv[i], "--debug"))
+    if (!strcmp(argv[i], "--debug")) {
       SshSocketHandler::enable_debug();
-    else if (!strcmp(argv[i], "--libssh-verbosity")) {
+      Config::properties->set("verbose", (gBool)true);
+    } else if (!strcmp(argv[i], "--libssh-verbosity")) {
       i++;
       if (i == argc)
         dump_usage_and_exit();
       SshSocketHandler::set_libssh_verbosity(argv[i]);
+      Config::properties->set("verbose", (gBool)true);
     }
     else if (!strcmp(argv[i], "--random-start-delay")) {
       i++;

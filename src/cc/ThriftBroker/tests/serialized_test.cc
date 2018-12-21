@@ -120,10 +120,15 @@ void test_reader(Thrift::Client *client) {
   client->namespace_close(ns);
 }
 
-int main() {
+int main(int argc, char** argv) {
+  Thrift::Transport ttp = Thrift::Transport::FRAMED;
+  if (argc > 1) {
+	if (strcmp(argv[1], "zlib") == 0)
+      ttp = Thrift::Transport::ZLIB;
+  }
   try {
-    // connect to the local ThriftBroker
-    Thrift::Client *client = new Thrift::Client("localhost", 15867);
+	// connect to the local ThriftBroker
+	Thrift::Client *client = new Thrift::Client(ttp, "localhost", 15867);
 
     // insert a couple of cells using the SerializedCellsWriter
     test_writer(client);

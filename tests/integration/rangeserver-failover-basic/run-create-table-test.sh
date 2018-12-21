@@ -59,8 +59,8 @@ $HT_HOME/bin/ht shell --no-prompt < $SCRIPT_DIR/create-table.hql
 wait_for_recovery
 
 # write data 
-$HT_HOME/bin/ht load_generator --spec-file=$SCRIPT_DIR/data.spec \
-    --max-keys=$MAX_KEYS --row-seed=$ROW_SEED --table=LoadTest update
+$HT_HOME/bin/ht load_generator update --spec-file=$SCRIPT_DIR/data.spec \
+    --max-keys=$MAX_KEYS --row-seed=$ROW_SEED --table=LoadTest
 if [ $? != 0 ] ; then
     echo "Problem loading table 'LoadTest', exiting ..."
     exit 1

@@ -40,7 +40,6 @@
 #include <AsyncComm/ConnectionManager.h>
 #include <AsyncComm/ReactorFactory.h>
 
-#include <Common/Config.h>
 #include <Common/Error.h>
 #include <Common/InetAddr.h>
 #include <Common/Logger.h>
@@ -80,22 +79,24 @@ namespace {
     "    fetched from hyperspace)\n"
     "Options";
 
-  struct AppPolicy : Config::Policy {
+  struct AppPolicy : Policy {
     static void init_options() {
       cmdline_desc(usage).add_options()
-          ("wait", i32()->default_value(2000), "Check wait time in ms")
+          ("wait", i32(2000), "Check wait time in ms")
           ("host", str(), "Specifies the hostname of the server(s)")
-          ("display-address", boo()->default_value(false),
+          ("display-address", boo(false),
            "Displays hostname and port of the server(s), then exits")
+          ("thrift-transport", str("framed"), "thrift-transport")
           ;
-      cmdline_hidden_desc().add_options()("server-name", str(), "");
-      cmdline_positional_desc().add("server-name", -1);
+      cmdline_hidden_desc().add_options()
+       ("server-name", str(), "")
+       ("server-name", -1);
     }
     static void init() {
       // we want to override the default behavior that verbose
       // turns on debugging by clearing the defaulted flag
       if (defaulted("logging-level"))
-        properties->set("logging-level", String("fatal"));
+        properties->set("logging-level", gEnumExt(Logger::Priority::FATAL));
     }
   };
 
@@ -127,16 +128,6 @@ namespace {
     if (properties->has("host")) {
       properties->set("FsBroker.Host", properties->get_str("host"));
       properties->set("fs-host", properties->get_str("host"));
-    }
-
-    // Backward compatibility
-    if (properties->has("DfsBroker.Host")) {
-      properties->set("FsBroker.Host", properties->get_str("DfsBroker.Host"));
-      properties->set("fs-host", properties->get_str("DfsBroker.Host"));
-    }
-    if (properties->has("DfsBroker.Port")) {
-      properties->set("FsBroker.Port", properties->get_i16("DfsBroker.Port"));
-      properties->set("fs-port", properties->get_i16("DfsBroker.Port"));
     }
 
     if (get_bool("display-address")) {
@@ -177,7 +168,7 @@ namespace {
       host = properties->get_str("host");
       std::vector<String> vec;
       vec.push_back(host);
-      properties->set("Hyperspace.Replica.Host", vec);
+      properties->set("Hyperspace.Replica.Host", (gStrings)vec);
     }
 
     if (get_bool("display-address")) {
@@ -331,9 +322,14 @@ namespace {
 
     String table_id;
     InetAddr addr(get_str("thrift-host"), get_i16("thrift-port"));
-
+	
     try {
-      Thrift::Client client(get_str("thrift-host"), get_i16("thrift-port"));
+	    Thrift::Transport ttp;
+	    if (strcmp(get_str("thrift-transport").c_str(), "zlib") == 0)
+		    ttp = Thrift::Transport::ZLIB;
+	    else
+		    ttp = Thrift::Transport::FRAMED;
+      Thrift::Client client(ttp, get_str("thrift-host"), get_i16("thrift-port"));
       ThriftGen::Namespace ns = client.open_namespace("sys");
       client.get_table_id(table_id, ns, "METADATA");
       client.namespace_close(ns);
@@ -371,10 +367,10 @@ int main(int argc, char **argv) {
   try {
     init_with_policies<Policies>(argc, argv);
 
-    bool silent = get_bool("silent");
+    bool silent = has("silent") && get_bool("silent");
+    bool verbose = get<gBool>("verbose");
     uint32_t wait_ms = get_i32("wait");
     String server_name = get("server-name", String());
-    bool verbose = get_bool("verbose");
 
     ConnectionManagerPtr conn_mgr = make_shared<ConnectionManager>();
     conn_mgr->set_quiet_mode(silent);
